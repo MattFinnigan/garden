@@ -38,4 +38,3 @@ class PlantController extends Controller {
     return $plant;
   }
 }
- 
