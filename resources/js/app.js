@@ -1,17 +1,19 @@
 import { createApp } from 'vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
-import axios from 'axios'
 import App from './components/App.vue'
 
+import Crops from './components/pages/Crops.vue'
 import Landing from './components/pages/Landing.vue'
+
 import '../css/app.css'
 
-const axiosInstance = axios.create({
-  withCredentials: true,
-})
+import Form from './components/forms/common/Form.vue'
+import Button from './components/common/Button.vue'
+import Modal from './components/common/Modal.vue'
 
 const routes = [
-  { path: '/', component: Landing }
+  { path: '/', component: Landing },
+  { path: '/crops', component: Crops }
 ]
 
 const router = createRouter({
@@ -20,5 +22,7 @@ const router = createRouter({
 })
 
 const app = createApp(App).use(router)
-app.config.globalProperties.$axios = { ...axiosInstance }
+app.component('Form', Form)
+app.component('Button', Button)
+app.component('Modal', Modal)
 app.mount('#app')

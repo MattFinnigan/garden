@@ -5,11 +5,11 @@
 </template>
 
 <script>
+import { fetchPlants } from '../../utils/api'
 export default {
   name: 'Landing',
   mounted () {
-    console.log(this)
-    this.$axios.get('/api/plants').then(response => {
+    fetchPlants().then(response => {
       console.log(response.data)
     })
   }

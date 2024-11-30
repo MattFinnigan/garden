@@ -14,9 +14,14 @@ class PlantController extends Controller {
     $plant = new Plant();
     $plant->name = $request->name;
     $plant->description = $request->description;
+    $plant->variety = $request->variety;
     $plant->image = $request->image;
     $plant->save();
-    return $plant;
+    return response()->json([
+      "status" => "success",
+      "message" => "Plant created successfully",
+      "data" => $plant
+    ]);
   }
 
   public function show($id) {
@@ -27,14 +32,23 @@ class PlantController extends Controller {
     $plant = Plant::find($id);
     $plant->name = $request->name;
     $plant->description = $request->description;
+    $plant->variety = $request->variety;
     $plant->image = $request->image;
     $plant->save();
-    return $plant;
+    return response()->json([
+      "status" => "success",
+      "message" => "Plant updated successfully",
+      "data" => $plant
+    ]);
   }
 
   public function destroy($id) {
     $plant = Plant::find($id);
     $plant->delete();
-    return $plant;
+    return response()->json([
+      "status" => "success",
+      "message" => "Plant deleted successfully",
+      "data" => $plant
+    ]);
   }
 }
