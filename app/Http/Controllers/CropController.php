@@ -28,12 +28,16 @@ class CropController extends Controller {
     return response()->json([
       "status" => "success",
       "message" => "Crop created successfully",
-      "data" => Crop::with(['crop_history', 'plant', 'crop_history.location'])->get()
+      "data" => Crop::where('id', $crop->id)->with(['crop_history', 'plant', 'crop_history.location'])->first()
     ]);
   }
 
   public function show($id) {
-    return Crop::find($id)->with('plant')->with('crop_history')->get();
+    $crop = Crop::where('id', $id)->with(['crop_history', 'plant', 'crop_history.location'])->first();
+    foreach ($crop->crop_history as $history) {
+      $history->plant_id = $crop->plant_id;
+    }
+    return $crop;
   }
 
   public function destroy ($id) {

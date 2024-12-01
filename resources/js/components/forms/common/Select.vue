@@ -1,7 +1,7 @@
 <template>
   <div class="select-container">
     <label>{{ label }}</label>
-    <select :value="modelValue" @input="$emit('update:modelValue', $event.target.value)">
+    <select :value="modelValue" @input="$emit('update:modelValue', $event.target.value)" v-bind="$attrs">
       <option v-for="option in options" :value="option.value">{{ option.label }}</option>
     </select>
   </div>

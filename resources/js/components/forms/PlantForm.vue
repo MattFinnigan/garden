@@ -23,14 +23,16 @@
 
 <script>
 import { createPlant, updatePlant } from '../../utils/api'
+import { isEmpty } from '../../utils/helpers';
 export default {
   name: 'PlantForm',
   props: {
     val: Object,
   },
+  emits: ['add', 'patch', 'close'],
   data () {
     return {
-      currPlant: this.val || {
+      currPlant: isEmpty(this.val) || this.val ? this.val : {
         name: '',
         description: '',
         variety: '',

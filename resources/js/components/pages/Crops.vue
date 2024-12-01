@@ -1,31 +1,29 @@
 <template>
   <div class="crops-page">
-    <div class="header-contain">
-      <h1>Crops</h1>
-      <Button styling="sm" @click="currCrop = {}" :disabled="!plants.length || !locations.length">Add Crop</Button>
-    </div>
-    <div v-if="loading">Loading...</div>
-    <div v-else>
-      <div v-for="crop in crops" :key="crop.id">
-        <Card :title="cropTitle(crop)" :description="cropDescription(crop)" :image="crop.image">
-          <template #actions>
-            <Button styling="sm" @click="editCrop(crop)">Edit</Button>
-            <Button styling="sm" @click="handleDelete(crop.id)">Delete</Button>
-          </template>
-        </Card>
+    <div v-if="!newCrop">
+      <div class="header-contain">
+        <h1>Crops</h1>
+        <Button styling="sm" @click="newCrop = {}" :disabled="!plants.length || !locations.length">Add Crop</Button>
+      </div>
+      <div v-if="loading">Loading...</div>
+      <div v-else>
+        <div v-for="crop in crops" :key="crop.id">
+          <Card :title="cropTitle(crop)" :description="cropDescription(crop)" :image="crop.image">
+            <template #actions>
+              <Link styling="button sm" :to="'/crop/' + crop.id">View</Link>
+              <Button styling="sm" @click="handleDelete(crop.id)">Delete</Button>
+            </template>
+          </Card>
+        </div>
       </div>
     </div>
     <CropForm
-      v-if="currCrop"
-      :value="currCrop"
+      v-else
+      :val="newCrop"
       :plants="plants"
       :locations="locations"
       @add="p => crops.push(p)"
-      @patch="p => {
-        const index = crops.findIndex(crop => crop.id === p.id)
-        crops.splice(index, 1, p)
-      }"
-      @close="currCrop = null"/>
+      @close="newCrop = null"/>
   </div>
 </template>
 
@@ -45,7 +43,7 @@ export default {
     return {
       loading: true,
       crops: [],
-      currCrop: null,
+      newCrop: null,
       plants: [],
       locations: []
     }
@@ -53,14 +51,13 @@ export default {
   mounted () {
     fetchCrops().then(response => {
       this.crops = response.data
-    }).finally(() => {
-      this.loading = false
-    })
-    fetchPlants().then(response => {
-      this.plants = response.data
-    })
-    fetchPlots().then(response => {
-      this.locations = response.data
+      fetchPlants().then(response => {
+        this.plants = response.data
+        fetchPlots().then(response => {
+          this.locations = response.data
+          this.loading = false
+        })
+      })
     })
   },
   methods: {
@@ -83,7 +80,7 @@ export default {
       })
     },
     editCrop (crop) {
-      this.currCrop = clone(crop)
+      this.newCrop = clone(crop)
     }
   }
 }

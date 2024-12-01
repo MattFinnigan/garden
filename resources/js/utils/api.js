@@ -119,6 +119,34 @@ export const deleteCrop = (id) => {
   })
 }
 
+// crop events
+export const deleteCropEvent = (id) => {
+  return new Promise((resolve) => {
+    destroy(`crop-history/${id}`).then((response) => {
+      console.log('deleteCropEvent', id, 'response', response)
+      resolve(response)
+    })
+  })
+}
+
+export const createCropEvent = (cropId, data) => {
+  return new Promise((resolve) => {
+    post(`crop-history/create/${cropId}`, data).then((response) => {
+      console.log('createCropEvent', cropId, data, 'response', response)
+      resolve(response)
+    })
+  })
+}
+
+export const updateCropEvent = (id, data) => {
+  return new Promise((resolve) => {
+    post(`crop-history/${id}`, data).then((response) => {
+      console.log('updateCropEvent', id, data, 'response', response)
+      resolve(response)
+    })
+  })
+}
+
 // plots
 export const fetchPlots = () => {
   return new Promise((resolve) => {

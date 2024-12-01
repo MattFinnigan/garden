@@ -7,26 +7,35 @@ use App\Models\Crop;
 use App\Models\CropHistory;
 
 class CropHistoryController extends Controller {
-  public function index($id) {
-    $history = Crop::find($id)->crossJoin('crop_history')->get();
-    return response()->json($history);
-  }
-  public function add(Request $request, $id) {
+  public function create(Request $request, $id) {
     $crop = Crop::find($id);
-    $crop->history()->create($request->all());
+    $history = $crop->crop_history()->create($request->all());
     return response()->json([
       "status" => "success",
       "message" => "Crop event added successfully",
-      "data" => $crop
+      "data" => CropHistory::where('id', $history->id)->with('location')->first()
+    ]);
+  }
+  public function update (Request $request, $id) {
+    $history = CropHistory::where('id', $id)->with('location')->first();
+    $history->update($request->all());
+    return response()->json([
+      "status" => "success",
+      "message" => "Crop event updated successfully",
+      "data" => $history
     ]);
   }
   public function destroy($id) {
-    $crop = CropHistory::find($id);
-    $crop->delete();
+    $h = CropHistory::find($id);
+    $h->delete();
+    $crop = Crop::where('id', $h->crop_id)->with('crop_history')->first();
+    if ($crop->crop_history->count() == 0) {
+      $crop->delete();
+    }
     return response()->json([
       "status" => "success",
       "message" => "Crop event deleted successfully",
-      "data" => $crop
+      "data" => $h
     ]);
   }
 }

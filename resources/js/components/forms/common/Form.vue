@@ -35,6 +35,14 @@ form {
       border: 1px solid $grey-500;
       border-radius: 0.25em;
     }
+    :deep(.display-input) {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 0.75rem;
+      label {
+        margin-bottom: 0.25rem;
+      }
+    }
   }
 }
 </style>

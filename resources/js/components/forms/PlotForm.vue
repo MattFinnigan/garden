@@ -20,14 +20,16 @@
 
 <script>
 import { createPlot, updatePlot } from '../../utils/api'
+import { isEmpty } from '../../utils/helpers';
 export default {
   name: 'PlotForm',
   props: {
     val: Object,
   },
+  emits: ['add', 'patch', 'close'],
   data () {
     return {
-      currPlot: this.val || { name: '' },
+      currPlot: isEmpty(this.val) || this.val ? this.val : { name: '' },
       loading: false
     }
   },
