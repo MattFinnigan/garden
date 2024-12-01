@@ -19,6 +19,7 @@ return new class extends Migration {
       $table->string('stage');
       $table->longText('notes')->nullable();
       $table->string('image')->nullable();
+      $table->bigInteger('qty');
       $table->timestamps();
     });
   }

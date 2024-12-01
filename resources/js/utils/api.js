@@ -53,7 +53,6 @@ export const fetchPlant = (id) => {
   })
 }
 export const createPlant = (data) => {
-  console.log('createPlant called')
   return new Promise((resolve) => {
     post('plants', data).then((response) => {
       console.log('createPlant', data, 'response', response)
@@ -99,6 +98,14 @@ export const createCrop = (data) => {
   return new Promise((resolve) => {
     post('crops', data).then((response) => {
       console.log('createCrop', data, 'response', response)
+      resolve(response)
+    })
+  })
+}
+export const updateCrop = (id, data) => {
+  return new Promise((resolve) => {
+    post(`crops/${id}`, data).then((response) => {
+      console.log('updateCrop', id, data, 'response', response)
       resolve(response)
     })
   })

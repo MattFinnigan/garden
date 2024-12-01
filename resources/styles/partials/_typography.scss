@@ -1,0 +1,18 @@
+$fontSize-xl: 2.5em;
+$fontSize-l: 1.5em;
+$fontSize-m: 1em;
+$fontSize-s: 0.85em;
+
+@mixin heading {
+  font-weight: 700;
+  line-height: 1.2;
+  color: $textColour;
+  font-size: $fontSize-xl;
+}
+
+@mixin subheading {
+  font-weight: normal;
+  line-height: 1.2;
+  color: $textColour;
+  font-size: $fontSize-l;
+}

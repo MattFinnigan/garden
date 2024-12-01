@@ -2,15 +2,15 @@
   <div class="plant-form">
   <Modal @close="$emit('close')">
     <template #header>
-      <h1>Plant Form</h1>
+      <h2>Plant Form</h2>
     </template>
     <template #content>
       <Form @submit="submitForm">
         <template #inputs>
-          <input type="text" v-model="newPlant.name" placeholder="Species" required minlength="2" maxlength="255"/>
-          <input type="text" v-model="newPlant.variety" placeholder="Variety" required maxlength="255"/>
-          <input type="text" v-model="newPlant.description" placeholder="Description" maxlength="255"/>
-          <input type="text" v-model="newPlant.image" placeholder="Image" maxlength="255"/>
+          <Input type="text" v-model="currPlant.name" label="Species" required minlength="2" maxlength="255"/>
+          <Input type="text" v-model="currPlant.variety" label="Variety" required maxlength="255"/>
+          <Input type="textarea" v-model="currPlant.description" label="Description" maxlength="255"/>
+          <Input :modelValue="currPlant.image" type="file" label="Image" @change="e => currPlant.image = e.target.value"/>
         </template>
         <template #buttons>
           <Button type="submit" :disabled="loading">Submit</Button>
@@ -22,12 +22,15 @@
 </template>
 
 <script>
-import { createPlant } from '../../utils/api'
+import { createPlant, updatePlant } from '../../utils/api'
 export default {
   name: 'PlantForm',
-  data() {
+  props: {
+    val: Object,
+  },
+  data () {
     return {
-      newPlant: {
+      currPlant: this.val || {
         name: '',
         description: '',
         variety: '',
@@ -40,12 +43,21 @@ export default {
     submitForm (e) {
       this.loading = true
       e.preventDefault()
-      createPlant(this.newPlant).then(response => {
-        console.log(response.data)
-      }).finally(() => {
-        this.loading = false
-        this.$emit('close')
-      })
+      if (this.currPlant.id) {
+        updatePlant(this.currPlant.id, this.currPlant).then(response => {
+          this.$emit('patch', response.data.data)
+        }).finally(() => {
+          this.loading = false
+          this.$emit('close')
+        })
+      } else {
+        createPlant(this.currPlant).then(response => {
+          this.$emit('add', response.data.data)
+        }).finally(() => {
+          this.loading = false
+          this.$emit('close')
+        })
+      }
     }
   },
   computed: {
@@ -58,4 +70,7 @@ export default {
 </script>
 
 <style scoped lang="scss">
+h2 {
+  margin: 0;
+}
 </style>

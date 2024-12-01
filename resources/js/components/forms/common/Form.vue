@@ -12,11 +12,9 @@
 <script>
 export default {
   name: 'Form',
-  data () {
-    return {
-    }
-  },
-  methods: {
+  mounted () {
+    // focus on first input
+    this.$el.querySelector('input').focus()
   }
 }
 </script>
@@ -27,11 +25,15 @@ form {
     display: flex;
     flex-direction: column;
     margin-bottom: 1rem;
-    :deep(input) {
-      margin-bottom: 0.5rem;
-      padding: 0.5rem;
-      border: 1px solid #ccc;
-      border-radius: 0.25rem;
+    :deep(input), :deep(select) {
+      min-width: 350px;
+      height: 35px;
+      padding-left: 0.5em;
+      background: $grey-700;
+      color: $white;
+      outline: none;
+      border: 1px solid $grey-500;
+      border-radius: 0.25em;
     }
   }
 }

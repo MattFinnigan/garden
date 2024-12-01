@@ -1,0 +1,34 @@
+@import './partials/_colours.scss';
+@import './partials/_typography.scss';
+@import './partials/_devices.scss';
+
+* {
+  -webkit-font-smoothing: antialiased; 
+  -moz-osx-font-smoothing: grayscale;
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+}
+.container {
+  margin: 0 auto;
+  max-width: 1400px;
+  padding: 20px;
+}
+
+h1 {
+  @include heading;
+}
+h2 {
+  @include subheading;
+}
+
+p {
+  font-size: $fontSize-m;
+}
+
+a {
+  color: $linkColour;
+  text-decoration: none;
+  font-size: $fontSize-m;
+  &:hover {
+    text-decoration: underline;
+  }
+}

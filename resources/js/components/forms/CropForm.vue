@@ -1,43 +1,70 @@
 <template>
   <div class="crop-form">
-    <h1>Crop Form</h1>
+    <h2>Crop Form</h2>
     <Form @submit="submitForm">
       <template #inputs>
-        <!-- Add your form elements here -->
+        <Select v-model.number="currCrop.plant_id" label="Select a Plant" :options="plants.map(p => { return { label: p.name + ' (' + p.variety + ')', value: p.id } })"/>
+        <Select v-model.number="currCrop.location_id" label="Select a Location" :options="locations.map(l => { return { label: l.name, value: l.id } })"/>
+        <Select v-model="currCrop.action" label="Action" :options="['Planned', 'Sowed', 'Transplanted', 'Moved', 'Fertilized', 'Watered', 'Weeded', 'Pesticided', 'Pruned', 'Harvested'].map(a => { return { label: a, value: a } })"/>
+        <Select v-model="currCrop.stage" label="Lifecycle Stage" :options="['Planned', 'Germination', 'Seedling', 'Vegetative', 'Flowering', 'Fruiting', 'Complete'].map(s => { return { label: s, value: s } })"/>
+        <Input v-model="currCrop.qty" type="number" label="Quantity" required/>
+        <Input v-model="currCrop.notes" type="textarea" label="Notes"/>
+        <Input :modelValue="currCrop.image" type="file" label="Image" @change="e => currCrop.image = e.target.value"/>
       </template>
       <template #buttons>
-        <button type="submit">Submit</button>
+        <Button :disabled="loading" @click="$emit('close')">Cancel</Button>
+        <Button type="submit" :disabled="loading">Submit</Button>
       </template>
     </Form>
-  </div>
+</div>
 </template>
 
 <script>
-import { get } from '../../utils/api'
+import { createCrop, updateCrop } from '../../utils/api'
 export default {
   name: 'CropForm',
+  props: {
+    plants: Array,
+    locations: Array,
+    val: Object
+  },
   data () {
     return {
-      // Add your data properties here
+      currCrop: this.val || {
+        plant_id: this.plants[0].id,
+        location_id: this.locations[0].id,
+        action: 'Sowed',
+        stage: 'Planned',
+        qty: 1,
+        notes: null,
+        image: null
+      },
+      loading: false
     }
   },
   methods: {
-    submitForm () {
-      get('plants').then(response => {
-        console.log(response.data)
-      })
+    submitForm (e) {
+      this.loading = true
+      e.preventDefault()
+      if (this.currCrop.id) {
+        updateCrop(this.currCrop.id, this.currCrop).then(response => {
+          this.$emit('patch', response.data.data)
+        }).finally(() => {
+          this.loading = false
+          this.$emit('close')
+        })
+      } else {
+        createCrop(this.currCrop).then(response => {
+          this.$emit('add', response.data.data)
+        }).finally(() => {
+          this.loading = false
+          this.$emit('close')
+        })
+      }
     }
-  },
-  computed: {
-    // Add your computed properties here
-  },
-  mounted() {
   }
 }
 </script>
 
 <style scoped lang="scss">
-.crop-form {
-  /* Add your styles here */
-}
 </style>

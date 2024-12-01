@@ -1,8 +1,29 @@
 <template>
-  <div class="landing">
+  <div class="plants-page">
     <div class="header-contain">
-      <h1>Dashboard</h1>
+      <h1>Plants</h1>
+      <Button styling="sm" @click="currPlant = {}">Add Plant</Button>
     </div>
+    <div v-if="loading">Loading...</div>
+    <div v-else>
+      <div v-for="plant in plants" :key="plant.id">
+        <Card :title="plant.name + ' (' + plant.variety + ')'" :description="plant.description" :image="plant.image">
+          <template #actions>
+            <Button styling="sm" @click="editPlant(plant)">Edit</Button>
+            <Button styling="sm" @click="handleDelete(plant.id)">Delete</Button>
+          </template>
+        </Card>
+      </div>
+    </div>
+    <PlantForm
+      v-if="currPlant"
+      :val="currPlant"
+      @add="p => plants.push(p)"
+      @patch="p => {
+        const index = plants.findIndex(plant => plant.id === p.id)
+        plants.splice(index, 1, p)
+      }"
+      @close="currPlant = null"/>
   </div>
 </template>
 
@@ -13,7 +34,7 @@ import { fetchPlants, deletePlant } from '../../utils/api'
 import { clone } from '../../utils/helpers'
 
 export default {
-  name: 'Landing',
+  name: 'Plants',
   components: {
     Card,
     PlantForm

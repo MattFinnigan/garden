@@ -1,32 +1,39 @@
 <template>
-  <div>
+  <div id="app">
     <nav>
       <MainMenu/>
     </nav>
-    <main>
-      <RouterView/>
-    </main>
+    <div class="container">
+      <aside><SideMenu/></aside>
+      <main><RouterView/></main>
+    </div>
   </div>
 </template>
 
 <script>
-import MainMenu from './layout/MainMenu.vue'
+import MainMenu from './layout/MainMenu.vue';
+import SideMenu from './layout/SideMenu.vue';
+
 export default {
   components: {
-    MainMenu
-  },
-  data () {
-    return {
-      message: 'Welcome to my Vue app!'
-    }
-  },
-  methods: {
-    greet() {
-      console.log(this.message)
-    }
-  },
-  mounted() {
-    this.greet()
+    MainMenu,
+    SideMenu
   }
 }
 </script>
+<style lang="scss" scoped>
+#app {
+  background-color: $black;
+  min-height: 100vh;
+  color: $textColour;
+  .container {
+    display: flex;
+    aside {
+      flex: 0 0 200px;
+    }
+    main {
+      flex: 1;
+    }
+  }
+}
+</style>

@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PlantController;
 use App\Http\Controllers\CropController;
 use App\Http\Controllers\LocationController;
-
+use App\Http\Controllers\CropHistoryController;
 // Route::middleware('auth:api')->get('/user', function (Request $request) {
 //   return $request->user();
 // });
@@ -19,6 +19,7 @@ Route::delete('/plants/{id}', [PlantController::class, 'destroy']);
 Route::get('/crops', [CropController::class, 'index']);
 Route::get('/crops/{id}', [CropController::class, 'show']);
 Route::post('/crops', [CropController::class, 'store']);
+Route::post('/crops/{id}', [CropHistoryController::class, 'add']);
 Route::delete('/crops/{id}', [CropController::class, 'destroy']);
 
 Route::get('/plots', [LocationController::class, 'index']);

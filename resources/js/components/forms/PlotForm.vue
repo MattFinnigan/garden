@@ -1,13 +1,13 @@
 <template>
-  <div class="Plot-form">
+  <div class="plot-form">
   <Modal @close="$emit('close')">
     <template #header>
-      <h1>Plot Form</h1>
+      <h2>Plot Form</h2>
     </template>
     <template #content>
       <Form @submit="submitForm">
         <template #inputs>
-          <input type="text" v-model="newPlot.name" placeholder="Plot name" required minlength="2" maxlength="255"/>
+          <Input type="text" v-model="currPlot.name" label="Plot name" required minlength="2" maxlength="255"/>
         </template>
         <template #buttons>
           <Button type="submit" :disabled="loading">Submit</Button>
@@ -19,17 +19,15 @@
 </template>
 
 <script>
-import { createPlot } from '../../utils/api'
+import { createPlot, updatePlot } from '../../utils/api'
 export default {
   name: 'PlotForm',
-  data() {
+  props: {
+    val: Object,
+  },
+  data () {
     return {
-      newPlot: {
-        name: '',
-        description: '',
-        variety: '',
-        image: ''
-      },
+      currPlot: this.val || { name: '' },
       loading: false
     }
   },
@@ -37,12 +35,21 @@ export default {
     submitForm (e) {
       this.loading = true
       e.preventDefault()
-      createPlot(this.newPlot).then(response => {
-        console.log(response.data)
-      }).finally(() => {
-        this.loading = false
-        this.$emit('close')
-      })
+      if (this.currPlot.id) {
+        updatePlot(this.currPlot.id, this.currPlot).then(response => {
+          this.$emit('patch', response.data.data)
+        }).finally(() => {
+          this.loading = false
+          this.$emit('close')
+        })
+      } else {
+        createPlot(this.currPlot).then(response => {
+          this.$emit('add', response.data.data)
+        }).finally(() => {
+          this.loading = false
+          this.$emit('close')
+        })
+      }
     }
   },
   computed: {
@@ -55,4 +62,7 @@ export default {
 </script>
 
 <style scoped lang="scss">
+h2 {
+  margin: 0;
+}
 </style>
