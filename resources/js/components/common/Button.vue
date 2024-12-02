@@ -1,5 +1,5 @@
 <template>
-  <button :class="styling" :type="type" :disabled="disabled">
+  <button :class="classes" :type="type" :disabled="disabled">
     <slot></slot>
   </button>
 </template>
@@ -11,7 +11,7 @@ export default {
       type: String,
       default: 'button'
     },
-    styling: {
+    classes: {
       type: String,
       default: ''
     },

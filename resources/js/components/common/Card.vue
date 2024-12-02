@@ -8,6 +8,7 @@
       <h4>{{ title }}</h4>
       <p v-if="subtitle"><em>{{ subtitle }}</em></p>
       <p class="desc" v-html="description"></p>
+      <slot name="content"></slot>
     </div>
     <div class="actions-contain">
       <slot name="actions"></slot>

@@ -6,6 +6,7 @@ use App\Http\Controllers\PlantController;
 use App\Http\Controllers\CropController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\CropHistoryController;
+use App\Http\Controllers\BedController;
 // Route::middleware('auth:api')->get('/user', function (Request $request) {
 //   return $request->user();
 // });
@@ -30,3 +31,7 @@ Route::get('/plots/{id}', [LocationController::class, 'show']);
 Route::post('/plots', [LocationController::class, 'store']);
 Route::post('/plots/{id}', [LocationController::class, 'update']);
 Route::delete('/plots/{id}', [LocationController::class, 'destroy']);
+
+Route::post('/beds', [BedController::class, 'store']);
+Route::post('/beds/{id}', [BedController::class, 'update']);
+Route::delete('/beds/{id}', [BedController::class, 'destroy']);

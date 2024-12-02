@@ -15,6 +15,7 @@ import Select from './components/forms/common/Select.vue'
 import Input from './components/forms/common/Input.vue'
 import Link from './components/common/Link.vue'
 import Display from './components/forms/common/Display.vue'
+import Table from './components/common/Table.vue'
 
 const routes = [
   { path: '/', name: '', component: Landing },
@@ -37,4 +38,5 @@ app.component('Select', Select)
 app.component('Input', Input)
 app.component('Link', Link)
 app.component('Display', Display)
+app.component('Table', Table)
 app.mount('#app')

@@ -5,6 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use App\Models\Crop;
 use App\Models\Location;
+use App\Models\Bed;
 
 return new class extends Migration {
   /**
@@ -15,6 +16,7 @@ return new class extends Migration {
       $table->id();
       $table->foreignIdFor(Crop::class)->constrained();
       $table->foreignIdFor(Location::class)->constrained();
+      $table->foreignIdFor(Bed::class)->nullable();
       $table->string('action');
       $table->string('stage');
       $table->longText('notes')->nullable();

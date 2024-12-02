@@ -5,16 +5,16 @@
       <div class="header-contain">
         <h1>History of {{ cropTitle }}</h1>
         <div>
-          <Button styling="sm" @click="newEvent">Add Event</Button>
-          <Button styling="sm" @click="deleteCrop" :disabled="crop.crop_history.length === 1">Delete Crop</Button>
+          <Button classes="sm" @click="newEvent">Add Event</Button>
+          <Button classes="sm" @click="deleteCrop" :disabled="crop.crop_history.length === 1">Delete Crop</Button>
         </div>
       </div>
       <div>
         <div v-for="cropEvent in crop.crop_history" :key="crop.id">
           <Card :title="new Date(cropEvent.created_at)" :description="cropEventDescription(cropEvent)" :image="crop.image">
             <template #actions>
-              <Button styling="sm" @click="editCropEvent(cropEvent)">Edit</Button>
-              <Button styling="sm" @click="deleteCropEvent(cropEvent.id)">Delete</Button>
+              <Button classes="sm" @click="editCropEvent(cropEvent)">Edit</Button>
+              <Button classes="sm" @click="deleteCropEvent(cropEvent.id)">Delete</Button>
             </template>
           </Card>
         </div>

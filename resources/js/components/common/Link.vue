@@ -1,5 +1,5 @@
 <template>
-  <router-link :class="styling" :to="to">
+  <router-link :class="classes" :to="to">
     <slot></slot>
   </router-link>
 </template>
@@ -8,7 +8,7 @@
 export default {
   props: {
     to: {},
-    styling: {
+    classes: {
       type: String,
       default: ''
     }

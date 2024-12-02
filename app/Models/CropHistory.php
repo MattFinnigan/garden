@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Crop;
 use App\Models\Location;
+use App\Models\Bed;
 
 class CropHistory extends Model {
   use HasFactory;
@@ -17,5 +18,8 @@ class CropHistory extends Model {
   }
   public function location () {
     return $this->belongsTo(Location::class);
+  }
+  public function bed () {
+    return $this->belongsTo(Bed::class);
   }
 }

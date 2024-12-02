@@ -4,7 +4,7 @@
       <div class="header-contain">
         <slot name="header"></slot>
         <div>
-          <Button styling="bare" @click="$emit('close')">X</Button>
+          <Button classes="bare" @click="$emit('close')">X</Button>
         </div>
       </div>
       <div class="content-contain">

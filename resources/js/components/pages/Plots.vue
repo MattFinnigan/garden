@@ -2,15 +2,22 @@
   <div class="plot-page">
     <div class="header-contain">
       <h1>Plots</h1>
-      <Button styling="sm" @click="currPlot = {}">Add Plot</Button>
+      <Button classes="sm" @click="currPlot = { name: '', beds: [] }">Add Plot</Button>
     </div>
     <div v-if="loading">Loading...</div>
     <div v-else>
       <div v-for="plot in plots" :key="plot.id">
         <Card :title="plot.name" :description="plot.description" :image="plot.image">
           <template #actions>
-            <Button styling="sm" @click="editPlot(plot)">Edit</Button>
-            <Button styling="sm" @click="handleDelete(plot.id)">Delete</Button>
+            <Button classes="sm" @click="editPlot(plot)">Edit</Button>
+            <Button classes="sm" @click="handleDelete(plot.id)">Delete</Button>
+          </template>
+          <template #content>
+            <Table :headers="[{ label: 'Name', key: 'name' }, { label: 'Description', key: 'description' }]" :rows="plot.beds">
+              <template #header>
+                <h3>Beds</h3>
+              </template>
+            </Table>
           </template>
         </Card>
       </div>
@@ -32,12 +39,14 @@ import Card from '../common/Card.vue'
 import PlotForm from '../forms/PlotForm.vue';
 import { fetchPlots, deletePlot } from '../../utils/api'
 import { clone } from '../../utils/helpers'
+import BedInput from '../forms/BedInput.vue'
 
 export default {
   name: 'Plots',
   components: {
     Card,
-    PlotForm
+    PlotForm,
+    BedInput
   },
   data () {
     return {

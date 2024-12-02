@@ -3,15 +3,15 @@
     <div v-if="!newCrop">
       <div class="header-contain">
         <h1>Crops</h1>
-        <Button styling="sm" @click="newCrop = {}" :disabled="!plants.length || !locations.length">Add Crop</Button>
+        <Button classes="sm" @click="newCrop = {}" :disabled="!plants.length || !locations.length">Add Crop</Button>
       </div>
       <div v-if="loading">Loading...</div>
       <div v-else>
         <div v-for="crop in crops" :key="crop.id">
           <Card :title="cropTitle(crop)" :description="cropDescription(crop)" :image="crop.image">
             <template #actions>
-              <Link styling="button sm" :to="'/crop/' + crop.id">View</Link>
-              <Button styling="sm" @click="handleDelete(crop.id)">Delete</Button>
+              <Link classes="button sm" :to="'/crop/' + crop.id">View</Link>
+              <Button classes="sm" @click="handleDelete(crop.id)">Delete</Button>
             </template>
           </Card>
         </div>
@@ -62,8 +62,12 @@ export default {
   },
   methods: {
     cropTitle (crop) {
-      return `Crop #${crop.id } ${crop.plant.name} - ${this.cropLastEntry(crop).location.name}`
-    },
+      const str = `Crop #${crop.id } ${crop.plant.name} - ${this.cropLastEntry(crop).location.name}`
+      if (this.cropLastEntry(crop).bed) {
+        return `${str} (${this.cropLastEntry(crop).bed.name})`
+      }
+      return str
+    }, 
     cropLastEntry (crop) {
       return crop.crop_history[crop.crop_history.length - 1] 
     },

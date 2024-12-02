@@ -23,17 +23,18 @@ class CropController extends Controller {
       'stage' => $request->stage,
       'notes' => $request->notes,
       'image' => $request->image,
-      'qty' => $request->qty
+      'qty' => $request->qty,
+      'bed_id' => $request->bed_id
     ]);
     return response()->json([
       "status" => "success",
       "message" => "Crop created successfully",
-      "data" => Crop::where('id', $crop->id)->with(['crop_history', 'plant', 'crop_history.location'])->first()
+      "data" => Crop::where('id', $crop->id)->with(['crop_history', 'plant', 'crop_history.location', 'crop_history.bed'])->first()
     ]);
   }
 
   public function show($id) {
-    $crop = Crop::where('id', $id)->with(['crop_history', 'plant', 'crop_history.location'])->first();
+    $crop = Crop::where('id', $id)->with(['crop_history', 'plant', 'crop_history.location', 'crop_history.bed'])->first();
     foreach ($crop->crop_history as $history) {
       $history->plant_id = $crop->plant_id;
     }

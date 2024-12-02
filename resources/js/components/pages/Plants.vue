@@ -2,15 +2,15 @@
   <div class="plants-page">
     <div class="header-contain">
       <h1>Plants</h1>
-      <Button styling="sm" @click="currPlant = {}">Add Plant</Button>
+      <Button classes="sm" @click="currPlant = {}">Add Plant</Button>
     </div>
     <div v-if="loading">Loading...</div>
     <div v-else>
       <div v-for="plant in plants" :key="plant.id">
         <Card :title="plant.name + ' (' + plant.variety + ')'" :description="plant.description" :image="plant.image">
           <template #actions>
-            <Button styling="sm" @click="editPlant(plant)">Edit</Button>
-            <Button styling="sm" @click="handleDelete(plant.id)">Delete</Button>
+            <Button classes="sm" @click="editPlant(plant)">Edit</Button>
+            <Button classes="sm" @click="handleDelete(plant.id)">Delete</Button>
           </template>
         </Card>
       </div>
