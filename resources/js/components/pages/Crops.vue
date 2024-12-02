@@ -3,18 +3,17 @@
     <div v-if="!newCrop">
       <div class="header-contain">
         <h1>Crops</h1>
-        <Button classes="sm" @click="newCrop = {}" :disabled="!plants.length || !locations.length">Add Crop</Button>
+        <Button classes="sm" @click="defaultNewCrop" :disabled="!plants.length || !locations.length">Add Crop</Button>
       </div>
       <div v-if="loading">Loading...</div>
       <div v-else>
-        <div v-for="crop in crops" :key="crop.id">
-          <Card :title="cropTitle(crop)" :description="cropDescription(crop)" :image="crop.image">
-            <template #actions>
-              <Link classes="button sm" :to="'/crop/' + crop.id">View</Link>
-              <Button classes="sm" @click="handleDelete(crop.id)">Delete</Button>
-            </template>
-          </Card>
-        </div>
+        <Table
+          :headers="headers"
+          :rows="cropsMapped"
+          :actions="{ view: true, delete: true }"
+          @view="(crop) => { $router.push(`/crop/${crop.id}`) }"
+          @delete="(crop) => handleDelete(crop.id)">
+        </Table>
       </div>
     </div>
     <CropForm
@@ -28,7 +27,6 @@
 </template>
 
 <script>
-import Card from '../common/Card.vue'
 import CropForm from '../forms/CropForm.vue';
 import { fetchCrops, deleteCrop, fetchPlants, fetchPlots } from '../../utils/api'
 import { clone } from '../../utils/helpers'
@@ -36,7 +34,6 @@ import { clone } from '../../utils/helpers'
 export default {
   name: 'Crops',
   components: {
-    Card,
     CropForm
   },
   data () {
@@ -45,7 +42,8 @@ export default {
       crops: [],
       newCrop: null,
       plants: [],
-      locations: []
+      locations: [],
+      headers: [{ label: '#', key: 'id' }, { label: 'Plant', key: 'plant_details' }, { label: 'Qty', key: 'qty' }, { label: 'Location', key: 'curr_loc' }, { label: 'Stage', key: 'stage' }, { label: 'Action', key: 'action' }, { label: 'Date & Time', key: 'datetimestamp' }, { label: 'Notes', key: 'notes' }]
     }
   },
   mounted () {
@@ -60,20 +58,38 @@ export default {
       })
     })
   },
+  computed: {
+    cropsMapped () {
+      return this.crops.map(crop => {
+        const latestEntry = this.cropLastEntry(crop)
+        return {
+          id: crop.id,
+          plant_details: `${crop.plant.name} (${crop.plant.variety})`,
+          qty: latestEntry.qty,
+          curr_loc: `${latestEntry.location.name} ${latestEntry.bed ? `(${latestEntry.bed.name})` : ''}`,
+          stage: latestEntry.stage,
+          action: latestEntry.action,
+          datetimestamp: new Date(latestEntry.datetimestamp).toLocaleString(),
+          notes: latestEntry.notes
+        }
+      })
+    }
+  },
   methods: {
-    cropTitle (crop) {
-      const str = `Crop #${crop.id } ${crop.plant.name} - ${this.cropLastEntry(crop).location.name}`
-      if (this.cropLastEntry(crop).bed) {
-        return `${str} (${this.cropLastEntry(crop).bed.name})`
+    defaultNewCrop () {
+      this.newCrop = {
+        plant_id: this.plants[0].id,
+        location_id: this.locations[0].id,
+        action: 'Sowed',
+        stage: 'Planned',
+        qty: 1,
+        notes: null,
+        image: null,
+        datetimestamp: new Date().toISOString().slice(0, 16)
       }
-      return str
-    }, 
+    },
     cropLastEntry (crop) {
       return crop.crop_history[crop.crop_history.length - 1] 
-    },
-    cropDescription (crop) {
-      const latestEntry = this.cropLastEntry(crop)
-      return `${latestEntry.qty} ${crop.plant.name} (${crop.plant.variety})<br/>Current stage: ${latestEntry.stage}<br/>Last action: ${latestEntry.action} on ${new Date(latestEntry.created_at)}`
     },
     handleDelete (id) {
       this.loading = true
@@ -82,9 +98,6 @@ export default {
       }).finally(() => {
         this.loading = false
       })
-    },
-    editCrop (crop) {
-      this.newCrop = clone(crop)
     }
   }
 }

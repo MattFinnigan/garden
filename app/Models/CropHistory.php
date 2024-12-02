@@ -11,7 +11,7 @@ use App\Models\Bed;
 class CropHistory extends Model {
   use HasFactory;
   protected $table = 'crop_history';
-  protected $fillable = ['crop_id', 'location_id', 'action', 'stage', 'notes', 'image', 'qty'];
+  protected $fillable = ['crop_id', 'location_id', 'action', 'stage', 'notes', 'image', 'qty', 'datetimestamp', 'bed_id'];
 
   public function crop () {
     return $this->belongsTo(Crop::class);

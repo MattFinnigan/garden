@@ -8,25 +8,8 @@ use App\Models\CropHistory;
 
 class CropHistoryController extends Controller {
   public function create(Request $request, $id) {
-    $crop = Crop::find($id);
-    $crop->crop_history()->create([
-      'crop_id' => $crop->id,
-      'location_id' => $request->location_id,
-      'action' => $request->action,
-      'stage' => $request->stage,
-      'notes' => $request->notes,
-      'image' => $request->image,
-      'qty' => $request->qty,
-      'bed_id' => $request->bed_id
-    ]);
-    return response()->json([
-      "status" => "success",
-      "message" => "Crop event added successfully",
-      "data" => $crop->crop_history()->with('location', 'bed')->first()
-    ]);
-  }
-  public function update (Request $request, $id) {
-    $history = CropHistory::where('id', $id)->with('location', 'bed')->first();
+    $history = new CropHistory();
+    $history->crop_id = $id;
     $history->location_id = $request->location_id;
     $history->action = $request->action;
     $history->stage = $request->stage;
@@ -34,10 +17,29 @@ class CropHistoryController extends Controller {
     $history->image = $request->image;
     $history->qty = $request->qty;
     $history->bed_id = $request->bed_id;
+    $history->datetimestamp = $request->datetimestamp;
+    $history->save();
+    return response()->json([
+      "status" => "success",
+      "message" => "Crop event added successfully",
+      "data" => CropHistory::where('id', $history->id)->with('location', 'bed')->first()
+    ]);
+  }
+  public function update (Request $request, $id) {
+    $history = CropHistory::where('id', $id)->first();
+    $history->location_id = $request->location_id;
+    $history->action = $request->action;
+    $history->stage = $request->stage;
+    $history->notes = $request->notes;
+    $history->image = $request->image;
+    $history->qty = $request->qty;
+    $history->bed_id = $request->bed_id;
+    $history->datetimestamp = $request->datetimestamp;
+    $history->update();
     return response()->json([
       "status" => "success",
       "message" => "Crop event updated successfully",
-      "data" => $history
+      "data" => CropHistory::where('id', $id)->with('location', 'bed')->first()
     ]);
   }
   public function destroy($id) {

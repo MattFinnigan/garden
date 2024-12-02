@@ -24,7 +24,8 @@ class CropController extends Controller {
       'notes' => $request->notes,
       'image' => $request->image,
       'qty' => $request->qty,
-      'bed_id' => $request->bed_id
+      'bed_id' => $request->bed_id,
+      'datetimestamp' => $request->datetimestamp
     ]);
     return response()->json([
       "status" => "success",

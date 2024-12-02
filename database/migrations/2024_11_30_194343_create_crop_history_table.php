@@ -22,6 +22,7 @@ return new class extends Migration {
       $table->longText('notes')->nullable();
       $table->string('image')->nullable();
       $table->bigInteger('qty');
+      $table->dateTime('datetimestamp');
       $table->timestamps();
     });
   }

@@ -10,14 +10,16 @@
       <thead>
         <tr>
           <th v-for="header in headers" :key="header">{{ header.label }}</th>
+          <th v-if="actions"></th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="(row, i) in rows" :key="row.id || i">
           <td v-for="header in headers" :key="header.key">
-            <span>{{ row[header.key] }}</span>
+            <span>{{ header.key === 'num' ? i + 1 : row[header.key] }}</span>
           </td>
           <td v-if="actions">
+            <Button v-if="actions.view" classes="sm" @click="$emit('view', row, i)">View</Button>
             <Button v-if="actions.edit" classes="sm" @click="$emit('edit', row, i)">Edit</Button>
             <Button v-if="actions.delete" classes="sm" @click="$emit('delete', row, i)">Delete</Button>
           </td>

@@ -10,14 +10,13 @@
         </div>
       </div>
       <div>
-        <div v-for="cropEvent in crop.crop_history" :key="crop.id">
-          <Card :title="new Date(cropEvent.created_at)" :description="cropEventDescription(cropEvent)" :image="crop.image">
-            <template #actions>
-              <Button classes="sm" @click="editCropEvent(cropEvent)">Edit</Button>
-              <Button classes="sm" @click="deleteCropEvent(cropEvent.id)">Delete</Button>
-            </template>
-          </Card>
-        </div>
+        <Table
+          :headers="headers"
+          :rows="cropEventsMapped"
+          :actions="{ edit: true, delete: true }"
+          @edit="(cropEvent) => editCropEvent(cropEvent.id)"
+          @delete="(cropEvent) => deleteCropEvent(cropEvent.id)">
+        </Table>
       </div>
     </div>
     <CropEventForm
@@ -28,7 +27,7 @@
       :locations="locations"
       :crop="crop"
       @add="ev => crop.crop_history.push(ev)"
-      @patch="ev => crop.crop_history = crop.crop_history.map(cropEvent => cropEvent.id === ev.id ? ev : cropEvent)"
+      @patch="updateCropEvent"
       @close="currCropEvent = null"/>
   </div>
 </template>
@@ -36,7 +35,7 @@
 <script>
 import Card from '../common/Card.vue'
 import CropEventForm from '../forms/CropEventForm.vue';
-import { fetchCrop, fetchPlots, fetchPlants, deleteCrop, deleteCropEvent } from '../../utils/api'
+import { fetchCrop, fetchPlots, fetchPlants, deleteCrop, deleteCropEvent, updateCrop } from '../../utils/api'
 import { clone } from '../../utils/helpers'
 
 export default {
@@ -51,7 +50,8 @@ export default {
       crop: null,
       plants: [],
       locations: [],
-      currCropEvent: null
+      currCropEvent: null,
+      headers: [{ label: '#', key: 'num' }, { label: 'Plant', key: 'plant_details' }, { label: 'Qty', key: 'qty' }, { label: 'Location', key: 'curr_loc' }, { label: 'Stage', key: 'stage' }, { label: 'Action', key: 'action' }, { label: 'Date & Time', key: 'datetimestamp' }, { label: 'Notes', key: 'notes' }]
     }
   },
   mounted () {
@@ -63,7 +63,21 @@ export default {
   },
   computed: {
     cropTitle () {
-      return `Crop #${this.crop.id } ${this.crop.plant.name} - ${this.cropLastEntry(this.crop).location.name}`
+      return `Crop #${this.crop.id } ${this.crop.plant.name}`
+    },
+    cropEventsMapped () {
+      return this.crop.crop_history.map(cropEvent => {
+        return {
+          id: cropEvent.id,
+          plant_details: `${this.crop.plant.name} (${this.crop.plant.variety})`,
+          qty: cropEvent.qty,
+          curr_loc: cropEvent.location.name + (cropEvent.bed ? ` (${cropEvent.bed.name})` : ''),
+          stage: cropEvent.stage,
+          action: cropEvent.action,
+          datetimestamp: new Date(cropEvent.datetimestamp).toLocaleDateString(),
+          notes: cropEvent.notes
+        }
+      })
     }
   },
   methods: {
@@ -74,16 +88,23 @@ export default {
           this.plants = response.data
           fetchPlots().then(response => {
             this.locations = response.data
-            this.currCropEvent = {}
+            this.currCropEvent =  {
+              ...this.cropLastEntry(),
+              id: null,
+              notes: null,
+              image: null
+            }
             this.loading = false
           })
         })
       } else {
-        this.currCropEvent = {}
+        this.currCropEvent =  {
+          ...this.cropLastEntry(),
+          id: null,
+          notes: null,
+          image: null
+        }
       }
-    },
-    cropEventDescription (cropEvent) {
-      return `Qty: ${cropEvent.qty}<br/>Stage: ${cropEvent.stage}<br/>Action: ${cropEvent.action}<br/>Notes: ${cropEvent.notes || ''}`
     },
     deleteCrop () {
       this.loading = true
@@ -101,23 +122,27 @@ export default {
         this.loading = false
       })
     },
-    editCropEvent (cropEvent) {
+    editCropEvent (id) {
       if (!this.plants.length || !this.locations.length) {
         this.loading = true
         fetchPlants().then(response => {
           this.plants = response.data
           fetchPlots().then(response => {
             this.locations = response.data
-            this.currCropEvent = clone(cropEvent)
+            this.currCropEvent = clone(this.crop.crop_history.find(cropEvent => cropEvent.id === id))
             this.loading = false
           })
         })
       } else {
-        this.currCropEvent = clone(cropEvent)
+        this.currCropEvent = clone(this.crop.crop_history.find(cropEvent => cropEvent.id === id))
       }
     },
     cropLastEntry () {
       return this.crop.crop_history[this.crop.crop_history.length - 1] 
+    },
+    updateCropEvent (ev) {
+      const index = this.crop.crop_history.findIndex(cropEvent => cropEvent.id === ev.id)
+      this.crop.crop_history.splice(index, 1, ev)
     }
   }
 }
