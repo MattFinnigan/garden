@@ -89,7 +89,7 @@ export default {
       }
     },
     cropLastEntry (crop) {
-      return crop.crop_history[crop.crop_history.length - 1] 
+      return crop.crop_history[0] 
     },
     handleDelete (id) {
       this.loading = true

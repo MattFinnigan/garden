@@ -138,7 +138,7 @@ export default {
       }
     },
     cropLastEntry () {
-      return this.crop.crop_history[this.crop.crop_history.length - 1] 
+      return this.crop.crop_history[0] 
     },
     updateCropEvent (ev) {
       const index = this.crop.crop_history.findIndex(cropEvent => cropEvent.id === ev.id)
