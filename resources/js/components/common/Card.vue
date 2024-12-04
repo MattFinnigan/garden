@@ -1,5 +1,5 @@
 <template>
-  <div class="card">
+  <div :class="['card', size]">
     <div class="image">
       <img v-if="image" :src="image" alt="Plant"/>
       <img v-else src="https://via.placeholder.com/150" alt="Placeholder"/>
@@ -35,6 +35,10 @@ export default {
     image: {
       type: String,
       default: ''
+    },
+    size: {
+      type: String,
+      default: 'md'
     }
   }
 }
@@ -59,6 +63,12 @@ export default {
         margin-top: 0.5em;
         font-size: $fontSize-s;
       }
+    }
+  }
+  &.sm {
+    img {
+      width: 50px;
+      height: 50px;
     }
   }
 }

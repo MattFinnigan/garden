@@ -9,14 +9,14 @@
     <table>
       <thead>
         <tr>
-          <th v-for="header in headers" :key="header">{{ header.label }}</th>
-          <th v-if="actions"></th>
+          <th v-for="header in headers" :key="header" :style="header.width ? 'width:' + header.width : ''">{{ header.label }}</th>
+          <th v-if="actions" style="width:110px"></th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="(row, i) in rows" :key="row.id || i">
           <td v-for="header in headers" :key="header.key">
-            <span>{{ header.key === 'num' ? i + 1 : row[header.key] }}</span>
+            <span v-html="header.key === 'num' ? i + 1 : row[header.key]"></span>
           </td>
           <td v-if="actions">
             <Button v-if="actions.view" classes="sm" @click="$emit('view', row, i)">View</Button>
@@ -26,6 +26,20 @@
         </tr>
       </tbody>
     </table>
+    <div class="mobile-table">
+      <div v-for="(row, i) in rows" :key="row.id || i" class="row">
+        <div v-for="header in headers" :key="header.key" class="header">
+          <div class="row-data">
+            <span v-html="header.key === 'num' ? ('#' + i + 1) : row[header.key]"></span>
+          </div>
+        </div>
+        <div v-if="actions" class="action-buttons">
+          <Button v-if="actions.view" classes="sm" @click="$emit('view', row, i)">View</Button>
+          <Button v-if="actions.edit" classes="sm" @click="$emit('edit', row, i)">Edit</Button>
+          <Button v-if="actions.delete" classes="sm" @click="$emit('delete', row, i)">Delete</Button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -56,6 +70,7 @@ export default {
     align-items: center;
   }
   table {
+    display: none;
     width: 100%;
     border-collapse: collapse;
     border: 1px solid $grey-500;
@@ -79,6 +94,34 @@ export default {
           font-size: $fontSize-s;
         }
       }
+    }
+  }
+  .mobile-table {
+    display: block;
+    .row {
+      padding: 10px;
+      border-bottom: 1px solid $grey-500;
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 2px 0;
+        .row-data {
+          flex: 1;
+          font-size: $fontSize-s;
+        }
+      }
+    }
+    > :nth-child(even) {
+      background-color: $grey-800;
+    }
+  }
+  @include device (desktop, 'all') {
+    table {
+      display: table;
+    }
+    .mobile-table {
+      display: none;
     }
   }
 }

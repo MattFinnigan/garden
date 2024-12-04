@@ -21,7 +21,7 @@
       :val="newCrop"
       :plants="plants"
       :locations="locations"
-      @add="p => crops.push(p)"
+      @add="p => crops.unshift(p)"
       @close="newCrop = null"/>
   </div>
 </template>
@@ -29,7 +29,6 @@
 <script>
 import CropForm from '../forms/CropForm.vue';
 import { fetchCrops, deleteCrop, fetchPlants, fetchPlots } from '../../utils/api'
-import { clone } from '../../utils/helpers'
 
 export default {
   name: 'Crops',
@@ -43,7 +42,7 @@ export default {
       newCrop: null,
       plants: [],
       locations: [],
-      headers: [{ label: '#', key: 'id' }, { label: 'Plant', key: 'plant_details' }, { label: 'Qty', key: 'qty' }, { label: 'Location', key: 'curr_loc' }, { label: 'Stage', key: 'stage' }, { label: 'Action', key: 'action' }, { label: 'Date & Time', key: 'datetimestamp' }, { label: 'Notes', key: 'notes' }]
+      headers: [{ label: '#', key: 'id' }, { label: 'Plant', key: 'plant_details' }, { label: 'Location', key: 'curr_loc' }, { label: 'Action', key: 'action' }, { label: 'Time', key: 'datetimestamp', width: '80px'}, { label: 'Notes', key: 'notes' }]
     }
   },
   mounted () {
@@ -64,10 +63,12 @@ export default {
         const latestEntry = this.cropLastEntry(crop)
         return {
           id: crop.id,
-          plant_details: `${crop.plant.name} (${crop.plant.variety})`,
+          plant_details: `
+            x${latestEntry.qty} ${crop.plant.name} (${crop.plant.variety})<br/>
+            <em>${latestEntry.stage}</em>
+          `,
           qty: latestEntry.qty,
-          curr_loc: `${latestEntry.location.name} ${latestEntry.bed ? `(${latestEntry.bed.name})` : ''}`,
-          stage: latestEntry.stage,
+          curr_loc: `${latestEntry.location.name} ${latestEntry.bed ? `<br/>(${latestEntry.bed.name})` : ''}`,
           action: latestEntry.action,
           datetimestamp: new Date(latestEntry.datetimestamp).toLocaleString(),
           notes: latestEntry.notes

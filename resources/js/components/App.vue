@@ -4,7 +4,7 @@
       <MainMenu/>
     </nav>
     <div class="container">
-      <aside><SideMenu/></aside>
+      <SideMenu/>
       <main><RouterView/></main>
     </div>
   </div>
@@ -28,9 +28,7 @@ export default {
   color: $textColour;
   .container {
     display: flex;
-    aside {
-      flex: 0 0 200px;
-    }
+    position: relative;
     main {
       flex: 1;
     }

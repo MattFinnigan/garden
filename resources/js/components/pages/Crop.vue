@@ -3,10 +3,10 @@
     <div v-if="loading">Loading...</div>
     <div v-else-if="!currCropEvent">
       <div class="header-contain">
-        <h1>History of {{ cropTitle }}</h1>
+        <h1>{{ cropTitle }}</h1>
         <div>
-          <Button classes="sm" @click="newEvent">Add Event</Button>
-          <Button classes="sm" @click="deleteCrop" :disabled="crop.crop_history.length === 1">Delete Crop</Button>
+          <Button classes="sm" @click="newEvent">+</Button>
+          <Button classes="sm" @click="deleteCrop" :disabled="crop.crop_history.length === 1">-</Button>
         </div>
       </div>
       <div>
@@ -51,7 +51,7 @@ export default {
       plants: [],
       locations: [],
       currCropEvent: null,
-      headers: [{ label: '#', key: 'num' }, { label: 'Plant', key: 'plant_details' }, { label: 'Qty', key: 'qty' }, { label: 'Location', key: 'curr_loc' }, { label: 'Stage', key: 'stage' }, { label: 'Action', key: 'action' }, { label: 'Date & Time', key: 'datetimestamp' }, { label: 'Notes', key: 'notes' }]
+      headers: [{ label: '#', key: 'num' }, { label: 'Location', key: 'curr_loc' }, { label: 'Stage', key: 'stage' }, { label: 'Action', key: 'action' }, { label: 'Date & Time', key: 'datetimestamp' }, { label: 'Notes', key: 'notes' }]
     }
   },
   mounted () {
@@ -69,10 +69,8 @@ export default {
       return this.crop.crop_history.map(cropEvent => {
         return {
           id: cropEvent.id,
-          plant_details: `${this.crop.plant.name} (${this.crop.plant.variety})`,
-          qty: cropEvent.qty,
           curr_loc: cropEvent.location.name + (cropEvent.bed ? ` (${cropEvent.bed.name})` : ''),
-          stage: cropEvent.stage,
+          stage: `x${cropEvent.qty} ${cropEvent.stage}`,
           action: cropEvent.action,
           datetimestamp: new Date(cropEvent.datetimestamp).toLocaleDateString(),
           notes: cropEvent.notes

@@ -44,10 +44,12 @@ form {
       }
     }
     :deep(.inputs-row) {
-      display: flex;
-      > * {
-        flex: 1;
-        margin-right: 0.5rem;
+      @include device ('desktop', 'all') {
+        display: flex;
+        > * {
+          flex: 1;
+          margin-right: 0.5rem;
+        }
       }
     }
   }

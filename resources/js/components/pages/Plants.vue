@@ -7,7 +7,7 @@
     <div v-if="loading">Loading...</div>
     <div v-else>
       <div v-for="plant in plants" :key="plant.id">
-        <Card :title="plant.name + ' (' + plant.variety + ')'" :description="plant.description" :image="plant.image">
+        <Card size="sm" :title="plant.name + ' (' + plant.variety + ')'" :description="plant.description" :image="plant.image">
           <template #actions>
             <Button classes="sm" @click="editPlant(plant)">Edit</Button>
             <Button classes="sm" @click="handleDelete(plant.id)">Delete</Button>

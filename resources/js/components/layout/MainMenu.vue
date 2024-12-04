@@ -1,9 +1,6 @@
 
 <template>
-  <div class="main-menu">
-    <nav class="container">
-      Hello
-    </nav>
+  <div>
   </div>
 </template>
 

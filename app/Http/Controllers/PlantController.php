@@ -7,7 +7,7 @@ use App\Models\Plant;
 
 class PlantController extends Controller {
   public function index() {
-    return Plant::all();
+    return Plant::orderBy('name')->get();
   }
 
   public function store(Request $request) {

@@ -8,7 +8,7 @@ use App\Models\Crop;
 class CropController extends Controller {
 
   public function index() {
-    return Crop::with(['plant', 'crop_history.location', 'crop_history'])->get();
+    return Crop::with(['plant', 'crop_history.location', 'crop_history', 'crop_history.bed'])->orderBy('id', 'desc')->get();
   }
 
   public function store(Request $request) {
