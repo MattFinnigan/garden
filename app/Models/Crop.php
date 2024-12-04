@@ -11,7 +11,7 @@ class Crop extends Model {
   use HasFactory;
 
   public function crop_history () {
-    return $this->hasMany(CropHistory::class);
+    return $this->hasMany(CropHistory::class)->orderBy('datetimestamp', 'desc');
   }
   
   public function plant () {

@@ -43,6 +43,13 @@ form {
         margin-bottom: 0.25rem;
       }
     }
+    :deep(.inputs-row) {
+      display: flex;
+      > * {
+        flex: 1;
+        margin-right: 0.5rem;
+      }
+    }
   }
 }
 </style>
