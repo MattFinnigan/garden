@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\CropHistory;
 use App\Models\Plant;
+use App\Models\Unit;
 
 class Crop extends Model {
   use HasFactory;
@@ -16,5 +17,9 @@ class Crop extends Model {
   
   public function plant () {
     return $this->belongsTo(Plant::class);
+  }
+
+  public function units () {
+    return $this->hasMany(Unit::class);
   }
 }

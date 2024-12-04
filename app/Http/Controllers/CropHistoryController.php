@@ -18,11 +18,13 @@ class CropHistoryController extends Controller {
     $history->qty = $request->qty;
     $history->bed_id = $request->bed_id;
     $history->datetimestamp = $request->datetimestamp;
+    $history->area = $request->area;
+    $history->unit_id = $request->unit_id;
     $history->save();
     return response()->json([
       "status" => "success",
       "message" => "Crop event added successfully",
-      "data" => CropHistory::where('id', $history->id)->with('location', 'bed')->first()
+      "data" => CropHistory::where('id', $history->id)->with('location', 'bed', 'unit', 'unit.crop_history')->first()
     ]);
   }
   public function update (Request $request, $id) {
@@ -35,11 +37,13 @@ class CropHistoryController extends Controller {
     $history->qty = $request->qty;
     $history->bed_id = $request->bed_id;
     $history->datetimestamp = $request->datetimestamp;
+    $history->area = $request->area;
+    $history->unit_id = $request->unit_id;
     $history->update();
     return response()->json([
       "status" => "success",
       "message" => "Crop event updated successfully",
-      "data" => CropHistory::where('id', $id)->with('location', 'bed')->first()
+      "data" => CropHistory::where('id', $id)->with('location', 'bed', 'unit', 'unit.crop_history')->first()
     ]);
   }
   public function destroy($id) {

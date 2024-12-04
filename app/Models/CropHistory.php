@@ -7,11 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\Crop;
 use App\Models\Location;
 use App\Models\Bed;
+use App\Models\Unit;
 
 class CropHistory extends Model {
   use HasFactory;
   protected $table = 'crop_history';
-  protected $fillable = ['crop_id', 'location_id', 'action', 'stage', 'notes', 'image', 'qty', 'datetimestamp', 'bed_id'];
+  protected $fillable = ['crop_id', 'location_id', 'action', 'stage', 'notes', 'image', 'qty', 'datetimestamp', 'bed_id', 'unit_id', 'area'];
 
   public function crop () {
     return $this->belongsTo(Crop::class);
@@ -21,5 +22,8 @@ class CropHistory extends Model {
   }
   public function bed () {
     return $this->belongsTo(Bed::class);
+  }
+  public function unit () {
+    return $this->belongsTo(Unit::class);
   }
 }
