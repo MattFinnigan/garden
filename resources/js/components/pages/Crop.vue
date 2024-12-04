@@ -26,7 +26,7 @@
       :plants="plants"
       :locations="locations"
       :crop="crop"
-      @add="ev => crop.crop_history.push(ev)"
+      @add="ev => addCropEvent(ev)"
       @patch="updateCropEvent"
       @close="currCropEvent = null"/>
   </div>
@@ -81,6 +81,11 @@ export default {
     }
   },
   methods: {
+    addCropEvent (ev) {
+      this.crop.crop_history.unshift(ev)
+      // sort by date desc
+      this.crop.crop_history.sort((a, b) => new Date(b.datetimestamp) - new Date(a.datetimestamp))
+    },
     newEvent () {
       if (!this.plants.length || !this.locations.length) {
         this.loading = true
