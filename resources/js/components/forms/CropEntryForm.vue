@@ -1,22 +1,23 @@
 <template>
-  <div class="crop-event-form">
+  <div class="crop-entry-form">
     <h2>{{ title }}</h2>
     <Form @submit="submitForm">
       <template #inputs>
-        <Select v-if="canEditPlant" v-model.number="currEvent.plant_id" label="Select a Plant" :options="plants.map(p => { return { label: p.name + ' (' + p.variety + ')', value: p.id } })"/>
+        <Select v-if="canEditPlant" v-model.number="currEntry.plant_id" label="Select a Plant" :options="plants.map(p => { return { label: p.name + ' (' + p.variety + ')', value: p.id } })"/>
         <Display v-else label="Plant" :val="currPlant.name + ' (' + currPlant.variety + ')'"/>
-        <Select v-model.number="currEvent.location_id" label="Select a Location" :options="locations.map(l => { return { label: l.name, value: l.id } })"/>
-        <Select v-if="currLocation" v-model.number="currEvent.bed_id" label="Select a Bed (Optional)" :options="currLocation.beds.map(b => { return { label: b.name, value: b.id } })"/>
+        <Select v-model.number="currEntry.location_id" label="Select a Location" :options="locations.map(l => { return { label: l.name, value: l.id } })"/>
+        <Select v-if="currLocation" v-model.number="currEntry.bed_id" label="Select a Bed (Optional)" :options="currLocation.beds.map(b => { return { label: b.name, value: b.id } })"/>
         <div class="inputs-row">
-          <Select v-model="currEvent.action" label="Action" :options="actionOptions"/>
-          <Select v-model="currEvent.stage" label="Lifecycle Stage" :options="stageOptions"/>
+          <Select v-model="currEntry.action" label="Action" :options="actionOptions"/>
+          <Select v-model="currEntry.stage" label="Lifecycle Stage" :options="stageOptions"/>
         </div>
         <div class="inputs-row">
-          <Input v-model="currEvent.datetimestamp" type="datetime-local" label="Date & Time"/>
-          <Input v-model="currEvent.qty" type="number" label="Quantity" required/>
+          <Input v-model="currEntry.datetimestamp" type="datetime-local" label="Date & Time"/>
+          <Input v-model="currEntry.qty" type="number" label="Quantity" required/>
         </div>
-        <Input v-model="currEvent.notes" type="textarea" label="Notes"/>
-        <Input :modelValue="currEvent.image" type="file" label="Image" @change="e => currEvent.image = e.target.value"/>
+        <Input v-model="currEntry.area" type="number" label="Spacing"/>
+        <Input v-model="currEntry.notes" type="textarea" label="Notes"/>
+        <Input :modelValue="currEntry.image" type="file" label="Image" @change="e => currEntry.image = e.target.value"/>
       </template>
       <template #buttons>
         <Button :disabled="loading" @click="$emit('close')">Cancel</Button>
@@ -27,10 +28,10 @@
 </template>
 
 <script>
-import { createCropEvent, updateCropEvent } from '../../utils/api'
+import { createCropEntry, updateCropEntry } from '../../utils/api'
 import { isEmpty } from '../../utils/helpers';
 export default {
-  name: 'CropEventForm',
+  name: 'CropEntryForm',
   props: {
     plants: Array,
     locations: Array,
@@ -45,7 +46,7 @@ export default {
   emits: ['add', 'patch', 'close', 'submit'],
   data () {
     return {
-      currEvent: isEmpty(this.val) || this.val ? this.val : {
+      currEntry: isEmpty(this.val) || this.val ? this.val : {
         plant_id: this.plants[0].id,
         location_id: this.locations[0].id,
         bed_id: null,
@@ -54,17 +55,18 @@ export default {
         qty: 1,
         notes: null,
         image: null,
+        area: 1,
         datetimestamp: new Date().toISOString().slice(0, 16)
       },
       loading: false
     }
   },
   computed: {
-    newEvent () {
-      return !this.currEvent.id && this.crop
+    newEntry () {
+      return !this.currEntry.id && this.crop
     },
-    editingEvent () {
-      return this.currEvent.id && this.crop
+    editingEntry () {
+      return this.currEntry.id && this.crop
     },
     canEditPlant () {
       return !this.crop
@@ -73,7 +75,7 @@ export default {
       return this.plants.find(p => p.id === this.crop?.plant_id)
     },
     currLocation () {
-      return this.locations.find(l => l.id === this.currEvent?.location_id)
+      return this.locations.find(l => l.id === this.currEntry?.location_id)
     },
     actionOptions () {
       return ['Planned', 'Sowed', 'Transplanted', 'Moved', 'Fertilized', 'Watered', 'Weeded', 'Damage/Disease detected', 'Sprayed', 'Pruned', 'Harvested', 'Removed', 'No Action'].map(a => { return { label: a, value: a } })
@@ -86,19 +88,19 @@ export default {
     submitForm (e) {
       e.preventDefault()
       if (!this.handleSubmit) {
-        this.$emit('submit', e, this.currEvent)
+        this.$emit('submit', e, this.currEntry)
         return
       }
       this.loading = true
-      if (this.newEvent) {
-        createCropEvent(this.crop.id, this.currEvent).then(response => {
+      if (this.newEntry) {
+        createCropEntry(this.crop.id, this.currEntry).then(response => {
           this.$emit('add', response.data.data)
         }).finally(() => {
           this.loading = false
           this.$emit('close')
         })
-      } else if (this.editingEvent) {
-        updateCropEvent(this.currEvent.id, this.currEvent).then(response => {
+      } else if (this.editingEntry) {
+        updateCropEntry(this.currEntry.id, this.currEntry).then(response => {
           this.$emit('patch', response.data.data)
         }).finally(() => {
           this.loading = false

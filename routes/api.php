@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PlantController;
 use App\Http\Controllers\CropController;
 use App\Http\Controllers\LocationController;
-use App\Http\Controllers\CropHistoryController;
+use App\Http\Controllers\CropEntryController;
 use App\Http\Controllers\BedController;
 // Route::middleware('auth:api')->get('/user', function (Request $request) {
 //   return $request->user();
@@ -22,9 +22,9 @@ Route::get('/crops/{id}', [CropController::class, 'show']);
 Route::post('/crops', [CropController::class, 'store']);
 Route::delete('/crops/{id}', [CropController::class, 'destroy']);
 
-Route::post('/crop-history/create/{id}', [CropHistoryController::class, 'create']);
-Route::post('/crop-history/{id}', [CropHistoryController::class, 'update']);
-Route::delete('/crop-history/{id}', [CropHistoryController::class, 'destroy']);
+Route::post('/crop-entry/create/{id}', [CropEntryController::class, 'create']);
+Route::post('/crop-entry/{id}', [CropEntryController::class, 'update']);
+Route::delete('/crop-entry/{id}', [CropEntryController::class, 'destroy']);
 
 Route::get('/plots', [LocationController::class, 'index']);
 Route::get('/plots/{id}', [LocationController::class, 'show']);

@@ -13,7 +13,7 @@ return new class extends Migration {
    * Run the migrations.
    */
   public function up(): void {
-    Schema::create('crop_history', function (Blueprint $table) {
+    Schema::create('crop_entries', function (Blueprint $table) {
       $table->id();
       $table->foreignIdFor(Crop::class)->constrained();
       $table->foreignIdFor(Unit::class)->nullable();
@@ -35,7 +35,7 @@ return new class extends Migration {
    */
   public function down(): void {
     Schema::withoutForeignKeyConstraints(function () {
-      Schema::dropIfExists('crop_history');
+      Schema::dropIfExists('crop_entries');
     });
   }
 };

@@ -120,28 +120,28 @@ export const deleteCrop = (id) => {
 }
 
 // crop events
-export const deleteCropEvent = (id) => {
+export const deleteCropEntry = (id) => {
   return new Promise((resolve) => {
-    destroy(`crop-history/${id}`).then((response) => {
-      console.log('deleteCropEvent', id, 'response', response)
+    destroy(`crop-entry/${id}`).then((response) => {
+      console.log('deleteCropEntry', id, 'response', response)
       resolve(response)
     })
   })
 }
 
-export const createCropEvent = (cropId, data) => {
+export const createCropEntry = (cropId, data) => {
   return new Promise((resolve) => {
-    post(`crop-history/create/${cropId}`, data).then((response) => {
-      console.log('createCropEvent', cropId, data, 'response', response)
+    post(`crop-entry/create/${cropId}`, data).then((response) => {
+      console.log('createCropEntry', cropId, data, 'response', response)
       resolve(response)
     })
   })
 }
 
-export const updateCropEvent = (id, data) => {
+export const updateCropEntry = (id, data) => {
   return new Promise((resolve) => {
-    post(`crop-history/${id}`, data).then((response) => {
-      console.log('updateCropEvent', id, data, 'response', response)
+    post(`crop-entry/${id}`, data).then((response) => {
+      console.log('updateCropEntry', id, data, 'response', response)
       resolve(response)
     })
   })

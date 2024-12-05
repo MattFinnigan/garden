@@ -1,6 +1,6 @@
 <template>
   <div class="crop-form">
-    <CropEventForm
+    <CropEntryForm
       v-if="val"
       title="Add a Crop"
       :crop="crop"
@@ -15,11 +15,11 @@
 
 <script>
 import { createCrop } from '../../utils/api'
-import CropEventForm from './CropEventForm.vue';
+import CropEntryForm from './CropEntryForm.vue';
 
 export default {
   components: {
-    CropEventForm
+    CropEntryForm
   },
   name: 'CropForm',
   props: {

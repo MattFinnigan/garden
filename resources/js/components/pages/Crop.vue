@@ -1,48 +1,48 @@
 <template>
   <div class="crop-page">
     <div v-if="loading">Loading...</div>
-    <div v-else-if="!currCropEvent">
+    <div v-else-if="!currCropEntry">
       <div class="header-contain">
         <h1>{{ cropTitle }}</h1>
         <div>
-          <Button classes="sm" @click="newEvent">+</Button>
-          <Button classes="sm" @click="deleteCrop" :disabled="crop.crop_history.length === 1">-</Button>
+          <Button classes="sm" @click="newEntry">+</Button>
+          <Button classes="sm" @click="deleteCrop" :disabled="crop.crop_entries.length === 1">-</Button>
         </div>
       </div>
       <div>
         <Table
           :headers="headers"
-          :rows="cropEventsMapped"
+          :rows="cropEntriesMapped"
           :actions="{ edit: true, delete: true }"
-          @edit="(cropEvent) => editCropEvent(cropEvent.id)"
-          @delete="(cropEvent) => deleteCropEvent(cropEvent.id)">
+          @edit="(cropEntry) => editCropEntry(cropEntry.id)"
+          @delete="(cropEntry) => deleteCropEntry(cropEntry.id)">
         </Table>
       </div>
     </div>
-    <CropEventForm
-      v-if="currCropEvent && locations.length && plants.length"
-      :title="currCropEvent.id ? 'Edit Event' : 'New Event'"
-      :val="currCropEvent"
+    <CropEntryForm
+      v-if="currCropEntry && locations.length && plants.length"
+      :title="currCropEntry.id ? 'Edit Entry' : 'New Entry'"
+      :val="currCropEntry"
       :plants="plants"
       :locations="locations"
       :crop="crop"
-      @add="ev => addCropEvent(ev)"
-      @patch="updateCropEvent"
-      @close="currCropEvent = null"/>
+      @add="ev => addCropEntry(ev)"
+      @patch="updateCropEntry"
+      @close="currCropEntry = null"/>
   </div>
 </template>
 
 <script>
 import Card from '../common/Card.vue'
-import CropEventForm from '../forms/CropEventForm.vue';
-import { fetchCrop, fetchPlots, fetchPlants, deleteCrop, deleteCropEvent, updateCrop } from '../../utils/api'
+import CropEntryForm from '../forms/CropEntryForm.vue';
+import { fetchCrop, fetchPlots, fetchPlants, deleteCrop, deleteCropEntry } from '../../utils/api'
 import { clone } from '../../utils/helpers'
 
 export default {
   name: 'Crops',
   components: {
     Card,
-    CropEventForm
+    CropEntryForm
   },
   data () {
     return {
@@ -50,7 +50,7 @@ export default {
       crop: null,
       plants: [],
       locations: [],
-      currCropEvent: null,
+      currCropEntry: null,
       headers: [{ label: '#', key: 'num' }, { label: 'Location', key: 'curr_loc' }, { label: 'Stage', key: 'stage' }, { label: 'Action', key: 'action' }, { label: 'Date & Time', key: 'datetimestamp' }, { label: 'Notes', key: 'notes' }]
     }
   },
@@ -65,33 +65,33 @@ export default {
     cropTitle () {
       return `Crop #${this.crop.id } ${this.crop.plant.name}`
     },
-    cropEventsMapped () {
-      return this.crop.crop_history.map(cropEvent => {
+    cropEntriesMapped () {
+      return this.crop.crop_entries.map(cropEntry => {
         return {
-          id: cropEvent.id,
-          curr_loc: cropEvent.location.name + (cropEvent.bed ? ` (${cropEvent.bed.name})` : ''),
-          stage: `x${cropEvent.qty} ${cropEvent.stage}`,
-          action: cropEvent.action,
-          datetimestamp: new Date(cropEvent.datetimestamp).toLocaleDateString(),
-          notes: cropEvent.notes
+          id: cropEntry.id,
+          curr_loc: cropEntry.location.name + (cropEntry.bed ? ` (${cropEntry.bed.name})` : ''),
+          stage: `x${cropEntry.qty} ${cropEntry.stage}`,
+          action: cropEntry.action,
+          datetimestamp: new Date(cropEntry.datetimestamp).toLocaleDateString(),
+          notes: cropEntry.notes
         }
       })
     }
   },
   methods: {
-    addCropEvent (ev) {
-      this.crop.crop_history.unshift(ev)
+    addCropEntry (ev) {
+      this.crop.crop_entries.unshift(ev)
       // sort by date desc
-      this.crop.crop_history.sort((a, b) => new Date(b.datetimestamp) - new Date(a.datetimestamp))
+      this.crop.crop_entries.sort((a, b) => new Date(b.datetimestamp) - new Date(a.datetimestamp))
     },
-    newEvent () {
+    newEntry () {
       if (!this.plants.length || !this.locations.length) {
         this.loading = true
         fetchPlants().then(response => {
           this.plants = response.data
           fetchPlots().then(response => {
             this.locations = response.data
-            this.currCropEvent =  {
+            this.currCropEntry =  {
               ...this.cropLastEntry(),
               id: null,
               notes: null,
@@ -101,7 +101,7 @@ export default {
           })
         })
       } else {
-        this.currCropEvent =  {
+        this.currCropEntry =  {
           ...this.cropLastEntry(),
           id: null,
           notes: null,
@@ -117,35 +117,35 @@ export default {
         this.loading = false
       })
     },
-    deleteCropEvent (id) {
+    deleteCropEntry (id) {
       this.loading = true
-      deleteCropEvent(id).then(response => {
-        this.crop.crop_history = this.crop.crop_history.filter(cropEvent => cropEvent.id !== id)
+      deleteCropEntry(id).then(response => {
+        this.crop.crop_entries = this.crop.crop_entries.filter(cropEntry => cropEntry.id !== id)
       }).finally(() => {
         this.loading = false
       })
     },
-    editCropEvent (id) {
+    editCropEntry (id) {
       if (!this.plants.length || !this.locations.length) {
         this.loading = true
         fetchPlants().then(response => {
           this.plants = response.data
           fetchPlots().then(response => {
             this.locations = response.data
-            this.currCropEvent = clone(this.crop.crop_history.find(cropEvent => cropEvent.id === id))
+            this.currCropEntry = clone(this.crop.crop_entries.find(cropEntry => cropEntry.id === id))
             this.loading = false
           })
         })
       } else {
-        this.currCropEvent = clone(this.crop.crop_history.find(cropEvent => cropEvent.id === id))
+        this.currCropEntry = clone(this.crop.crop_entries.find(cropEntry => cropEntry.id === id))
       }
     },
     cropLastEntry () {
-      return this.crop.crop_history[0] 
+      return this.crop.crop_entries[0] 
     },
-    updateCropEvent (ev) {
-      const index = this.crop.crop_history.findIndex(cropEvent => cropEvent.id === ev.id)
-      this.crop.crop_history.splice(index, 1, ev)
+    updateCropEntry (ev) {
+      const index = this.crop.crop_entries.findIndex(cropEntry => cropEntry.id === ev.id)
+      this.crop.crop_entries.splice(index, 1, ev)
     }
   }
 }

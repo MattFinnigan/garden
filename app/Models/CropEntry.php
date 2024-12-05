@@ -9,9 +9,9 @@ use App\Models\Location;
 use App\Models\Bed;
 use App\Models\Unit;
 
-class CropHistory extends Model {
+class CropEntry extends Model {
   use HasFactory;
-  protected $table = 'crop_history';
+  protected $table = 'crop_entries';
   protected $fillable = ['crop_id', 'location_id', 'action', 'stage', 'notes', 'image', 'qty', 'datetimestamp', 'bed_id', 'unit_id', 'area'];
 
   public function crop () {

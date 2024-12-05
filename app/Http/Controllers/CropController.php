@@ -9,15 +9,18 @@ use App\Models\Unit;
 class CropController extends Controller {
 
   public function index() {
-    return Crop::with(['plant', 'crop_history.location', 'crop_history', 'crop_history.bed', 'units', 'units.crop_history'])->orderBy('id', 'desc')->get();
+    return Crop::with(['plant', 'crop_entries', 'crop_entries.location', 'crop_entries.bed', 'units', 'units.crop_entries'])
+      ->where(function($query) {
+        $query->whereHas('crop_entries');
+      })->orderBy('id', 'desc')->get();
   }
 
   public function store(Request $request) {
     $crop = new Crop();
     $crop->plant_id = $request->plant_id;
     $crop->save();
-    // attach crop history
-    $crop->crop_history()->create([
+    // attach crop entry
+    $crop->crop_entries()->create([
       'crop_id' => $crop->id,
       'location_id' => $request->location_id,
       'action' => $request->action,
@@ -35,8 +38,8 @@ class CropController extends Controller {
       $unit->name = $u->name;
       $unit->image = $u->image;
       $unit->save();
-      foreach ($u->crop_history as $h) {
-        $unit->crop_history()->create([
+      foreach ($u->crop_entries as $h) {
+        $unit->crop_entries()->create([
           'unit_id' => $unit->id,
           'location_id' => $h->location_id,
           'action' => $h->action,
@@ -53,22 +56,22 @@ class CropController extends Controller {
     return response()->json([
       "status" => "success",
       "message" => "Crop created successfully",
-      "data" => Crop::where('id', $crop->id)->with(['crop_history', 'plant', 'crop_history.location', 'crop_history.bed', 'units', 'units.crop_history'])->first()
+      "data" => Crop::where('id', $crop->id)->with(['crop_entries', 'crop_entries.location', 'crop_entries.bed', 'plant', 'units', 'units.crop_entries'])->first()
     ]);
   }
 
   public function show($id) {
-    $crop = Crop::where('id', $id)->with(['crop_history', 'plant', 'crop_history.location', 'crop_history.bed', 'units.crop_history'])->first();
-    foreach ($crop->crop_history as $history) {
-      $history->plant_id = $crop->plant_id;
+    $crop = Crop::where('id', $id)->with(['crop_entries', 'crop_entries.location', 'crop_entries.bed', 'plant', 'units', 'units.crop_entries'])->first();
+    foreach ($crop->crop_entries as $entry) {
+      $entry->plant_id = $crop->plant_id;
     }
     return $crop;
   }
 
   public function destroy ($id) {
     $crop = Crop::find($id);
-    // detach crop history
-    $crop->crop_history()->delete();
+    // detach crop entry
+    $crop->crop_entries()->delete();
     $crop->delete();
     return response()->json([
       "status" => "success",

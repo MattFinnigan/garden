@@ -58,10 +58,10 @@ class LocationController extends Controller {
 
   public function destroy ($id) {
     $location = Location::find($id);
-    if ($location->crop_history()->count() > 0) {
+    if ($location->crop_entries()->count() > 0) {
       return response()->json([
         "status" => "error",
-        "message" => "Cannot delete location with crop history"
+        "message" => "Cannot delete location with crop entries"
       ]);
     }
     $location->beds()->delete();

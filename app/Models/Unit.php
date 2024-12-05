@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\CropEntry;
 
 class Unit extends Model {
   use HasFactory;
@@ -13,8 +14,8 @@ class Unit extends Model {
     'crop_id',
     'name'
   ];
-  public function cropHistory() {
-    return $this->hasMany(CropHistory::class);
+  public function crop_entries() {
+    return $this->hasMany(CropEntry::class);
   }
 
 }
