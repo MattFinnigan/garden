@@ -14,6 +14,8 @@ class CropEntry extends Model {
   protected $table = 'crop_entries';
   protected $fillable = ['crop_id', 'location_id', 'action', 'stage', 'notes', 'image', 'qty', 'datetimestamp', 'bed_id', 'unit_id', 'area'];
 
+  protected $with = ['location', 'bed', 'unit'];
+
   public function crop () {
     return $this->belongsTo(Crop::class);
   }

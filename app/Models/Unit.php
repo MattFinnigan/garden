@@ -14,6 +14,7 @@ class Unit extends Model {
     'crop_id',
     'name'
   ];
+  protected $with = ['crop_entries'];
   public function crop_entries() {
     return $this->hasMany(CropEntry::class);
   }

@@ -48,14 +48,14 @@ export default {
       this.loading = true
       e.preventDefault()
       if (this.currUnit.id) {
-        updateUnit(this.currUnit.id, this.currUnit).then(response => {
+        updateUnit(this, this.currUnit.id, this.currUnit).then(response => {
           this.$emit('patch', response.data.data)
         }).finally(() => {
           this.loading = false
           this.$emit('close')
         })
       } else {
-        createUnit(this.currUnit).then(response => {
+        createUnit(this, this.currUnit).then(response => {
           this.$emit('add', response.data.data)
         }).finally(() => {
           this.loading = false

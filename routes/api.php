@@ -22,15 +22,15 @@ Route::get('/crops/{id}', [CropController::class, 'show']);
 Route::post('/crops', [CropController::class, 'store']);
 Route::delete('/crops/{id}', [CropController::class, 'destroy']);
 
-Route::post('/crop-entry/create/{id}', [CropEntryController::class, 'create']);
+Route::post('/crop-entry/create/{id}', [CropEntryController::class, 'store']);
 Route::post('/crop-entry/{id}', [CropEntryController::class, 'update']);
 Route::delete('/crop-entry/{id}', [CropEntryController::class, 'destroy']);
 
-Route::get('/plots', [LocationController::class, 'index']);
-Route::get('/plots/{id}', [LocationController::class, 'show']);
-Route::post('/plots', [LocationController::class, 'store']);
-Route::post('/plots/{id}', [LocationController::class, 'update']);
-Route::delete('/plots/{id}', [LocationController::class, 'destroy']);
+Route::get('/locations', [LocationController::class, 'index']);
+Route::get('/locations/{id}', [LocationController::class, 'show']);
+Route::post('/locations', [LocationController::class, 'store']);
+Route::post('/locations/{id}', [LocationController::class, 'update']);
+Route::delete('/locations/{id}', [LocationController::class, 'destroy']);
 
 Route::post('/beds', [BedController::class, 'store']);
 Route::post('/beds/{id}', [BedController::class, 'update']);

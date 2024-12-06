@@ -30,7 +30,7 @@ export default {
   },
   methods: {
     getPlants () {
-      fetchPlants().then(response => {
+      fetchPlants(this).then(response => {
         this.plants = response.data
       }).finally(() => {
         this.loading = false
@@ -38,7 +38,7 @@ export default {
     },
     handleDelete (id) {
       this.loading = true
-      deletePlant(id).then(response => {
+      deletePlant(this, id).then(response => {
         this.plants = this.plants.filter(plant => plant.id !== id)
       }).finally(() => {
         this.loading = false

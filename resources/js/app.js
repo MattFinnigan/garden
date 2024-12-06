@@ -1,11 +1,12 @@
 import { createApp } from 'vue'
+import store from './store'
 import { createWebHistory, createRouter } from 'vue-router'
 import App from './components/App.vue'
 
 import Landing from './components/pages/Landing.vue'
 import Crops from './components/pages/Crops.vue'
 import Plants from './components/pages/Plants.vue'
-import Plots from './components/pages/Plots.vue'
+import Locations from './components/pages/Locations.vue'
 import Crop from './components/pages/Crop.vue'
 
 import Form from './components/forms/common/Form.vue'
@@ -21,7 +22,7 @@ const routes = [
   { path: '/', name: '', component: Landing },
   { path: '/crops', name: 'crops', component: Crops },
   { path: '/plants', name: 'plants', component: Plants },
-  { path: '/plots-beds', name: 'plots', component: Plots },
+  { path: '/locations-beds', name: 'locations', component: Locations },
   { path: '/crop/:id', name: 'crop', component: Crop },
 ]
 
@@ -30,7 +31,10 @@ const router = createRouter({
   routes,
 })
 
+
+
 const app = createApp(App).use(router)
+app.use(store)
 app.component('Form', Form)
 app.component('Button', Button)
 app.component('Modal', Modal)

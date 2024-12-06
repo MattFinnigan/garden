@@ -9,7 +9,7 @@ use App\Models\Bed;
 class LocationController extends Controller {
 
   public function index() {
-    return Location::with('beds')->get();
+    return Location::all();
   }
 
   public function store(Request $request) {
@@ -24,16 +24,17 @@ class LocationController extends Controller {
     return response()->json([
       "status" => "success",
       "message" => "Location created successfully",
-      "data" => Location::where('id', $location->id)->with('beds')->first()
+      "locations" => Location::all(),
+      "location" => Location::where('id', $location->id)->first()
     ]);
   }
 
   public function show($id) {
-    return Location::where('id', $id)->with('beds')->first();
+    return Location::where('id', $id)->first();
   }
 
   public function update(Request $request, $id) {
-    $location = Location::where('id', $id)->with('beds')->first();
+    $location = Location::where('id', $id)->first();
     $location->name = $request->name;
     $location->description = $request->description;
     $location->image = $request->image;
@@ -49,10 +50,13 @@ class LocationController extends Controller {
         $b->save();
       }
     }
+    // delete beds that werent included in the request
+    $location->beds()->whereNotIn('id', collect($request->beds)->pluck('id'))->delete();
     return response()->json([
       "status" => "success",
       "message" => "Location updated successfully",
-      "data" => Location::where('id', $id)->with('beds')->first()
+      "locations" => Location::all(),
+      "location" => Location::where('id', $location->id)->first()
     ]);
   }
 
@@ -69,7 +73,8 @@ class LocationController extends Controller {
     return response()->json([
       "status" => "success",
       "message" => "Location deleted successfully",
-      "data" => $location
+      "locations" => Location::all(),
+      "location" => $location
     ]);
   }
 }

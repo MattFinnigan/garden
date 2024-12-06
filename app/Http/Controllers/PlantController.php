@@ -20,7 +20,8 @@ class PlantController extends Controller {
     return response()->json([
       "status" => "success",
       "message" => "Plant created successfully",
-      "data" => $plant
+      "plant" => $plant,
+      "plants" => Plant::orderBy('name')->get()
     ]);
   }
 
@@ -38,7 +39,8 @@ class PlantController extends Controller {
     return response()->json([
       "status" => "success",
       "message" => "Plant updated successfully",
-      "data" => $plant
+      "plant" => $plant,
+      "plants" => Plant::orderBy('name')->get()
     ]);
   }
 
@@ -48,7 +50,8 @@ class PlantController extends Controller {
     return response()->json([
       "status" => "success",
       "message" => "Plant deleted successfully",
-      "data" => $plant
+      "plant" => $plant,
+      "plants" => Plant::orderBy('name')->get()
     ]);
   }
 }

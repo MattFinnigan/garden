@@ -1,12 +1,12 @@
 <template>
   <div class="crop-page">
     <div v-if="loading">Loading...</div>
-    <div v-else-if="!currCropEntry">
+    <div v-else-if="!currentEntry">
       <div class="header-contain">
         <h1>{{ cropTitle }}</h1>
         <div>
           <Button classes="sm" @click="newEntry">+</Button>
-          <Button classes="sm" @click="deleteCrop" :disabled="crop.crop_entries.length === 1">-</Button>
+          <Button classes="sm" @click="deleteCrop" :disabled="current.crop_entries.length === 1">-</Button>
         </div>
       </div>
       <div>
@@ -19,23 +19,14 @@
         </Table>
       </div>
     </div>
-    <CropEntryForm
-      v-if="currCropEntry && locations.length && plants.length"
-      :title="currCropEntry.id ? 'Edit Entry' : 'New Entry'"
-      :val="currCropEntry"
-      :plants="plants"
-      :locations="locations"
-      :crop="crop"
-      @add="ev => addCropEntry(ev)"
-      @patch="updateCropEntry"
-      @close="currCropEntry = null"/>
+    <CropEntryForm v-else :title="currentEntry.id ? 'Edit Entry' : 'New Entry'" @close="done"/>
   </div>
 </template>
 
 <script>
 import Card from '../common/Card.vue'
 import CropEntryForm from '../forms/CropEntryForm.vue';
-import { fetchCrop, fetchPlots, fetchPlants, deleteCrop, deleteCropEntry } from '../../utils/api'
+import { fetchCrop, fetchLocations, fetchPlants, deleteCrop, deleteCropEntry } from '../../utils/api'
 import { clone } from '../../utils/helpers'
 
 export default {
@@ -44,29 +35,41 @@ export default {
     Card,
     CropEntryForm
   },
+  beforeDestroy () {
+
+  },
+  beforeRouteLeave (to, from, next) {
+    this.$store.commit('crops/setCurrentCrop', null)
+    this.$store.commit('crop_entries/setCurrentCropEntry', null)
+    next()
+  },
   data () {
     return {
       loading: true,
-      crop: null,
-      plants: [],
-      locations: [],
-      currCropEntry: null,
       headers: [{ label: '#', key: 'num' }, { label: 'Location', key: 'curr_loc' }, { label: 'Stage', key: 'stage' }, { label: 'Action', key: 'action' }, { label: 'Date & Time', key: 'datetimestamp' }, { label: 'Notes', key: 'notes' }]
     }
   },
   mounted () {
-    fetchCrop(this.$route.params.id).then(response => {
-      this.crop = response.data
-    }).finally(() => {
-      this.loading = false
-    })
+    fetchCrop(this, this.$route.params.id).then(() => { this.loading = false })
   },
   computed: {
+    current () {
+      return this.$store.state.crops.current
+    },
+    currentEntry () {
+      return this.$store.state.crop_entries.current
+    },
+    locations () {
+      return this.$store.state.locations.list
+    },
+    plants () {
+      return this.$store.state.plants.list
+    },
     cropTitle () {
-      return `Crop #${this.crop.id } ${this.crop.plant.name}`
+      return `Crop #${this.current.id } ${this.current.plant.name}`
     },
     cropEntriesMapped () {
-      return this.crop.crop_entries.map(cropEntry => {
+      return this.current.crop_entries.map(cropEntry => {
         return {
           id: cropEntry.id,
           curr_loc: cropEntry.location.name + (cropEntry.bed ? ` (${cropEntry.bed.name})` : ''),
@@ -79,73 +82,46 @@ export default {
     }
   },
   methods: {
-    addCropEntry (ev) {
-      this.crop.crop_entries.unshift(ev)
-      // sort by date desc
-      this.crop.crop_entries.sort((a, b) => new Date(b.datetimestamp) - new Date(a.datetimestamp))
-    },
     newEntry () {
-      if (!this.plants.length || !this.locations.length) {
-        this.loading = true
-        fetchPlants().then(response => {
-          this.plants = response.data
-          fetchPlots().then(response => {
-            this.locations = response.data
-            this.currCropEntry =  {
-              ...this.cropLastEntry(),
-              id: null,
-              notes: null,
-              image: null
-            }
-            this.loading = false
-          })
-        })
-      } else {
-        this.currCropEntry =  {
-          ...this.cropLastEntry(),
-          id: null,
-          notes: null,
-          image: null
-        }
+      const promises = []
+      if (!this.plants.length) {
+        promises.push(fetchPlants(this))
       }
+      if (!this.locations.length) {
+        promises.push(fetchLocations(this))
+      }
+      Promise.all(promises).then(() => {
+        this.$store.commit('crop_entries/setCurrentCropEntry', {
+          ...this.current.latest_entry,
+          id: null,
+          image: null
+        })
+      })
     },
     deleteCrop () {
       this.loading = true
-      deleteCrop(this.crop.id).then(response => {
-        this.$router.push('/crops')
-      }).finally(() => {
-        this.loading = false
-      })
+      deleteCrop(this, this.current.id).then(response => { this.$router.push('/crops') })
     },
     deleteCropEntry (id) {
       this.loading = true
-      deleteCropEntry(id).then(response => {
-        this.crop.crop_entries = this.crop.crop_entries.filter(cropEntry => cropEntry.id !== id)
-      }).finally(() => {
-        this.loading = false
-      })
+      deleteCropEntry(this, id).then(response => { this.loading = false })
     },
     editCropEntry (id) {
-      if (!this.plants.length || !this.locations.length) {
-        this.loading = true
-        fetchPlants().then(response => {
-          this.plants = response.data
-          fetchPlots().then(response => {
-            this.locations = response.data
-            this.currCropEntry = clone(this.crop.crop_entries.find(cropEntry => cropEntry.id === id))
-            this.loading = false
-          })
-        })
-      } else {
-        this.currCropEntry = clone(this.crop.crop_entries.find(cropEntry => cropEntry.id === id))
+      const promises = []
+      if (!this.plants.length) {
+        promises.push(fetchPlants(this))
       }
+      if (!this.locations.length) {
+        promises.push(fetchLocations(this))
+      }
+      Promise.all(promises).then(() => {
+        this.$store.commit('crop_entries/setCurrentCropEntry', clone(this.current.crop_entries.find(cropEntry => cropEntry.id === id)))
+      })
     },
-    cropLastEntry () {
-      return this.crop.crop_entries[0] 
-    },
-    updateCropEntry (ev) {
-      const index = this.crop.crop_entries.findIndex(cropEntry => cropEntry.id === ev.id)
-      this.crop.crop_entries.splice(index, 1, ev)
+    done () {
+      this.$store.commit('crop_entries/setCurrentCropEntry', null)
+      this.loading = true
+      fetchCrop(this, this.$route.params.id).then(() => { this.loading = false })
     }
   }
 }

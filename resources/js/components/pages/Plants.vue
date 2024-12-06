@@ -2,28 +2,20 @@
   <div class="plants-page">
     <div class="header-contain">
       <h1>Plants</h1>
-      <Button classes="sm" @click="currPlant = {}">Add Plant</Button>
+      <Button classes="sm" @click="newPlant">Add Plant</Button>
     </div>
     <div v-if="loading">Loading...</div>
     <div v-else>
       <div v-for="plant in plants" :key="plant.id">
         <Card size="sm" :title="plant.name + ' (' + plant.variety + ')'" :description="plant.description" :image="plant.image">
           <template #actions>
-            <Button classes="sm" @click="editPlant(plant)">Edit</Button>
+            <Button classes="sm" @click="editPlant(plant.id)">Edit</Button>
             <Button classes="sm" @click="handleDelete(plant.id)">Delete</Button>
           </template>
         </Card>
       </div>
     </div>
-    <PlantForm
-      v-if="currPlant"
-      :val="currPlant"
-      @add="p => plants.push(p)"
-      @patch="p => {
-        const index = plants.findIndex(plant => plant.id === p.id)
-        plants.splice(index, 1, p)
-      }"
-      @close="currPlant = null"/>
+    <PlantForm v-if="current"/>
   </div>
 </template>
 
@@ -41,32 +33,36 @@ export default {
   },
   data () {
     return {
-      loading: true,
-      plants: [],
-      currPlant: null
+      loading: true
     }
   },
   mounted () {
-    this.getPlants()
+    if (!this.plants.length) {
+      this.getPlants()
+    } else {
+      this.loading = false
+    }
+  },
+  computed: {
+    plants () {
+      return this.$store.state.plants.list
+    },
+    current () {
+      return this.$store.state.plants.current
+    },
   },
   methods: {
     getPlants () {
-      fetchPlants().then(response => {
-        this.plants = response.data
-      }).finally(() => {
-        this.loading = false
-      })
+      fetchPlants(this).then(() => { this.loading = false })
     },
     handleDelete (id) {
-      this.loading = true
-      deletePlant(id).then(response => {
-        this.plants = this.plants.filter(plant => plant.id !== id)
-      }).finally(() => {
-        this.loading = false
-      })
+      deletePlant(this, id).then(() => { this.loading = false })
     },
-    editPlant (plant) {
-      this.currPlant = clone(plant)
+    newPlant () {
+      this.$store.commit('plants/setCurrentPlant', { name: '', description: '', variety: '', image: '' })
+    },
+    editPlant (id) {
+      this.$store.commit('plants/setCurrentPlant', clone(this.plants.find(p => p.id === id)))
     }
   }
 }

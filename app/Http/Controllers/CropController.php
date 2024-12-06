@@ -9,10 +9,10 @@ use App\Models\Unit;
 class CropController extends Controller {
 
   public function index() {
-    return Crop::with(['plant', 'crop_entries', 'crop_entries.location', 'crop_entries.bed', 'units', 'units.crop_entries'])
-      ->where(function($query) {
+    $crops = Crop::where(function($query) {
         $query->whereHas('crop_entries');
       })->orderBy('id', 'desc')->get();
+    return $crops;
   }
 
   public function store(Request $request) {
@@ -56,12 +56,15 @@ class CropController extends Controller {
     return response()->json([
       "status" => "success",
       "message" => "Crop created successfully",
-      "data" => Crop::where('id', $crop->id)->with(['crop_entries', 'crop_entries.location', 'crop_entries.bed', 'plant', 'units', 'units.crop_entries'])->first()
+      "crop" => Crop::where('id', $crop->id)->first(),
+      "crops" => Crop::where(function($query) {
+        $query->whereHas('crop_entries');
+      })->orderBy('id', 'desc')->get()
     ]);
   }
 
   public function show($id) {
-    $crop = Crop::where('id', $id)->with(['crop_entries', 'crop_entries.location', 'crop_entries.bed', 'plant', 'units', 'units.crop_entries'])->first();
+    $crop = Crop::where('id', $id)->first();
     foreach ($crop->crop_entries as $entry) {
       $entry->plant_id = $crop->plant_id;
     }
@@ -76,7 +79,10 @@ class CropController extends Controller {
     return response()->json([
       "status" => "success",
       "message" => "Crop deleted successfully",
-      "data" => $crop
+      "crop" => $crop,
+      "crops" => Crop::where(function($query) {
+        $query->whereHas('crop_entries');
+      })->orderBy('id', 'desc')->get()
     ]);
   }
 }

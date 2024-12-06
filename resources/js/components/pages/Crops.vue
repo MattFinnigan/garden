@@ -1,9 +1,9 @@
 <template>
-  <div class="crops-page">
-    <div v-if="!newCrop">
+  <div v-if="!loading" class="crops-page">
+    <div v-if="!current">
       <div class="header-contain">
         <h1>Crops</h1>
-        <Button classes="sm" @click="defaultNewCrop" :disabled="!plants.length || !locations.length">Add Crop</Button>
+        <Button classes="sm" @click="newCrop" :disabled="!plants.length || !locations.length">Add Crop</Button>
       </div>
       <div v-if="loading">Loading...</div>
       <div v-else>
@@ -16,19 +16,14 @@
         </Table>
       </div>
     </div>
-    <CropForm
-      v-else
-      :val="newCrop"
-      :plants="plants"
-      :locations="locations"
-      @add="p => crops.unshift(p)"
-      @close="newCrop = null"/>
+    <CropForm v-else/>
   </div>
 </template>
 
 <script>
 import CropForm from '../forms/CropForm.vue';
-import { fetchCrops, deleteCrop, fetchPlants, fetchPlots } from '../../utils/api'
+import { fetchCrops, deleteCrop, fetchPlants, fetchLocations } from '../../utils/api'
+import { clone } from '../../utils/helpers'
 
 export default {
   name: 'Crops',
@@ -38,67 +33,83 @@ export default {
   data () {
     return {
       loading: true,
-      crops: [],
-      newCrop: null,
-      plants: [],
-      locations: [],
-      headers: [{ label: '#', key: 'id' }, { label: 'Plant', key: 'plant_details' }, { label: 'Location', key: 'curr_loc' }, { label: 'Action', key: 'action' }, { label: 'Time', key: 'datetimestamp', width: '80px'}, { label: 'Notes', key: 'notes' }]
+      headers: [{ label: '#', key: 'id' }, { label: 'Plant', key: 'plant_details' }, { label: 'Location', key: 'curr_loc' }, { label: 'Action', key: 'action' }, { label: 'Time', key: 'datetimestamp', width: '80px'}, { label: 'Notes', key: 'notes' }],
+      mode: 'view'
     }
   },
   mounted () {
-    fetchCrops().then(response => {
-      this.crops = response.data
-      fetchPlants().then(response => {
-        this.plants = response.data
-        fetchPlots().then(response => {
-          this.locations = response.data
-          this.loading = false
-        })
+    const promises = []
+    if (!this.locations.length) {
+      promises.push(fetchLocations(this))
+    }
+    if (!this.plants.length) {
+      promises.push(fetchPlants(this))
+    }
+    Promise.all(promises).then(() => {
+      fetchCrops(this).then(response => {
+        this.loading = false
       })
     })
   },
   computed: {
+    locations () {
+      return this.$store.state.locations.list
+    },
+    plants () {
+      return this.$store.state.plants.list
+    },
+    crops () {
+      return this.$store.state.crops.list
+    },
+    current () {
+      return this.$store.state.crops.current
+    },
     cropsMapped () {
       return this.crops.map(crop => {
-        const latestEntry = this.cropLastEntry(crop)
         return {
           id: crop.id,
           plant_details: `
-            x${latestEntry.qty} ${crop.plant.name} (${crop.plant.variety})<br/>
-            <em>${latestEntry.stage}</em>
+            x${crop.latest_entry.qty} ${crop.plant.name} (${crop.plant.variety})<br/>
+            <em>${crop.latest_entry.stage}</em>
           `,
-          qty: latestEntry.qty,
-          curr_loc: `${latestEntry.location.name} ${latestEntry.bed ? `<br/>(${latestEntry.bed.name})` : ''}`,
-          action: latestEntry.action,
-          datetimestamp: new Date(latestEntry.datetimestamp).toLocaleString(),
-          notes: latestEntry.notes
+          qty: crop.latest_entry.qty,
+          curr_loc: `${crop.latest_entry.location.name} ${crop.latest_entry.bed ? `<br/>(${crop.latest_entry.bed.name})` : ''}`,
+          action: crop.latest_entry.action,
+          datetimestamp: new Date(crop.latest_entry.datetimestamp).toLocaleString(),
+          notes: crop.latest_entry.notes
         }
       })
     }
   },
   methods: {
-    defaultNewCrop () {
-      this.newCrop = {
-        plant_id: this.plants[0].id,
+    newCrop () {
+      const e = {
         location_id: this.locations[0].id,
         action: 'Sowed',
         stage: 'Planned',
         qty: 1,
         notes: null,
         image: null,
-        datetimestamp: new Date().toISOString().slice(0, 16)
+        area: 1,
+        datetimestamp: new Date().toISOString().slice(0, 16),
+        units: []
       }
+      const c = {
+        plant_id: this.plants[0].id,
+        crop_entries: []
+      }
+      this.$store.commit('crops/setCurrentCrop', c)
+      this.$store.commit('crop_entries/setCurrentCropEntry', e)
+      this.mode = 'edit'
     },
-    cropLastEntry (crop) {
-      return crop.crop_entries[0] 
+    editCrop (id) {
+      this.$store.commit('crops/setCurrentCrop', clone(this.crops.find(crop => crop.id === id)))
+      this.mode = 'edit'
     },
     handleDelete (id) {
       this.loading = true
-      deleteCrop(id).then(response => {
-        this.crops = this.crops.filter(crop => crop.id !== id)
-      }).finally(() => {
-        this.loading = false
-      })
+      deleteCrop(this, id).then(() => { this.loading = false; })
+      
     }
   }
 }

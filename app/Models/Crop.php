@@ -11,6 +11,8 @@ use App\Models\Unit;
 class Crop extends Model {
   use HasFactory;
 
+  protected $with = ['plant', 'crop_entries', 'units', 'latestEntry'];
+
   public function crop_entries () {
     return $this->hasMany(CropEntry::class)->orderBy('datetimestamp', 'desc');
   }
@@ -21,5 +23,9 @@ class Crop extends Model {
 
   public function units () {
     return $this->hasMany(Unit::class);
+  }
+
+  public function latestEntry () {
+    return $this->hasOne(CropEntry::class)->orderBy('datetimestamp', 'desc');
   }
 }

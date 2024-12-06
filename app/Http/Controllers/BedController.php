@@ -15,7 +15,7 @@ class BedController extends Controller {
     return response()->json([
       "status" => "success",
       "message" => "Bed created successfully",
-      "data" => $bed
+      "bed" => $bed
     ]);
   }
 
@@ -29,7 +29,7 @@ class BedController extends Controller {
     return response()->json([
       "status" => "success",
       "message" => "Bed updated successfully",
-      "data" => $bed
+      "bed" => $bed
     ]);
   }
 
@@ -39,7 +39,7 @@ class BedController extends Controller {
     return response()->json([
       "status" => "success",
       "message" => "Bed deleted successfully",
-      "data" => $bed
+      "bed" => $bed
     ]);
   }
 }

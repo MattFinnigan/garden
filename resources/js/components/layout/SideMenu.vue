@@ -11,27 +11,27 @@
         <li :class="{ active: $route.name === '' }"><router-link to="/">Dashboard</router-link></li>
         <li :class="{ active: $route.name === 'crops' }"><router-link to="/crops">Crops</router-link></li>
         <li :class="{ active: $route.name === 'plants' }"><router-link to="/plants">Plants</router-link></li>
-        <li :class="{ active: $route.name === 'plots' }"><router-link to="/plots-beds">Plots & Beds</router-link></li>
+        <li :class="{ active: $route.name === 'locations' }"><router-link to="/locations-beds">Locations & Beds</router-link></li>
       </ul>
     </nav>
     <PlantForm v-if="newPlant" @close="newPlant = false"/>
-    <PlotForm v-if="newPlot" @close="newPlot = false"/>
+    <LocationForm v-if="newLocation" @close="newLocation = false"/>
   </aside>
 </template>
 
 <script>
 import PlantForm from '../forms/PlantForm.vue';
-import PlotForm from '../forms/PlotForm.vue';
+import LocationForm from '../forms/LocationForm.vue';
 
 export default {
   components: {
     PlantForm,
-    PlotForm
+    LocationForm
   },
   data () {
     return {
       newPlant: false,
-      newPlot: false,
+      newLocation: false,
       closed: true
     }
   },
@@ -106,7 +106,7 @@ aside {
     nav {
       background-color: transparent;
       width: unset;
-      padding-right: 75px;
+      padding-right: 50px;
       text-align: left;
       .nav-toggle {
         display: none;

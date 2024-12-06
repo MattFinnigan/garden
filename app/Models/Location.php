@@ -9,6 +9,7 @@ use App\Models\Bed;
 use App\Models\CropEntry;
 class Location extends Model {
   use HasFactory;
+  protected $with = ['beds'];
   public function beds () {
     return $this->hasMany(Bed::class);
   }

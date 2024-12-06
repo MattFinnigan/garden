@@ -1,15 +1,11 @@
 <template>
   <div class="crop-form">
     <CropEntryForm
-      v-if="val"
+      v-if="currentEntry"
       title="Add a Crop"
-      :crop="crop"
-      :val="val"
-      :plants="plants"
-      :locations="locations"
       :handleSubmit="false"
       @submit="submitForm"
-      @close="$emit('close')"/>
+      @close="done"/>
   </div>
 </template>
 
@@ -22,28 +18,32 @@ export default {
     CropEntryForm
   },
   name: 'CropForm',
-  props: {
-    plants: Array,
-    locations: Array,
-    val: Object,
-    crop: Object
-  },
-  emits: ['add', 'close'],
   data () {
     return {
       loading: false
     }
   },
+  computed: {
+    current () {
+      return this.$store.state.crops.current
+    },
+    currentEntry () {
+      return this.$store.state.crop_entries.current
+    }
+  },
   methods: {
-    submitForm (e, crop) {
+    submitForm (e, entry) {
       this.loading = true
       e.preventDefault()
-      createCrop(crop).then(response => {
-        this.$emit('add', response.data.data)
-      }).finally(() => {
-        this.loading = false
-        this.$emit('close')
+      this.$store.commit('crops/setCurrentCropEntries', [...this.current.crop_entries, entry])
+      createCrop(this, { ...this.current, ...this.currentEntry }).then(response => {
+        this.$store.commit('crops/setCurrentCrop', null)
+        this.$store.commit('crop_entries/setCurrentCropEntry', null)
       })
+    },
+    done () {
+      this.$store.commit('crops/setCurrentCrop', null)
+      this.$store.commit('crop_entries/setCurrentCropEntry', null)
     }
   }
 }

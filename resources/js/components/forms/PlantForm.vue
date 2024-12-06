@@ -1,16 +1,16 @@
 <template>
   <div class="plant-form">
-  <Modal @close="$emit('close')">
+  <Modal @close="cancel">
     <template #header>
       <h2>Plant Form</h2>
     </template>
     <template #content>
       <Form @submit="submitForm">
         <template #inputs>
-          <Input type="text" v-model="currPlant.name" label="Species" required minlength="2" maxlength="255"/>
-          <Input type="text" v-model="currPlant.variety" label="Variety" required maxlength="255"/>
-          <Input type="textarea" v-model="currPlant.description" label="Description" maxlength="255"/>
-          <Input :modelValue="currPlant.image" type="file" label="Image" @change="e => currPlant.image = e.target.value"/>
+          <Input type="text" v-model="name" label="Species" required minlength="2" maxlength="255"/>
+          <Input type="text" v-model="variety" label="Variety" required maxlength="255"/>
+          <Input type="textarea" v-model="description" label="Description" maxlength="255"/>
+          <Input :modelValue="image" type="file" label="Image" @change="e => image = e.target.value"/>
         </template>
         <template #buttons>
           <Button type="submit" :disabled="loading">Submit</Button>
@@ -23,21 +23,12 @@
 
 <script>
 import { createPlant, updatePlant } from '../../utils/api'
-import { isEmpty } from '../../utils/helpers';
+import { clone } from '../../utils/helpers'
+
 export default {
   name: 'PlantForm',
-  props: {
-    val: Object,
-  },
-  emits: ['add', 'patch', 'close'],
   data () {
     return {
-      currPlant: isEmpty(this.val) || this.val ? this.val : {
-        name: '',
-        description: '',
-        variety: '',
-        image: ''
-      },
       loading: false
     }
   },
@@ -45,28 +36,56 @@ export default {
     submitForm (e) {
       this.loading = true
       e.preventDefault()
-      if (this.currPlant.id) {
-        updatePlant(this.currPlant.id, this.currPlant).then(response => {
-          this.$emit('patch', response.data.data)
-        }).finally(() => {
-          this.loading = false
-          this.$emit('close')
+      if (this.current.id) {
+        updatePlant(this, this.current.id, this.current).then(response => {
+          this.$store.commit('plants/setCurrentPlant', null)
         })
       } else {
-        createPlant(this.currPlant).then(response => {
-          this.$emit('add', response.data.data)
-        }).finally(() => {
-          this.loading = false
-          this.$emit('close')
+        createPlant(this, this.current).then(response => {
+          this.$store.commit('plants/setCurrentPlant', null)
         })
       }
+    },
+    cancel () {
+      this.$store.commit('plants/setCurrentPlant', null)
     }
   },
   computed: {
-    // Add your computed properties here
-  },
-  mounted() {
-    // Add your mounted logic here
+    current () {
+      return this.$store.state.plants.current
+    },
+    name: {
+      get () {
+        return this.current.name
+      },
+      set (value) {
+        this.$store.commit('plants/setCurrentPlantName', value)
+      }
+    },
+    variety: {
+      get () {
+        return this.current.variety
+      },
+      set (value) {
+        this.$store.commit('plants/setCurrentPlantVariety', value)
+      }
+    },
+    description: {
+      get () {
+        return this.current.description
+      },
+      set (value) {
+        this.$store.commit('plants/setCurrentPlantDescription', value)
+      }
+    },
+    image: {
+      get () {
+        return this.current.image
+      },
+      set (value) {
+        this.$store.commit('plants/setCurrentPlantImage', value)
+      }
+    }
   }
 }
 </script>

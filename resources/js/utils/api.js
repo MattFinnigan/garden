@@ -36,154 +36,208 @@ export const destroy = (url) => {
 }
 
 // plants
-export const fetchPlants = () => {
+export const fetchPlants = (context, storeState = true) => {
   return new Promise((resolve) => {
     get('plants').then((response) => {
       console.log('fetchPlants', 'response', response)
+      if (storeState) {
+        context.$store.commit('plants/setPlants', response.data)
+      }
       resolve(response)
     })
   })
 }
-export const fetchPlant = (id) => {
+export const fetchPlant = (context, id, storeState = true) => {
   return new Promise((resolve) => {
     get(`plants/${id}`).then((response) => {
       console.log('fetchPlant', id, 'response', response)
+      if (storeState) {
+        context.$store.commit('plants/setCurrentPlant', response.data)
+      }
       resolve(response)
     })
   })
 }
-export const createPlant = (data) => {
+export const createPlant = (context, data, storeState = true) => {
   return new Promise((resolve) => {
     post('plants', data).then((response) => {
       console.log('createPlant', data, 'response', response)
+      if (storeState) {
+        context.$store.commit('plants/setPlants', response.data.plants)
+      }
       resolve(response)
     })
   })
 }
-export const updatePlant = (id, data) => {
+export const updatePlant = (context, id, data, storeState = true) => {
   return new Promise((resolve) => {
     post(`plants/${id}`, data).then((response) => {
       console.log('updatePlant', id, data, 'response', response)
+      if (storeState) {
+        context.$store.commit('plants/setPlants', response.data.plants)
+      }
       resolve(response)
     })
   })
 }
-export const deletePlant = (id) => {
+export const deletePlant = (context, id, storeState = true) => {
   return new Promise((resolve) => {
     destroy(`plants/${id}`).then((response) => {
       console.log('deletePlant', id, 'response', response)
+      if (storeState) {
+        context.$store.commit('plants/setPlants', response.data.plants)
+      }
       resolve(response)
     })
   })
 }
 
 // crops
-export const fetchCrops = () => {
+export const fetchCrops = (context, storeState = true) => {
   return new Promise((resolve) => {
     get('crops').then((response) => {
       console.log('fetchCrops', 'response', response)
+      if (storeState) {
+        context.$store.commit('crops/setCrops', response.data)
+      }
       resolve(response)
     })
   })
 }
-export const fetchCrop = (id) => {
+export const fetchCrop = (context, id, storeState = true) => {
   return new Promise((resolve) => {
     get(`crops/${id}`).then((response) => {
       console.log('fetchCrop', id, 'response', response)
+      if (storeState) {
+        context.$store.commit('crops/setCurrentCrop', response.data)
+      }
       resolve(response)
     })
   })
 }
-export const createCrop = (data) => {
+export const createCrop = (context, data, storeState = true) => {
   return new Promise((resolve) => {
     post('crops', data).then((response) => {
       console.log('createCrop', data, 'response', response)
+      if (storeState) {
+        context.$store.commit('crops/setCrops', response.data.crops)
+      }
       resolve(response)
     })
   })
 }
-export const updateCrop = (id, data) => {
+export const updateCrop = (context, id, data, storeState = true) => {
   return new Promise((resolve) => {
     post(`crops/${id}`, data).then((response) => {
       console.log('updateCrop', id, data, 'response', response)
+      if (storeState) {
+        context.$store.commit('crops/setCrops', response.data.crops)
+      }
       resolve(response)
     })
   })
 }
-export const deleteCrop = (id) => {
+export const deleteCrop = (context, id, storeState = true) => {
   return new Promise((resolve) => {
     destroy(`crops/${id}`).then((response) => {
       console.log('deleteCrop', id, 'response', response)
+      if (storeState) {
+        context.$store.commit('crops/setCrops', response.data.crops)
+      }
       resolve(response)
     })
   })
 }
 
-// crop events
-export const deleteCropEntry = (id) => {
-  return new Promise((resolve) => {
-    destroy(`crop-entry/${id}`).then((response) => {
-      console.log('deleteCropEntry', id, 'response', response)
-      resolve(response)
-    })
-  })
-}
-
-export const createCropEntry = (cropId, data) => {
+// crop entries
+export const createCropEntry = (context, cropId, data, storeState = true) => {
   return new Promise((resolve) => {
     post(`crop-entry/create/${cropId}`, data).then((response) => {
       console.log('createCropEntry', cropId, data, 'response', response)
+      if (storeState) {
+        context.$store.commit('crops/setCrops', response.data.crops)
+      }
       resolve(response)
     })
   })
 }
 
-export const updateCropEntry = (id, data) => {
+export const updateCropEntry = (context, id, data, storeState = true) => {
   return new Promise((resolve) => {
     post(`crop-entry/${id}`, data).then((response) => {
       console.log('updateCropEntry', id, data, 'response', response)
+      if (storeState) {
+        context.$store.commit('crops/setCrops', response.data.crops)
+      }
       resolve(response)
     })
   })
 }
 
-// plots
-export const fetchPlots = () => {
+export const deleteCropEntry = (context, id, storeState = true) => {
   return new Promise((resolve) => {
-    get('plots').then((response) => {
-      console.log('fetchPlots', 'response', response)
+    destroy(`crop-entry/${id}`).then((response) => {
+      console.log('deleteCropEntry', id, 'response', response)
+      if (storeState) {
+        context.$store.commit('crops/setCrops', response.data.crops)
+      }
       resolve(response)
     })
   })
 }
-export const fetchPlot = (id) => {
+
+// locations
+export const fetchLocations = (context, storeState = true) => {
   return new Promise((resolve) => {
-    get(`plots/${id}`).then((response) => {
-      console.log('fetchPlot', id, 'response', response)
+    get('locations').then((response) => {
+      console.log('fetchLocations', 'response', response)
+      if (storeState) {
+        context.$store.commit('locations/setLocations', response.data)
+      }
       resolve(response)
     })
   })
 }
-export const createPlot = (data) => {
+export const fetchLocation = (context, id, storeState = true) => {
   return new Promise((resolve) => {
-    post('plots', data).then((response) => {
-      console.log('createPlot', data, 'response', response)
+    get(`locations/${id}`).then((response) => {
+      console.log('fetchLocation', id, 'response', response)
+      if (storeState) {
+        context.$store.commit('locations/setCurrentLocation', response.data)
+      }
       resolve(response)
     })
   })
 }
-export const updatePlot = (id, data) => {
+export const createLocation = (context, data, storeState = true) => {
   return new Promise((resolve) => {
-    post(`plots/${id}`, data).then((response) => {
-      console.log('updatePlot', id, data, 'response', response)
+    post('locations', data).then((response) => {
+      console.log('createLocation', data, 'response', response)
+      if (storeState) {
+        context.$store.commit('locations/setLocations', response.data.locations)
+      }
       resolve(response)
     })
   })
 }
-export const deletePlot = (id) => {
+export const updateLocation = (context, id, data, storeState = true) => {
   return new Promise((resolve) => {
-    destroy(`plots/${id}`).then((response) => {
-      console.log('deletePlot', id, 'response', response)
+    post(`locations/${id}`, data).then((response) => {
+      console.log('updateLocation', id, data, 'response', response)
+      if (storeState) {
+        context.$store.commit('locations/setLocations', response.data.locations)
+      }
+      resolve(response)
+    })
+  })
+}
+export const deleteLocation = (context, id, storeState = true) => {
+  return new Promise((resolve) => {
+    destroy(`locations/${id}`).then((response) => {
+      console.log('deleteLocation', id, 'response', response)
+      if (storeState) {
+        context.$store.commit('locations/setLocations', response.data.locations)
+      }
       resolve(response)
     })
   })
