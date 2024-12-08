@@ -1,10 +1,11 @@
 <template>
   <div class="crop-entry-form">
     <h2>{{ title }}</h2>
-    <Form @submit="submitForm">
+    <Form v-show="!newUnit" @submit="submitForm">
       <template #inputs>
         <Select v-if="canEditPlant" v-model.number="plant_id" label="Select a Plant" :options="plants.map(p => { return { label: p.name + ' (' + p.variety + ')', value: p.id } })"/>
         <Display v-else label="Plant" :val="currPlant.name + ' (' + currPlant.variety + ')'"/>
+        <Input v-if="findRule('name', 'enabled')" v-model="name" label="Name" required/>
         <Select v-model.number="location_id" label="Select a Location" :options="locations.map(l => { return { label: l.name, value: l.id } })"/>
         <Select v-if="currLocation" v-model.number="bed_id" label="Select a Bed (Optional)" :options="currLocation.beds.map(b => { return { label: b.name, value: b.id } })"/>
         <div class="inputs-row">
@@ -12,24 +13,49 @@
           <Select v-model="stage" label="Lifecycle Stage" :options="stageOptions"/>
         </div>
         <div class="inputs-row">
-          <Input v-model="datetimestamp" type="datetime-local" label="Date & Time"/>
-          <Input v-model="qty" type="number" label="Quantity" required/>
+          <Input v-if="findRule('datetimestamp', 'enabled')" v-model="datetimestamp" type="datetime-local" label="Date & Time"/>
+          <Input v-model="qty" type="number" label="Quantity" required :min="findRule('qty', 'min') || qtyRule.min" :max="findRule('qty', 'max') || qtyRule.max"/>
         </div>
-        <Input v-model="area" type="number" label="Spacing"/>
+        <Input v-model="area" type="number" label="Spacing (cm)" :min="findRule('area', 'min') || spacingRule.min" :max="findRule('area', 'max') || spacingRule.max"/>
         <Input v-model="notes" type="textarea" label="Notes"/>
         <Input :modelValue="image" type="file" label="Image" @change="e => image = e.target.value"/>
+        <!-- <br/>
+        <Table
+          v-if="!current.isUnit"
+          :headers="[{ label: '#', key: 'id' }, { label: 'Name', key: 'name' }, { label: 'Location', key: 'curr_loc' }, { label: 'Action', key: 'action' }, { label: 'Stage', key: 'stage' }, { label: 'Notes', key: 'notes' }]"
+          :rows="unitsMapped"
+          :actions="{ view: true, delete: true }"
+          @view="(entry) => {}"
+          @delete="(entry) => {}">
+          <template #header>
+            <h3>Individual plant entries</h3>
+            <Button classes="sm" :disabled="current.qty <= currentCrop.units.length" @click="addUnit">+</Button>
+          </template>
+          <template #empty><em>No individualised plants - entry applies to entire crop</em></template>
+        </Table> -->
       </template>
       <template #buttons>
         <Button :disabled="loading" @click="$emit('close')">Cancel</Button>
         <Button type="submit" :disabled="loading">Submit</Button>
       </template>
     </Form>
-</div>
+    <!-- <Modal v-if="newUnit && savedEntry">
+      <template #header>Individualise a crop plant</template>
+      <template #content>
+        <CropEntryForm
+        :rules="[{ key: 'datetimestamp', enabled: false }, { key: 'qty', min: 1, max: savedEntry.qty }, { key: 'area', min: 1, max: savedEntry.qty }]"
+        :handleSubmit="false"
+        @close="cancelNewUnit"
+        @submit="addNewUnit"/>
+      </template>
+    </Modal> -->
+  </div>
 </template>
 
 <script>
 import { createCropEntry, updateCropEntry } from '../../utils/api'
-import { isEmpty } from '../../utils/helpers';
+import { clone } from '../../utils/helpers';
+
 export default {
   name: 'CropEntryForm',
   props: {
@@ -37,12 +63,18 @@ export default {
       type: Boolean,
       default: true
     },
-    title: String
+    title: String,
+    rules: {
+      type: Array,
+      default: () => { return [{ key: 'name', enabled: false }] }
+    }
   },
   emits: ['close', 'submit'],
   data () {
     return {
-      loading: false
+      loading: false,
+      newUnit: false,
+      savedEntry: null
     }
   },
   computed: {
@@ -67,6 +99,18 @@ export default {
     currLocation () {
       return this.locations.find(l => l.id === this.current?.location_id)
     },
+    unitsMapped () {
+      return this.currentCrop.units.map(u => {
+        return {
+          id: u.id,
+          name: u.name,
+          curr_loc: u.location.name + (u.bed ? ' - ' + u.bed.name : ''),
+          action: u.action,
+          stage: u.stage,
+          notes: u.notes
+        }
+      })
+    },
     actionOptions () {
       return ['Planned', 'Sowed', 'Transplanted', 'Moved', 'Fertilized', 'Watered', 'Weeded', 'Damage/Disease detected', 'Sprayed', 'Pruned', 'Harvested', 'Removed', 'No Action'].map(a => { return { label: a, value: a } })
     },
@@ -79,6 +123,14 @@ export default {
       },
       set (val) {
         this.$store.commit('crop_entries/setCurrentCropPlant', val)
+      }
+    },
+    name: {
+      get () {
+        return this.current?.name
+      },
+      set (val) {
+        this.$store.commit('crop_entries/setCurrentCropEntryName', val)
       }
     },
     location_id: {
@@ -152,9 +204,58 @@ export default {
       set (val) {
         this.$store.commit('crop_entries/setCurrentCropEntryImage', val)
       }
+    },
+    spacingRule () {
+      const min = 1
+      for (const unit in this.currentCrop.units) {
+        if (unit.area) {
+          min += unit.area
+        }
+      }
+      return { min, max: 999999 }
+    },
+    qtyRule () {
+      return { min: this.currentCrop.units.length, max: 999999 }
     }
   },
   methods: {
+    addUnit () {
+      this.savedEntry = clone(this.current)
+      this.$store.commit('crop_entries/setCurrentCropEntry', {
+        ...this.savedEntry,
+        id: null,
+        qty: 1,
+        area: (this.savedEntry.area / this.savedEntry.qty) || 1,
+        notes: '',
+        image: '',
+        name: this.currPlant.name + ' #' + (this.currentCrop.units.length + 1),
+        isUnit: true
+      })
+      this.newUnit = true
+    },
+    addNewUnit (e, unit) {
+      e.preventDefault()
+      const u = clone(unit)
+      u.crop_entry_id = this.savedEntry.id || null
+      u.crop_entries = [unit]
+      u.location = this.locations.find(l => l.id === u.location_id)
+      u.bed = u.location.beds.find(b => b.id === u.bed_id)
+      this.$store.commit('crop_entries/setCurrentCropEntry', this.savedEntry)
+      this.$store.commit('crops/setCurrentCropUnits', [...this.currentCrop.units, clone(u)])
+      this.newUnit = false
+      this.savedEntry = null
+    },
+    cancelNewUnit () {
+      this.newUnit = false
+      this.$store.commit('crop_entries/setCurrentCropEntry', this.savedEntry)
+    },
+    findRule (key, prop) {
+      const rule = this.rules.find(r => r.key === key)
+      if (!rule) {
+        return true
+      }
+      return rule[prop]
+    },
     submitForm (e) {
       e.preventDefault()
       if (!this.handleSubmit) {

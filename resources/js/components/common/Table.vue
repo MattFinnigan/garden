@@ -6,7 +6,7 @@
     <div v-if="prefix" class="table-prefix">
       <slot name="prefix"></slot>
     </div>
-    <table>
+    <table v-if="rows.length">
       <thead>
         <tr>
           <th v-for="header in headers" :key="header" :style="header.width ? 'width:' + header.width : ''">{{ header.label }}</th>
@@ -26,7 +26,7 @@
         </tr>
       </tbody>
     </table>
-    <div class="mobile-table">
+    <div v-if="rows.length" class="mobile-table">
       <div v-for="(row, i) in rows" :key="row.id || i" class="row">
         <div v-for="header in headers" :key="header.key" class="header">
           <div class="row-data">
@@ -40,6 +40,7 @@
         </div>
       </div>
     </div>
+    <div v-if="!rows.length && empty"><slot name="empty"></slot></div>
   </div>
 </template>
 
@@ -57,6 +58,9 @@ export default {
     },
     prefix() {
       return !!this.$slots.prefix
+    },
+    empty() {
+      return !!this.$slots.empty
     }
   }
 }
