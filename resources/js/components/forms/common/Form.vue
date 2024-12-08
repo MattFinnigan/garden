@@ -53,5 +53,8 @@ form {
       }
     }
   }
+  :deep(.error) {
+    color: #ff0000;
+  }
 }
 </style>

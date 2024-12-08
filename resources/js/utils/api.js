@@ -242,3 +242,17 @@ export const deleteLocation = (context, id, storeState = true) => {
     })
   })
 }
+
+// maps
+
+export const fetchMaps = (context, date = null, storeState = true) => {
+  return new Promise((resolve) => {
+    get('maps?date=' + date).then((response) => {
+      console.log('fetchMaps', 'response', response)
+      if (storeState) {
+        context.$store.commit('maps/setMaps', response.data)
+      }
+      resolve(response)
+    })
+  })
+}

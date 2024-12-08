@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Location;
 use App\Models\Bed;
+use Illuminate\Support\Facades\DB;
 
 class LocationController extends Controller {
 
@@ -12,14 +13,43 @@ class LocationController extends Controller {
     return Location::all();
   }
 
+  public function mapsIndex (Request $request) {
+    // DB::enableQueryLog();
+    $date = $request->date;
+    $loc = Location::with(['beds.crop_entries.crop', 'beds.crop_entries' => function ($q) use ($date) {
+      $q->whereDate('datetimestamp', $date);
+    }])->get();
+    // // filter out beds with no crop entries
+    // $loc = $loc->filter(function ($l) {
+    //   $l->beds = $l->beds->filter(function ($b) {
+    //     return $b->crop_entries->count() > 0;
+    //   });
+    //   return $l->beds->count() > 0;
+    // });
+    // // filter out locations with no beds
+    // $loc = $loc->filter(function ($l) {
+    //   return $l->beds->count() > 0;
+    // });
+    return $loc;
+  }
+
   public function store(Request $request) {
     $location = new Location();
     $location->name = $request->name;
     $location->description = $request->description;
     $location->image = $request->image;
+    $location->l = $request->l;
+    $location->w = $request->w;
     $location->save();
     foreach ($request->beds as $bed) {
-      $location->beds()->create($bed);
+      $b = new Bed();
+      $b->name = $bed['name'];
+      $b->description = $bed['description'];
+      $b->image = $bed['image'];
+      $b->l = $bed['l'];
+      $b->w = $bed['w'];
+      $b->location_id = $location->id;
+      $b->save();
     }
     return response()->json([
       "status" => "success",
@@ -38,6 +68,8 @@ class LocationController extends Controller {
     $location->name = $request->name;
     $location->description = $request->description;
     $location->image = $request->image;
+    $location->l = $request->l;
+    $location->w = $request->w;
     $location->save();
     foreach ($request->beds as $bed) {
       if (!isset($bed['id'])) {
@@ -47,6 +79,8 @@ class LocationController extends Controller {
         $b->name = $bed['name'];
         $b->description = $bed['description'];
         $b->image = $bed['image'];
+        $b->l = $bed['l'];
+        $b->w = $bed['w'];
         $b->save();
       }
     }

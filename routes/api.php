@@ -35,3 +35,5 @@ Route::delete('/locations/{id}', [LocationController::class, 'destroy']);
 Route::post('/beds', [BedController::class, 'store']);
 Route::post('/beds/{id}', [BedController::class, 'update']);
 Route::delete('/beds/{id}', [BedController::class, 'destroy']);
+
+Route::get('/maps', [LocationController::class, 'mapsIndex']);

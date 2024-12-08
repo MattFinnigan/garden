@@ -1,6 +1,6 @@
 <template>
   <div class="crop-page">
-    <div v-if="loading">Loading...</div>
+    <div v-if="loading || !current">Loading...</div>
     <div v-else-if="!currentEntry">
       <div class="header-contain">
         <h1>{{ cropTitle }}</h1>

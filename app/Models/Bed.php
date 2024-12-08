@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Location;
-use App\Models\Crop;
+use App\Models\CropEntry;
 
 class Bed extends Model {
   use HasFactory;
@@ -14,13 +14,15 @@ class Bed extends Model {
     'name',
     'description',
     'image',
+    'l',
+    'w'
   ];
 
   public function location () {
     return $this->belongsTo(Location::class);
   }
 
-  public function crops () {
-    return $this->hasMany(Crop::class);
+  public function crop_entries () {
+    return $this->hasMany(CropEntry::class);
   }
 }

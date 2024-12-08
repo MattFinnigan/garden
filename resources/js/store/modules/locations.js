@@ -15,6 +15,12 @@ const mutations = {
   setCurrentLocationName (state, name) {
     state.current.name = name
   },
+  setCurrentLocationWidth (state, width) {
+    state.current.w = width
+  },
+  setCurrentLocationLength (state, len) {
+    state.current.l = len
+  },
   setCurrentLocationsBeds (state, beds) {
     state.current.beds = beds
   },

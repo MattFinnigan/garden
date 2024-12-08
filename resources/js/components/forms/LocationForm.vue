@@ -1,22 +1,26 @@
 <template>
   <div class="location-form">
-  <Modal @close="cancel">
-    <template #header>
-      <h2>Location Form</h2>
-    </template>
-    <template #content>
-      <Form @submit="submitForm">
-        <template #inputs>
-          <Input type="text" v-model="name" label="Location name" required minlength="2" maxlength="255"/>
-          <BedsForm @done="addBed" @delete="deleteBed"/>
-        </template>
-        <template #buttons>
-          <Button type="submit" :disabled="loading">Submit</Button>
-        </template>
-      </Form>
-    </template>
-  </Modal>
-</div>
+    <Modal @close="cancel">
+      <template #header>
+        <h2>Location Form</h2>
+      </template>
+      <template #content>
+        <Form @submit="submitForm">
+          <template #inputs>
+            <div v-show="!currentBed">
+              <Input type="text" v-model="name" label="Location name" required minlength="2" maxlength="255"/>
+              <Input type="number" v-model.number="l" label="Length (cm)"/>
+              <Input type="number" v-model.number="w" label="Width (cm)"/>
+            </div>
+            <BedsForm @done="addBed" @delete="deleteBed"/>
+          </template>
+          <template #buttons>
+            <Button type="submit" :disabled="loading">Submit</Button>
+          </template>
+        </Form>
+      </template>
+    </Modal>
+  </div>
 </template>
 
 <script>
@@ -84,6 +88,22 @@ export default {
       },
       set (val) {
         this.$store.commit('locations/setCurrentLocationName', val)
+      }
+    },
+    w: {
+      get () {
+        return this.current.w
+      },
+      set (val) {
+        this.$store.commit('locations/setCurrentLocationWidth', val)
+      }
+    },
+    l: {
+      get () {
+        return this.current.l
+      },
+      set (val) {
+        this.$store.commit('locations/setCurrentLocationLength', val)
       }
     },
     beds: {

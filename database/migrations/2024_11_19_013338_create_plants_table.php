@@ -15,6 +15,8 @@ return new class extends Migration {
       $table->string('variety');
       $table->string('description')->nullable();
       $table->string('image')->nullable();
+      $table->number('l')->nullable();
+      $table->number('w')->nullable();
     });
   }
   /**

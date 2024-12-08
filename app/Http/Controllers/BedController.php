@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Bed;
+use App\Models\Location;
+
 class BedController extends Controller {
   public function store (Request $request) {
     $bed = new Bed();
@@ -11,6 +13,27 @@ class BedController extends Controller {
     $bed->description = $request->description;
     $bed->image = $request->image;
     $bed->location_id = $request->location_id;
+    $bed->l = $request->l;
+    $bed->w = $request->w;
+
+    $location = Location::find($request->location_id);
+    $remainingSpace = $location->areaRemaining();
+    if ($bed->w * $bed->l > $remainingSpace['area']) {
+      return response()->json([
+        "status" => "error",
+        "message" => "Bed area exceeds location area"
+      ]);
+    } else if ($bed->w > $remainingSpace['w']) {
+      return response()->json([
+        "status" => "error",
+        "message" => "Bed width exceeds location width"
+      ]);
+    } else if ($bed->l > $remainingSpace['l']) {
+      return response()->json([
+        "status" => "error",
+        "message" => "Bed length exceeds location length"
+      ]);
+    }
     $bed->save();
     return response()->json([
       "status" => "success",
@@ -25,6 +48,27 @@ class BedController extends Controller {
     $bed->description = $request->description;
     $bed->image = $request->image;
     $bed->location_id = $request->location_id;
+    $bed->l = $request->l;
+    $bed->w = $request->w;
+
+    $location = Location::find($request->location_id);
+    $remainingSpace = $location->areaRemaining();
+    if ($bed->w * $bed->l > $remainingSpace['area']) {
+      return response()->json([
+        "status" => "error",
+        "message" => "Bed area exceeds location area"
+      ]);
+    } else if ($bed->w > $remainingSpace['w']) {
+      return response()->json([
+        "status" => "error",
+        "message" => "Bed width exceeds location width"
+      ]);
+    } else if ($bed->l > $remainingSpace['l']) {
+      return response()->json([
+        "status" => "error",
+        "message" => "Bed length exceeds location length"
+      ]);
+    }
     $bed->save();
     return response()->json([
       "status" => "success",

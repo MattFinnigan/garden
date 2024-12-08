@@ -36,6 +36,8 @@ export default {
     border: 1px solid $grey-600;
     padding: 20px;
     border-radius: 5px;
+    overflow: auto;
+    max-height: 100vh;
     .header-contain {
       display: flex;
       justify-content: space-between;
