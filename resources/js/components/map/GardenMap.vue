@@ -5,7 +5,7 @@
       <Input type="date" v-model="date" @change="fetchMaps"/>
       <Button class="sm" @click="addDay">></Button>
     </div>
-    <div v-if="!loading">
+    <div>
       <!-- <canvas ref="canvas"></canvas> -->
       <div class="map-container">
         <div v-for="(loc, l) in maps" :key="l">
@@ -31,7 +31,7 @@ export default {
   data () {
     return {
       loading: true,
-      date: '2024-12-07'
+      date: new Date().toISOString().split('T')[0]
     }
   },
   mounted () {
@@ -64,7 +64,7 @@ export default {
     bedStyle (bed) {
       return {
         width: `100%`,
-        height: `${bed.l * 2}px`,
+        height: `${bed.w * 2}px`,
         position: "relative"
       }
     },

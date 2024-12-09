@@ -6,7 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\Location;
 use App\Models\Bed;
 use Illuminate\Support\Facades\DB;
-
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 class LocationController extends Controller {
 
   public function index() {
@@ -15,22 +16,37 @@ class LocationController extends Controller {
 
   public function mapsIndex (Request $request) {
     // DB::enableQueryLog();
-    $date = $request->date;
-    $loc = Location::with(['beds.crop_entries.crop', 'beds.crop_entries' => function ($q) use ($date) {
-      $q->whereDate('datetimestamp', $date);
+    $date = Carbon::createFromFormat('Y-m-d', $request->date)->startOfDay();
+    $locations = Location::with(['beds.crop_entries.crop' => function ($q) {
+      $q->whereNotNull('days_to_harvest');
+    }, 'beds.crop_entries' => function ($q) {
+      $q->whereHas('crop', function ($q) {
+        $q->whereNotNull('days_to_harvest');
+      });
     }])->get();
-    // // filter out beds with no crop entries
-    // $loc = $loc->filter(function ($l) {
-    //   $l->beds = $l->beds->filter(function ($b) {
-    //     return $b->crop_entries->count() > 0;
-    //   });
-    //   return $l->beds->count() > 0;
-    // });
-    // // filter out locations with no beds
-    // $loc = $loc->filter(function ($l) {
-    //   return $l->beds->count() > 0;
-    // });
-    return $loc;
+    $exludeCrops = [];
+    foreach ($locations as $loc) {
+      foreach ($loc->beds as $bed) {
+        if ($bed->crop_entries->count() === 0) {
+          continue;
+        }
+        $firstDate = Carbon::parse($bed->crop_entries[0]->crop->crop_entries[0]->datetimestamp)->subDays(1);
+        $lastDate = Carbon::parse($firstDate)->addDays($bed->crop_entries[0]->crop->days_to_harvest);
+        if (!$date->between($firstDate, $lastDate)) {
+          $exludeCrops[] = $bed->crop_entries[0]->crop->id;
+        }
+      }
+    }
+    $locations = $locations->filter(function ($location) use ($exludeCrops) {
+      $location->beds = $location->beds->filter(function ($bed) use ($exludeCrops) {
+        $bed->crop_entries = $bed->crop_entries->filter(function ($entry) use ($exludeCrops) {
+          return !in_array($entry->crop->id, $exludeCrops);
+        });
+        return $bed->crop_entries->count() > 0 && $bed->l && $bed->w;
+      });
+      return $location->beds->count() > 0;
+    });
+    return $locations;
   }
 
   public function store(Request $request) {
