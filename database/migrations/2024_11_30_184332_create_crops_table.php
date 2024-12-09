@@ -13,6 +13,7 @@ return new class extends Migration {
     Schema::create('crops', function (Blueprint $table) {
       $table->id();
       $table->foreignIdFor(Plant::class)->constrained();
+      $table->int('days_to_harvest');
       $table->timestamps();
     });
   }

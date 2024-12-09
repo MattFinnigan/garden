@@ -24,6 +24,9 @@ const mutations = {
   },
   setMode (state, mode) {
     state.mode = mode
+  },
+  setCurrentCropDaysToHarvest (state, days) {
+    state.current.days_to_harvest = days
   }
 }
 

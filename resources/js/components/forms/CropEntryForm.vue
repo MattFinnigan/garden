@@ -5,6 +5,7 @@
       <template #inputs>
         <Select v-if="canEditPlant" v-model.number="plant_id" label="Select a Plant" :options="plants.map(p => { return { label: p.name + ' (' + p.variety + ')', value: p.id } })"/>
         <Display v-else label="Plant" :val="currPlant.name + ' (' + currPlant.variety + ')'"/>
+        <Input type="number" v-model="daysToHarvest" label="Days to Harvest" />
         <Input v-if="findRule('name', 'enabled')" v-model="name" label="Name" required/>
         <Select v-model.number="location_id" label="Select a Location" :options="locations.map(l => { return { label: l.name, value: l.id } })"/>
         <Select v-if="currLocation" v-model.number="bed_id" label="Select a Bed (Optional)" :options="currLocation.beds.map(b => { return { label: b.name, value: b.id } })"/>
@@ -19,20 +20,6 @@
         <Input v-model="area" type="number" label="Spacing (cm)" :min="findRule('area', 'min') || spacingRule.min" :max="findRule('area', 'max') || spacingRule.max"/>
         <Input v-model="notes" type="textarea" label="Notes"/>
         <Input :modelValue="image" type="file" label="Image" @change="e => image = e.target.value"/>
-        <!-- <br/>
-        <Table
-          v-if="!current.isUnit"
-          :headers="[{ label: '#', key: 'id' }, { label: 'Name', key: 'name' }, { label: 'Location', key: 'curr_loc' }, { label: 'Action', key: 'action' }, { label: 'Stage', key: 'stage' }, { label: 'Notes', key: 'notes' }]"
-          :rows="unitsMapped"
-          :actions="{ view: true, delete: true }"
-          @view="(entry) => {}"
-          @delete="(entry) => {}">
-          <template #header>
-            <h3>Individual plant entries</h3>
-            <Button classes="sm" :disabled="current.qty <= currentCrop.units.length" @click="addUnit">+</Button>
-          </template>
-          <template #empty><em>No individualised plants - entry applies to entire crop</em></template>
-        </Table> -->
       </template>
       <template #buttons>
         <Button :disabled="loading" @click="$emit('close')">Cancel</Button>
@@ -76,6 +63,20 @@ export default {
       newUnit: false,
       savedEntry: null
     }
+  },
+  mounted () {
+    if (!this.currentCrop.id) {
+      this.$store.commit('crops/setCurrentCropDaysToHarvest', this.currPlant.days_to_harvest)
+    }
+  },
+  watch: {
+    plant_id (val) {
+      if (val) {
+        this.$nextTick(() => {
+          this.$store.commit('crops/setCurrentCropDaysToHarvest', this.currPlant.days_to_harvest)
+        })
+      }
+    },
   },
   computed: {
     plants () {
@@ -122,7 +123,15 @@ export default {
         return this.currentCrop?.plant_id
       },
       set (val) {
-        this.$store.commit('crop_entries/setCurrentCropPlant', val)
+        this.$store.commit('crops/setCurrentCropPlant', val)
+      }
+    },
+    daysToHarvest: {
+      get () {
+        return this.$store.state.crops.current.days_to_harvest
+      },
+      set (value) {
+        this.$store.commit('crops/setCurrentCropDaysToHarvest', value)
       }
     },
     name: {
@@ -264,9 +273,9 @@ export default {
       }
       this.loading = true
       if (!this.current.id) {
-        createCropEntry(this, this.currentCrop.id, this.current).then(() => { this.$emit('close') })
+        createCropEntry(this, this.currentCrop.id, { ...this.current, days_to_harvest: this.daysToHarvest }).then(() => { this.$emit('close') })
       } else {
-        updateCropEntry(this, this.current.id, this.current).then(() => { this.$emit('close') })
+        updateCropEntry(this, this.current.id, { ...this.current, days_to_harvest: this.daysToHarvest }).then(() => { this.$emit('close') })
       } 
     }
   }

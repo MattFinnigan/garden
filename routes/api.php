@@ -7,6 +7,7 @@ use App\Http\Controllers\CropController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\CropEntryController;
 use App\Http\Controllers\BedController;
+use App\Http\Controllers\ImageUploadController;
 // Route::middleware('auth:api')->get('/user', function (Request $request) {
 //   return $request->user();
 // });
@@ -37,3 +38,5 @@ Route::post('/beds/{id}', [BedController::class, 'update']);
 Route::delete('/beds/{id}', [BedController::class, 'destroy']);
 
 Route::get('/maps', [LocationController::class, 'mapsIndex']);
+
+Route::post('/image-upload', [ImageUploadController::class, 'imageUploadPost']);

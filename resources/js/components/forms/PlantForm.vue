@@ -10,7 +10,9 @@
           <Input type="text" v-model="name" label="Species" required minlength="2" maxlength="255"/>
           <Input type="text" v-model="variety" label="Variety" required maxlength="255"/>
           <Input type="textarea" v-model="description" label="Description" maxlength="255"/>
-          <Input :modelValue="image" type="file" label="Image" @change="e => image = e.target.value"/>
+          <Input type="number" v-model="daysToHarvest" label="Days to Harvest" required min="1"/>
+          <Input type="file" label="Image" @change="uploadImage"/>
+          <img v-if="image" :src="'./images/' + image"/>
         </template>
         <template #buttons>
           <Button type="submit" :disabled="loading">Submit</Button>
@@ -22,8 +24,7 @@
 </template>
 
 <script>
-import { createPlant, updatePlant } from '../../utils/api'
-import { clone } from '../../utils/helpers'
+import { createPlant, updatePlant, uploadImage } from '../../utils/api'
 
 export default {
   name: 'PlantForm',
@@ -33,6 +34,12 @@ export default {
     }
   },
   methods: {
+    uploadImage (e) {
+      const file = e.target.files[0]
+      uploadImage(file).then(response => {
+        this.image = response.data.image
+      })
+    },
     submitForm (e) {
       this.loading = true
       e.preventDefault()
@@ -78,6 +85,14 @@ export default {
         this.$store.commit('plants/setCurrentPlantDescription', value)
       }
     },
+    daysToHarvest: {
+      get () {
+        return this.current.days_to_harvest
+      },
+      set (value) {
+        this.$store.commit('plants/setCurrentPlantDaysToHarvest', value)
+      }
+    },
     image: {
       get () {
         return this.current.image
@@ -93,5 +108,9 @@ export default {
 <style scoped lang="scss">
 h2 {
   margin: 0;
+}
+img {
+  max-width: 100px;
+  height: auto;
 }
 </style>

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Crop;
 use App\Models\Unit;
+use App\Models\Plant;
 
 class CropController extends Controller {
 
@@ -18,6 +19,10 @@ class CropController extends Controller {
   public function store(Request $request) {
     $crop = new Crop();
     $crop->plant_id = $request->plant_id;
+    $crop->days_to_harvest = $request->days_to_harvest;
+    if (!$request->days_to_harvest) {
+      $crop->days_to_harvest = Plant::find($request->plant_id)->days_to_harvest;
+    }
     $crop->save();
     // attach crop entry
     $crop->crop_entries()->create([
@@ -61,6 +66,15 @@ class CropController extends Controller {
         $query->whereHas('crop_entries');
       })->orderBy('id', 'desc')->get()
     ]);
+  }
+
+  public function update (Request $request) {
+    $c = Crop::where('id', $request->id)->first();
+    $c->days_to_harvest = $request->days_to_harvest;
+    if (!$request->days_to_harvest) {
+      $c->days_to_harvest = Plant::find($request->plant_id)->days_to_harvest;
+    }
+    $c->update();
   }
 
   public function show($id) {

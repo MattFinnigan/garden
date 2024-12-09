@@ -1,7 +1,7 @@
 <template>
   <div :class="['card', size]">
     <div class="image">
-      <img v-if="image" :src="image" alt="Plant"/>
+      <img v-if="image" :src="'./images/' + image"/>
       <img v-else src="https://via.placeholder.com/150" alt="Placeholder"/>
     </div>
     <div class="details">

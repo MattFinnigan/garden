@@ -1,12 +1,20 @@
 <template>
   <div class="garden-map">
-    {{ date }}
+    <div class="date-select">
+      <Button class="sm" @click="removeDay"><</Button>
+      <Input type="date" v-model="date" @change="fetchMaps"/>
+      <Button class="sm" @click="addDay">></Button>
+    </div>
     <div v-if="!loading">
       <!-- <canvas ref="canvas"></canvas> -->
       <div class="map-container">
         <div v-for="(loc, l) in maps" :key="l">
-          <div v-for="(bed, b) in loc.beds" :key="b" class="bed" :style="bedStyle(bed)">
-            <div v-for="(p, ce) in plantPositions(bed)" :key="ce" class="plant" :style="p.style">
+          <h3>{{ loc.name }}</h3>
+          <div v-for="(bed, b) in loc.beds" :key="b" class="bed-wrapper">
+            <h4>{{ bed.name }} ({{ bed.l / 100 }}x{{ bed.w /100 }}m)</h4>
+            <div class="bed" :style="bedStyle(bed)">
+              <div v-for="(p, ce) in plantPositions(bed)" :key="ce" class="plant" :style="p.style">
+            </div>
             </div>
           </div>
         </div>
@@ -27,9 +35,7 @@ export default {
     }
   },
   mounted () {
-    fetchMaps(this, this.date).then(() => {
-      this.loading = false
-    })
+    this.fetchMaps()
   },
   computed: {
     maps () {
@@ -37,11 +43,28 @@ export default {
     }
   },
   methods: {
+    addDay () {
+      const date = new Date(this.date)
+      date.setDate(date.getDate() + 2)
+      this.date = date.toISOString().split('T')[0]
+      this.fetchMaps()
+    },
+    removeDay () {
+      const date = new Date(this.date)
+      date.setDate(date.getDate())
+      this.date = date.toISOString().split('T')[0]
+      this.fetchMaps()
+    },
+    fetchMaps () {
+      this.loading = true
+      fetchMaps(this, this.date).then(response => {
+        this.loading = false
+      })
+    },
     bedStyle (bed) {
-      const { l, w } = bed
       return {
         width: `100%`,
-        height: `300px`,
+        height: `${bed.l * 2}px`,
         position: "relative"
       }
     },
@@ -49,17 +72,22 @@ export default {
       const squareSize = 5 // Size of each square in px
       let x = 0
       let y = 0
-      const bedWidth = bed.l;
       return bed.crop_entries.flatMap((entry) => {
         const result = []
         for (let i = 0; i < entry.qty; i++) {
           result.push({
             style: {
-              width: `${(squareSize / bedWidth) * 100}%`, // Relative width
+              width: `${(squareSize / bed.l) * 100}%`, // Relative width
               height: `${(squareSize / bed.w) * 100}%`, // Relative height
               top: `${(y / bed.w) * 100}%`, // Relative top
-              left: `${(x / bedWidth) * 100}%`, // Relative left
+              left: `${(x / bed.l) * 100}%`, // Relative left
               position: "absolute",
+              backgroundColor: "green",
+              backgroundImage: `url(./images/${entry.crop.plant.image})`,
+              backgroundSize: "contain",
+              backgroundPosition: "center",
+              backgroundRepeat: "no-repeat",
+              border: "1px solid white",
             }
           })
           x += entry.area
@@ -89,7 +117,15 @@ export default {
     }
     .plant {
       position: absolute;
-      background-color: green;
+    }
+  }
+  .date-select {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 1em;
+    Button {
+      margin: 0 0.5em;
     }
   }
 }

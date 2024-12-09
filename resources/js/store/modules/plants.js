@@ -27,6 +27,9 @@ const mutations = {
   setCurrentPlantImage (state, image) {
     state.current.image = image
   },
+  setCurrentPlantDaysToHarvest (state, daysToHarvest) {
+    state.current.days_to_harvest = daysToHarvest
+  }
 }
 
 export default {

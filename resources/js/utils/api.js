@@ -156,6 +156,7 @@ export const createCropEntry = (context, cropId, data, storeState = true) => {
       console.log('createCropEntry', cropId, data, 'response', response)
       if (storeState) {
         context.$store.commit('crops/setCrops', response.data.crops)
+        context.$store.commit('crops/setCurrentCrop', response.data.crop)
       }
       resolve(response)
     })
@@ -168,6 +169,7 @@ export const updateCropEntry = (context, id, data, storeState = true) => {
       console.log('updateCropEntry', id, data, 'response', response)
       if (storeState) {
         context.$store.commit('crops/setCrops', response.data.crops)
+        context.$store.commit('crops/setCurrentCrop', response.data.crop)
       }
       resolve(response)
     })
@@ -180,6 +182,7 @@ export const deleteCropEntry = (context, id, storeState = true) => {
       console.log('deleteCropEntry', id, 'response', response)
       if (storeState) {
         context.$store.commit('crops/setCrops', response.data.crops)
+        context.$store.commit('crops/setCurrentCrop', response.data.crop)
       }
       resolve(response)
     })
@@ -257,6 +260,17 @@ export const fetchMaps = (context, date = null, storeState = true) => {
       if (storeState) {
         context.$store.commit('maps/setMaps', data)
       }
+      resolve(response)
+    })
+  })
+}
+
+export const uploadImage = (data) => {
+  return new Promise((resolve) => {
+    const fd = new FormData()
+    fd.append('image', data)
+    post('image-upload', fd).then((response) => {
+      console.log('uploadImage', 'response', response)
       resolve(response)
     })
   })

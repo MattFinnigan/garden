@@ -21,40 +21,6 @@ export default {
 
 <style lang="scss" scoped>
 form {
-  .inputs-contain {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 1rem;
-    :deep(input), :deep(select) {
-      min-width: 350px;
-      height: 35px;
-      padding-left: 0.5em;
-      background: $grey-700;
-      color: $white;
-      outline: none;
-      border: 1px solid $grey-500;
-      border-radius: 0.25em;
-    }
-    :deep(.display-input) {
-      display: flex;
-      flex-direction: column;
-      margin-bottom: 0.75rem;
-      label {
-        margin-bottom: 0.25rem;
-      }
-    }
-    :deep(.inputs-row) {
-      @include device ('desktop', 'all') {
-        display: flex;
-        > * {
-          flex: 1;
-          margin-right: 0.5rem;
-        }
-      }
-    }
-  }
-  :deep(.error) {
-    color: #ff0000;
-  }
+
 }
 </style>

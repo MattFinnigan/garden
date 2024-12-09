@@ -21,6 +21,11 @@ class CropEntryController extends Controller {
     $entry->datetimestamp = $request->datetimestamp;
     $entry->area = $request->area;
     $entry->unit_id = $request->unit_id;
+    if ($request->days_to_harvest) {
+      $c = Crop::where('id', $entry->crop_id)->first();
+      $c->days_to_harvest = $request->days_to_harvest;
+      $c->update();
+    }
     $entry->save();
     return response()->json([
       "status" => "success",
@@ -44,6 +49,11 @@ class CropEntryController extends Controller {
     $entry->area = $request->area;
     $entry->unit_id = $request->unit_id;
     $entry->update();
+    if ($request->days_to_harvest) {
+      $c = Crop::where('id', $entry->crop_id)->first();
+      $c->days_to_harvest = $request->days_to_harvest;
+      $c->update();
+    }
     return response()->json([
       "status" => "success",
       "message" => "Crop event updated successfully",
