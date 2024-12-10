@@ -15,11 +15,12 @@
         </div>
         <div class="inputs-row">
           <Input v-if="findRule('datetimestamp', 'enabled')" v-model="datetimestamp" type="datetime-local" label="Date & Time"/>
-          <Input v-model="qty" type="number" label="Quantity" required :min="findRule('qty', 'min') || qtyRule.min" :max="findRule('qty', 'max') || qtyRule.max"/>
+          <Input v-model.number="qty" type="number" label="Quantity" required :min="findRule('qty', 'min') || qtyRule.min" :max="findRule('qty', 'max') || qtyRule.max"/>
         </div>
         <Input v-model="area" type="number" label="Spacing (cm)" :min="findRule('area', 'min') || spacingRule.min" :max="findRule('area', 'max') || spacingRule.max"/>
         <Input v-model="notes" type="textarea" label="Notes"/>
         <Input :modelValue="image" type="file" label="Image" @change="e => image = e.target.value"/>
+        <p v-if="error" class="error">{{ error }}</p>
       </template>
       <template #buttons>
         <Button :disabled="loading" @click="$emit('close')">Cancel</Button>
@@ -61,7 +62,8 @@ export default {
     return {
       loading: false,
       newUnit: false,
-      savedEntry: null
+      savedEntry: null,
+      error: null
     }
   },
   mounted () {
@@ -215,7 +217,7 @@ export default {
       }
     },
     spacingRule () {
-      const min = 1
+      let min = 1
       for (const unit in this.currentCrop.units) {
         if (unit.area) {
           min += unit.area
@@ -272,10 +274,25 @@ export default {
         return
       }
       this.loading = true
+      this.error = null
       if (!this.current.id) {
-        createCropEntry(this, this.currentCrop.id, { ...this.current, days_to_harvest: this.daysToHarvest }).then(() => { this.$emit('close') })
+        createCropEntry(this, this.currentCrop.id, { ...this.current, days_to_harvest: this.daysToHarvest }).then((resp) => {
+          if (resp.data.status === 'success') {
+            this.$emit('close')
+          } else {
+            this.loading = false
+            this.error = resp.data.message
+          }
+        })
       } else {
-        updateCropEntry(this, this.current.id, { ...this.current, days_to_harvest: this.daysToHarvest }).then(() => { this.$emit('close') })
+        updateCropEntry(this, this.current.id, { ...this.current, days_to_harvest: this.daysToHarvest }).then((resp) => {
+          if (resp.data.status === 'success') {
+            this.$emit('close')
+          } else {
+            this.loading = false
+            this.error = resp.data.message
+          }
+        })
       } 
     }
   }

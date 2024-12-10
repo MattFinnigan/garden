@@ -11,8 +11,8 @@
         <div v-for="(loc, l) in maps" :key="l">
           <h3>{{ loc.name }}</h3>
           <div v-for="(bed, b) in loc.beds" :key="b" class="bed-wrapper">
-            <h4>{{ bed.name }} ({{ bed.l / 100 }}x{{ bed.w /100 }}m)</h4>
-            <div class="bed" :style="bedStyle(bed)">
+            <h4>{{ bed.name }} ({{ bed.l / 100 }}x{{ bed.w / 100 }}m)</h4>
+            <div class="bed" ref="bed" :bedheight="bed.w" :bedwidth="bed.l">
               <div v-for="(p, ce) in plantPositions(bed)" :key="ce" class="plant" :style="p.style">
             </div>
             </div>
@@ -36,6 +36,9 @@ export default {
   },
   mounted () {
     this.fetchMaps()
+    window.addEventListener('resize', () => {
+      this.recalcBedHeights()
+    })
   },
   computed: {
     maps () {
@@ -43,6 +46,14 @@ export default {
     }
   },
   methods: {
+    recalcBedHeights () {
+      const beds = this.$refs.bed
+      beds.forEach(bed => {
+        const bedheight = bed.getAttribute('bedheight')
+        const bedwidth = bed.getAttribute('bedwidth')
+        bed.style.height = `${bed.offsetWidth / bedwidth * bedheight}px`
+      })
+    },
     addDay () {
       const date = new Date(this.date)
       date.setDate(date.getDate() + 2)
@@ -59,14 +70,10 @@ export default {
       this.loading = true
       fetchMaps(this, this.date).then(response => {
         this.loading = false
+        this.$nextTick(() => {
+          this.recalcBedHeights()
+        })
       })
-    },
-    bedStyle (bed) {
-      return {
-        width: `100%`,
-        height: `${bed.w * 2}px`,
-        position: "relative"
-      }
     },
     plantPositions (bed) {
       const squareSize = 5 // Size of each square in px
@@ -77,23 +84,26 @@ export default {
         for (let i = 0; i < entry.qty; i++) {
           result.push({
             style: {
-              width: `${(squareSize / bed.l) * 100}%`, // Relative width
-              height: `${(squareSize / bed.w) * 100}%`, // Relative height
+              // width: `${(squareSize / bed.l) * 100}%`, // Relative width
+              // height: `${(squareSize / bed.w) * 100}%`, // Relative height
+              // top: `${(y / bed.w) * 100}%`, // Relative top
+              // left: `${(x / bed.l) * 100}%`, // Relative left
+              width: `${((entry.area) / bed.l) * 100}%`, // Relative width
+              height: `${((entry.area) / bed.w) * 100}%`, // Relative height
               top: `${(y / bed.w) * 100}%`, // Relative top
               left: `${(x / bed.l) * 100}%`, // Relative left
               position: "absolute",
-              backgroundColor: "green",
+              backgroundColor: "transparent",
               backgroundImage: `url(./images/${entry.crop.plant.image})`,
-              backgroundSize: "contain",
+              backgroundSize: '25px',
               backgroundPosition: "center",
               backgroundRepeat: "no-repeat",
-              border: "1px solid white",
             }
           })
-          x += entry.area
+          x += entry.area // Move to the next square
 
           // Check if the square goes off the row
-          if (x + squareSize > bed.l) {
+          if (x + entry.area > bed.l) {
             x = 0; // Reset x to the start of the row
             y += entry.area // Move to the next row
           }
@@ -112,6 +122,8 @@ export default {
   }
   .map-container {
     .bed {
+      position: relative;
+      width: 100%;
       background: #2b2929;
       border: 1px solid gray;
     }

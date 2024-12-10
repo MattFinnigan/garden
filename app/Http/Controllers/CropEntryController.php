@@ -5,10 +5,22 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Crop;
 use App\Models\CropEntry;
+use App\Models\Bed;
+use Illuminate\Support\Carbon;
 
 class CropEntryController extends Controller {
 
   public function store(Request $request, $id) {
+    if ($request->bed_id) {
+      $date = Carbon::parse($request->datetimestamp)->startOfDay();
+      $bed = Bed::find($request->bed_id);
+      if ($bed->areaRemaining($date) < (($request->area * 2) * ($request->area * 2) * $request->qty)) {
+        return response()->json([
+          "status" => "error",
+          "message" => "Bed area is not enough for this crop"
+        ]);
+      }
+    }
     $entry = new CropEntry();
     $entry->crop_id = $id;
     $entry->location_id = $request->location_id;
@@ -37,7 +49,25 @@ class CropEntryController extends Controller {
     ]);
   }
   public function update (Request $request, $id) {
-    $entry = CropEntry::where('id', $id)->first();
+    $entry = CropEntry::find($id);
+    if ($request->bed_id) {
+      $date = Carbon::parse($request->datetimestamp)->startOfDay();
+      $bed = Bed::find($request->bed_id);
+      $oldArea = ($entry->area * $entry->area) * $entry->qty;
+      $replacementArea = ($request->area * $request->area) * $request->qty;
+      if ($replacementArea > $oldArea) {
+        if ($bed->areaRemaining($date) < $replacementArea - $oldArea) {
+          return response()->json([
+            "status" => "error",
+            "message" => "Bed area is not enough for this crop",
+            "areaRemaining" => $bed->areaRemaining($date),
+            "replacementArea" => $replacementArea,
+            "oldArea" => $oldArea,
+            "compared" => $replacementArea - $oldArea
+          ]);
+        }
+      }
+    }
     $entry->location_id = $request->location_id;
     $entry->action = $request->action;
     $entry->stage = $request->stage;

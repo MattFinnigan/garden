@@ -17,9 +17,11 @@ class LocationController extends Controller {
   public function mapsIndex (Request $request) {
     // DB::enableQueryLog();
     $date = Carbon::createFromFormat('Y-m-d', $request->date)->startOfDay();
-    $locations = Location::with(['beds.crop_entries.crop' => function ($q) {
-      $q->whereNotNull('days_to_harvest');
-    }, 'beds.crop_entries' => function ($q) {
+    $locations = Location::with(['beds' => function ($q) {
+        $q->whereNotNull('l')->whereNotNull('w');
+      }, 'beds.crop_entries.crop' => function ($q) {
+        $q->whereNotNull('days_to_harvest');
+      }, 'beds.crop_entries' => function ($q) {
       $q->whereHas('crop', function ($q) {
         $q->whereNotNull('days_to_harvest');
       });
@@ -37,15 +39,23 @@ class LocationController extends Controller {
         }
       }
     }
-    $locations = $locations->filter(function ($location) use ($exludeCrops) {
-      $location->beds = $location->beds->filter(function ($bed) use ($exludeCrops) {
-        $bed->crop_entries = $bed->crop_entries->filter(function ($entry) use ($exludeCrops) {
-          return !in_array($entry->crop->id, $exludeCrops);
-        });
-        return $bed->crop_entries->count() > 0 && $bed->l && $bed->w;
+    $locations = $locations->filter(function ($location) use ($exludeCrops, $date) {
+      $location->beds = $location->beds->filter(function ($bed) use ($exludeCrops, $date) {
+        // Group crop entries by crop_id and pick the first entry for each crop
+        $bed->areaRemaining = $bed->areaRemaining($date);
+        $temp = clone $bed->crop_entries;
+        unset($bed->crop_entries);
+        $bed->crop_entries = $temp->filter(function ($entry) use ($exludeCrops) {
+            return !in_array($entry->crop->id, $exludeCrops);
+          })->groupBy('crop_id') // Group by crop_id to eliminate duplicates
+          ->map(function ($entries) {
+              return $entries->first(); // Keep only the first entry per crop
+          })->values(); // Reindex the collection
+        return $bed->crop_entries->count() > 0;
       });
       return $location->beds->count() > 0;
-    });
+    });  
+      
     return $locations;
   }
 

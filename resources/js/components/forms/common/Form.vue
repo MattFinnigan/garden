@@ -21,6 +21,8 @@ export default {
 
 <style lang="scss" scoped>
 form {
-
+  :deep(.error) {
+    color: #ff0000;
+  }
 }
 </style>

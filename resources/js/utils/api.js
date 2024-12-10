@@ -153,10 +153,14 @@ export const deleteCrop = (context, id, storeState = true) => {
 export const createCropEntry = (context, cropId, data, storeState = true) => {
   return new Promise((resolve) => {
     post(`crop-entry/create/${cropId}`, data).then((response) => {
-      console.log('createCropEntry', cropId, data, 'response', response)
-      if (storeState) {
-        context.$store.commit('crops/setCrops', response.data.crops)
-        context.$store.commit('crops/setCurrentCrop', response.data.crop)
+      if (response.data.status === 'success') {
+        console.log('createCropEntry', id, data, 'response', response)
+        if (storeState) {
+          context.$store.commit('crops/setCrops', response.data.crops)
+          context.$store.commit('crops/setCurrentCrop', response.data.crop)
+        }
+      } else {
+        console.error('createCropEntry', 'response', response)
       }
       resolve(response)
     })
@@ -166,10 +170,14 @@ export const createCropEntry = (context, cropId, data, storeState = true) => {
 export const updateCropEntry = (context, id, data, storeState = true) => {
   return new Promise((resolve) => {
     post(`crop-entry/${id}`, data).then((response) => {
-      console.log('updateCropEntry', id, data, 'response', response)
-      if (storeState) {
-        context.$store.commit('crops/setCrops', response.data.crops)
-        context.$store.commit('crops/setCurrentCrop', response.data.crop)
+      if (response.data.status === 'success') {
+        console.log('updateCropEntry', id, data, 'response', response)
+        if (storeState) {
+          context.$store.commit('crops/setCrops', response.data.crops)
+          context.$store.commit('crops/setCurrentCrop', response.data.crop)
+        }
+      } else {
+        console.error('updateCropEntry', 'response', response)
       }
       resolve(response)
     })
