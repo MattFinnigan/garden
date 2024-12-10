@@ -10,6 +10,7 @@
     @vite(['resources/js/app.js'])
 	</head>
 	<body>
+    <img src="{{ asset('images/1733807949.png') }}">
 		<div id="app">
 			<!-- Vue.js components will be processed here. -->
 		</div>
