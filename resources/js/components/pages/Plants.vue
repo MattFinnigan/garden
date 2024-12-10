@@ -5,12 +5,12 @@
       <Button classes="sm" @click="newPlant">Add Plant</Button>
     </div>
     <div v-if="loading">Loading...</div>
-    <div v-else>
-      <div v-for="plant in plants" :key="plant.id">
+    <div v-else class="plants-contain">
+      <div v-for="plant in plants" :key="plant.id" class="plant">
         <Card size="sm" :title="plant.name + ' (' + plant.variety + ')'" :description="plant.description" :image="plant.image">
           <template #actions>
-            <Button classes="sm" @click="editPlant(plant.id)">Edit</Button>
-            <Button classes="sm" @click="handleDelete(plant.id)">Delete</Button>
+            <Button classes="sm" @click="editPlant(plant.id)" edit></Button>
+            <Button classes="sm" @click="handleDelete(plant.id)" del></Button>
           </template>
         </Card>
       </div>
@@ -76,6 +76,13 @@ export default {
   margin-bottom: 1em;
   h1 {
     margin: 0;
+  }
+}
+.plants-contain {
+  display: flex;
+  flex-wrap: wrap;
+  .plant {
+    flex: 50%;
   }
 }
 </style>

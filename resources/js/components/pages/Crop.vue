@@ -6,7 +6,7 @@
         <h1>{{ cropTitle }}</h1>
         <div>
           <Button classes="sm" @click="newEntry">+</Button>
-          <Button classes="sm" @click="deleteCrop" :disabled="current.crop_entries.length === 1">-</Button>
+          <Button classes="sm" @click="deleteCrop" :disabled="current.crop_entries.length === 1" del></Button>
         </div>
       </div>
       <div>

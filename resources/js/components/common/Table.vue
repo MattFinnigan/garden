@@ -19,9 +19,9 @@
             <span v-html="header.key === 'num' ? i + 1 : row[header.key]"></span>
           </td>
           <td v-if="actions">
-            <Button v-if="actions.view" classes="sm" @click="$emit('view', row, i)">View</Button>
-            <Button v-if="actions.edit" classes="sm" @click="$emit('edit', row, i)">Edit</Button>
-            <Button v-if="actions.delete" classes="sm" @click="$emit('delete', row, i)">Delete</Button>
+            <Button v-if="actions.view" classes="sm" @click="$emit('view', row, i)" view></Button>
+            <Button v-if="actions.edit" classes="sm" @click="$emit('edit', row, i)" edit></Button>
+            <Button v-if="actions.delete" classes="sm" @click="$emit('delete', row, i)" del></Button>
           </td>
         </tr>
       </tbody>

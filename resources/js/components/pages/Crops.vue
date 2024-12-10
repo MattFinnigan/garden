@@ -3,7 +3,7 @@
     <div v-if="!current">
       <div class="header-contain">
         <h1>Crops</h1>
-        <Button classes="sm" @click="newCrop" :disabled="!plants.length || !locations.length">Add Crop</Button>
+        <Button classes="sm" @click="newCrop" :disabled="!plants.length || !locations.length">+</Button>
       </div>
       <div v-if="loading">Loading...</div>
       <div v-else>
