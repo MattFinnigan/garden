@@ -149,6 +149,7 @@ export default {
         return this.current?.location_id
       },
       set (val) {
+        this.$store.commit('crop_entries/setCurrentCropEntryBed', null)
         this.$store.commit('crop_entries/setCurrentCropEntryLocation', val)
       }
     },
