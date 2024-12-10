@@ -90,14 +90,14 @@ export default {
               // height: `${(squareSize / bed.w) * 100}%`, // Relative height
               // top: `${(y / bed.w) * 100}%`, // Relative top
               // left: `${(x / bed.l) * 100}%`, // Relative left
-              width: `${((entry.area) / bed.l) * 100}%`, // Relative width
-              height: `${((entry.area) / bed.w) * 100}%`, // Relative height
-              top: `${(y / bed.w) * 100}%`, // Relative top
-              left: `${(x / bed.l) * 100}%`, // Relative left
-              position: "absolute",
+              // width: `${entry.area}px`, // Relative width
+              // height: `${entry.area}px`, // Relative height
+              padding: `${entry.area - 5}px`, // Relative top
+              // marginLeft: `${(x / bed.l) * 100}%`, // Relative left
               backgroundColor: "transparent",
               backgroundImage: `url(./images/${entry.crop.plant.image})`,
               backgroundSize: '25px',
+              border: '1px solid grey',
               backgroundPosition: "center",
               backgroundRepeat: "no-repeat",
             }
@@ -128,9 +128,11 @@ export default {
       width: 100%;
       background: #2b2929;
       border: 1px solid gray;
+      display: flex;
+      flex-wrap: wrap;
     }
     .plant {
-      position: absolute;
+      margin: 5px;
     }
   }
   .date-select {
