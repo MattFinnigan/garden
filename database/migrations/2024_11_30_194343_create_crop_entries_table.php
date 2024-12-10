@@ -26,6 +26,8 @@ return new class extends Migration {
       $table->bigInteger('qty');
       $table->dateTime('datetimestamp');
       $table->bigInteger('area')->default(1);
+      $table->number('x')->nullable();
+      $table->number('y')->nullable();
       $table->timestamps();
     });
   }

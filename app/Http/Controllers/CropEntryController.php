@@ -33,6 +33,8 @@ class CropEntryController extends Controller {
     $entry->datetimestamp = $request->datetimestamp;
     $entry->area = $request->area;
     $entry->unit_id = $request->unit_id;
+    $entry->x = $request->x;
+    $entry->y = $request->y;
     if ($request->days_to_harvest) {
       $c = Crop::where('id', $entry->crop_id)->first();
       $c->days_to_harvest = $request->days_to_harvest;
@@ -78,6 +80,8 @@ class CropEntryController extends Controller {
     $entry->datetimestamp = $request->datetimestamp;
     $entry->area = $request->area;
     $entry->unit_id = $request->unit_id;
+    $entry->x = $request->x;
+    $entry->y = $request->y;
     $entry->update();
     if ($request->days_to_harvest) {
       $c = Crop::where('id', $entry->crop_id)->first();

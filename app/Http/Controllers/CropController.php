@@ -35,29 +35,10 @@ class CropController extends Controller {
       'qty' => $request->qty,
       'bed_id' => $request->bed_id,
       'datetimestamp' => $request->datetimestamp,
-      'area' => $request->area
+      'area' => $request->area,
+      'x' => $request->x,
+      'y' => $request->y
     ]);
-    foreach ($request->units as $u) {
-      $unit = new Unit();
-      $unit->crop_id = $crop->id;
-      $unit->name = $u->name;
-      $unit->image = $u->image;
-      $unit->save();
-      foreach ($u->crop_entries as $h) {
-        $unit->crop_entries()->create([
-          'unit_id' => $unit->id,
-          'location_id' => $h->location_id,
-          'action' => $h->action,
-          'stage' => $h->stage,
-          'notes' => $h->notes,
-          'image' => $h->image,
-          'qty' => 1,
-          'bed_id' => $h->bed_id,
-          'datetimestamp' => $h->datetimestamp,
-          'area' => $h->area
-        ]);
-      }
-    }
     return response()->json([
       "status" => "success",
       "message" => "Crop created successfully",

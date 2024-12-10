@@ -16,7 +16,9 @@ class Bed extends Model {
     'description',
     'image',
     'l',
-    'w'
+    'w',
+    'x',
+    'y'
   ];
 
   public function location () {

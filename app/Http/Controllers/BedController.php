@@ -15,6 +15,8 @@ class BedController extends Controller {
     $bed->location_id = $request->location_id;
     $bed->l = $request->l;
     $bed->w = $request->w;
+    $bed->x = $request->x;
+    $bed->y = $request->y;
 
     $location = Location::find($request->location_id);
     $remainingSpace = $location->areaRemaining();
@@ -50,7 +52,9 @@ class BedController extends Controller {
     $bed->location_id = $request->location_id;
     $bed->l = $request->l;
     $bed->w = $request->w;
-
+    $bed->x = $request->x;
+    $bed->y = $request->y;
+    
     $location = Location::find($request->location_id);
     $remainingSpace = $location->areaRemaining();
     if ($bed->w * $bed->l > $remainingSpace['area']) {

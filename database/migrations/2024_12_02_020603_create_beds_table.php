@@ -19,6 +19,8 @@ return new class extends Migration {
       $table->string('image')->nullable();
       $table->number('l')->nullable();
       $table->number('w')->nullable();
+      $table->number('x')->nullable();
+      $table->number('y')->nullable();
       $table->timestamps();
     });
   }

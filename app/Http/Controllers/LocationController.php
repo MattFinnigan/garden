@@ -74,6 +74,8 @@ class LocationController extends Controller {
       $b->image = $bed['image'];
       $b->l = $bed['l'];
       $b->w = $bed['w'];
+      $b->x = $bed['x'];
+      $b->y = $bed['y'];
       $b->location_id = $location->id;
       $b->save();
     }
@@ -107,6 +109,8 @@ class LocationController extends Controller {
         $b->image = $bed['image'];
         $b->l = $bed['l'];
         $b->w = $bed['w'];
+        $b->x = $bed['x'];
+        $b->y = $bed['y'];
         $b->save();
       }
     }

@@ -3,25 +3,17 @@
     <div class="header-contain">
       <h1>Dashboard</h1>
     </div>
-    <GardenMap/>
-
+    <GardenGrid/>
   </div>
 </template>
 
 <script>
-import GardenMap from '../map/GardenMap.vue'
+import GardenGrid from '../grid/GardenGrid.vue';
+
 export default {
   name: 'Landing',
   components: {
-    GardenMap
-  },
-  data () {
-    return {
-    }
-  },
-  mounted () {
-  },
-  methods: {
+    GardenGrid
   }
 }
 </script>
@@ -36,4 +28,5 @@ export default {
     margin: 0;
   }
 }
+
 </style>
