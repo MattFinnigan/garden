@@ -16,6 +16,8 @@ return new class extends Migration {
       $table->string('description')->nullable();
       $table->string('image')->nullable();
       $table->int('days_to_harvest')->nullable();
+      $table->int('sow_from')->nullable();
+      $table->int('sow_to')->nullable();
     });
   }
   /**

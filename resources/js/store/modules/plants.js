@@ -29,6 +29,12 @@ const mutations = {
   },
   setCurrentPlantDaysToHarvest (state, daysToHarvest) {
     state.current.days_to_harvest = daysToHarvest
+  },
+  setCurrentPlantSowFrom (state, sowFrom) {
+    state.current.sow_from = sowFrom
+  },
+  setCurrentPlantSowTo (state, sowTo) {
+    state.current.sow_to = sowTo
   }
 }
 

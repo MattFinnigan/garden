@@ -17,6 +17,8 @@ class PlantController extends Controller {
     $plant->variety = $request->variety;
     $plant->image = $request->image;
     $plant->days_to_harvest = $request->days_to_harvest;
+    $plant->sow_from = $request->sow_from;
+    $plant->sow_to = $request->sow_to;
     $plant->save();
     return response()->json([
       "status" => "success",
@@ -37,6 +39,8 @@ class PlantController extends Controller {
     $plant->variety = $request->variety;
     $plant->image = $request->image;
     $plant->days_to_harvest = $request->days_to_harvest;
+    $plant->sow_from = $request->sow_from;
+    $plant->sow_to = $request->sow_to;
     $plant->save();
     return response()->json([
       "status" => "success",

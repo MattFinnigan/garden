@@ -11,6 +11,8 @@
           <Input type="text" v-model="variety" label="Variety" required maxlength="255"/>
           <Input type="textarea" v-model="description" label="Description" maxlength="255"/>
           <Input type="number" v-model="daysToHarvest" label="Days to Harvest" required min="1"/>
+          <Select type="number" v-model.number="sow_from" :options="months" label="Sow From"/>
+          <Select type="number" v-model.number="sow_to" :options="months" label="Sow To"/>
           <Input type="file" label="Image" @change="uploadImage"/>
           <img v-if="image" :src="'./images/' + image"/>
         </template>
@@ -100,6 +102,38 @@ export default {
       set (value) {
         this.$store.commit('plants/setCurrentPlantImage', value)
       }
+    },
+    sow_from: {
+      get () {
+        return this.current.sow_from
+      },
+      set (value) {
+        this.$store.commit('plants/setCurrentPlantSowFrom', value)
+      }
+    },
+    sow_to: {
+      get () {
+        return this.current.sow_to
+      },
+      set (value) {
+        this.$store.commit('plants/setCurrentPlantSowTo', value)
+      }
+    },
+    months () {
+      return [
+        { value: 1, label: 'January' },
+        { value: 2, label: 'February' },
+        { value: 3, label: 'March' },
+        { value: 4, label: 'April' },
+        { value: 5, label: 'May' },
+        { value: 6, label: 'June' },
+        { value: 7, label: 'July' },
+        { value: 8, label: 'August' },
+        { value: 9, label: 'September' },
+        { value: 10, label: 'October' },
+        { value: 11, label: 'November' },
+        { value: 12, label: 'December' }
+      ]
     }
   }
 }
