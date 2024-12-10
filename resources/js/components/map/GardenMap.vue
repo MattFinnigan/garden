@@ -48,11 +48,13 @@ export default {
   methods: {
     recalcBedHeights () {
       const beds = this.$refs.bed
-      beds.forEach(bed => {
-        const bedheight = bed.getAttribute('bedheight')
-        const bedwidth = bed.getAttribute('bedwidth')
-        bed.style.height = `${bed.offsetWidth / bedwidth * bedheight}px`
-      })
+      if (beds) {
+        beds.forEach(bed => {
+          const bedheight = bed.getAttribute('bedheight')
+          const bedwidth = bed.getAttribute('bedwidth')
+          bed.style.height = `${bed.offsetWidth / bedwidth * bedheight}px`
+        })
+      }
     },
     addDay () {
       const date = new Date(this.date)
