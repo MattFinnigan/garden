@@ -1,23 +1,27 @@
-// theme
-$theme-blue: #1976ac;
-$theme-red: #d74e4e;
-$theme-white: #f7f7f7;
-$theme-purple: #993A69;
+$primary: #008400;
+$primary2: rgba(0, 132, 0, 0.2);
+$primary3: rgba(0, 132, 0, 0.62);
+$secondary: #81623b;
+$secondary2: rgba(129, 98, 59, 0.2);
+$secondary3: rgba(129, 98, 59, 0.62);
+$accent: #66AF31;
+
+$textColour: #001602;
+$backgroundColour: #f7fff5;
+$inputBackgroundColour: #F2F2F2;
+$borderColour: rgba(0, 0, 0, 0.1);
 
 $grey-100: #f9f9f9;
 $grey-200: #f8f8f8;
 $grey-300: #c1c1c1;
 $grey-400: #9d9d9d;
-$grey-500: #7f7f7f;
+// $grey-500: #7f7f7f;
 $grey-600: #5f5f5f;
 $grey-700: #3f3f3f;
-$grey-800: #2f2f2f;
+// $grey-800: #2f2f2f;
 $grey-900: #1f1f1f;
 
-$white: #ffffff;
-$black: #1c1b1b;
-$primary-green: #2e7d32;
+$grey-500: #F2F2F2;
+$grey-800: #999999;
 
-// text
-$textColour: $white;
-$linkColour: $primary-green;
+$linkColour: $primary;

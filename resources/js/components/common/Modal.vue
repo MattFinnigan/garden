@@ -32,7 +32,7 @@ export default {
   justify-content: center;
   align-items: center;
   .modal-content {
-    background: $black;
+    background: black;
     border: 1px solid $grey-600;
     padding: 20px;
     border-radius: 5px;

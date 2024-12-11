@@ -1,9 +1,6 @@
 <template>
   <button :class="classes" :type="type" :disabled="disabled">
     <slot></slot>
-    <i v-if="edit" class="edit"></i>
-    <i v-if="view" class="view"></i>
-    <i v-if="del" class="delete"></i>
   </button>
 </template>
 
@@ -23,79 +20,110 @@ export default {
       default: false
     }
   },
-  name: 'Button',
-  computed: {
-    edit () {
-      return this.$attrs.edit !== undefined
-    },
-    del () {
-      return this.$attrs.del !== undefined
-    },
-    view () {
-      return this.$attrs.view !== undefined
-    }
-  }
+  name: 'Button'
 }
 </script>
 
 <style scoped lang="scss">
 button {
-  margin-right: 0.5em;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 2rem;
+  border-radius: 0.5rem;
+  font-size: $fsBody;
+  transition: all 0.25s;
   border: none;
-  border-radius: 0.25rem;
-  background-color: $primary-green;
-  color: $white;
-  font-size: $fontSize-m;
   cursor: pointer;
-  &:hover {
-    background-color: $primary-green;
-  }
-  &.link {
-    margin: 0;
-    padding: 0;
-    background-color: transparent;
-    color: $primary-green;
-    &:hover {
-      text-decoration: underline;
+  &.primary {
+    background-color: $primary;
+    color: $backgroundColour;
+    &.outline {
+      background-color: transparent;
+      border: 1px solid $primary;
+      color: $primary;
+      &:hover {
+        background-color: $primary;
+        color: $backgroundColour;
+      }
     }
   }
-  &.bare {
-    margin: 0;
-    padding: 0;
-    border-radius: unset;
-    background-color: transparent;
-    &:hover {
-      text-decoration: none;
+  &.secondary {
+    background-color: $secondary;
+    color: $backgroundColour;
+    &.outline {
+      background-color: transparent;
+      border: 1px solid $secondary;
+      color: $secondary;
+      &:hover {
+        background-color: $secondary;
+        color: $backgroundColour;
+      }
     }
   }
   &.sm {
-    padding: 0.25rem 0.5rem;
-    font-size: $fontSize-s;
+    font-size: $fsSmall;
+    padding: 0.5rem 1.5rem;
   }
-  &[disabled] {
-    opacity: 0.8;
-    background-color: $grey-700;
-    cursor: not-allowed;
-  }
-  i {
-    display: inline-block;
-    width: 1.1em;
-    height: 1.1em;
-    background-color: $white;
-    mask-repeat: no-repeat;
-    vertical-align: middle;
-    text-align: center;
-    mask-size: 13px 13px;
-    &.edit {
-      mask-image: url('/images/edit.svg');
-    }
-    &.delete {
-      mask-image: url('/images/delete.svg');
-    }
-    &.view {
-      mask-image: url('/images/view.svg');
-    }
+  &.icon {
+    padding: 0.4em 0.785em;
+    border-radius: 0.625rem;
   }
 }
+// button {
+//   margin-right: 0.5em;
+//   padding: 0.5rem 1rem;
+//   border: none;
+//   border-radius: 0.25rem;
+//   background-color: $primary;
+//   color: white;
+//   font-size: $fsBody;
+//   cursor: pointer;
+//   &:hover {
+//     background-color: $primary;
+//   }
+//   &.link {
+//     margin: 0;
+//     padding: 0;
+//     background-color: transparent;
+//     color: $primary;
+//     &:hover {
+//       text-decoration: underline;
+//     }
+//   }
+//   &.bare {
+//     margin: 0;
+//     padding: 0;
+//     border-radius: unset;
+//     background-color: transparent;
+//     &:hover {
+//       text-decoration: none;
+//     }
+//   }
+//   &.sm {
+//     padding: 0.25rem 0.5rem;
+//     font-size: $fsSmall;
+//   }
+//   &[disabled] {
+//     opacity: 0.8;
+//     background-color: $grey-700;
+//     cursor: not-allowed;
+//   }
+//   i {
+//     display: inline-block;
+//     width: 1.1em;
+//     height: 1.1em;
+//     background-color: white;
+//     mask-repeat: no-repeat;
+//     vertical-align: middle;
+//     text-align: center;
+//     mask-size: 13px 13px;
+//     &.edit {
+//       mask-image: url('/images/edit.svg');
+//     }
+//     &.delete {
+//       mask-image: url('/images/delete.svg');
+//     }
+//     &.view {
+//       mask-image: url('/images/view.svg');
+//     }
+//   }
+// }
 </style>

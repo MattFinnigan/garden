@@ -1,6 +1,10 @@
 
 <template>
-  <div>
+  <div class="main-menu">
+    <div class="container">
+      <div>Me Garden</div>
+      <div>Me Menu</div>
+    </div>
   </div>
 </template>
 
@@ -10,9 +14,13 @@ export default {}
 </script>
 <style lang="scss" scoped>
 .main-menu {
-  border-bottom: 1px solid $grey-700;
+  border-bottom: 1px solid $borderColour;
   .container {
-    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1em 0;
+    margin: 0 12%;
   }
 }
 </style>

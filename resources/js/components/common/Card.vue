@@ -61,7 +61,7 @@ export default {
       margin: 0;
       &.desc {
         margin-top: 0.5em;
-        font-size: $fontSize-s;
+        font-size: $fsSmall;
       }
     }
   }

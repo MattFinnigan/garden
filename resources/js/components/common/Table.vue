@@ -85,7 +85,7 @@ export default {
       th {
         padding: 10px;
         text-align: left;
-        font-size: $fontSize-s;
+        font-size: $fsSmall;
       }
     }
     tbody {
@@ -95,7 +95,7 @@ export default {
         }
         td {
           padding: 10px;
-          font-size: $fontSize-s;
+          font-size: $fsSmall;
         }
       }
     }
@@ -112,7 +112,7 @@ export default {
         margin: 2px 0;
         .row-data {
           flex: 1;
-          font-size: $fontSize-s;
+          font-size: $fsSmall;
         }
       }
     }

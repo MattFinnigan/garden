@@ -169,7 +169,7 @@ h4 {
     height: 35px;
     padding-left: 0.5em;
     background: $grey-700;
-    color: $white;
+    color: white;
     outline: none;
     border: 1px solid $grey-500;
     border-radius: 0.25em;

@@ -1,6 +1,6 @@
 <template>
   <div class="input-container">
-    <label>{{ label }}</label>
+    <label v-if="label">{{ label }}</label>
     <input :type="type" :value="modelValue" @input="$emit('update:modelValue', $event.target.value)" :placeholder="label" v-bind="$attrs"/>
   </div>
 </template>
@@ -27,15 +27,12 @@ export default {
 
 <style scoped lang="scss">
 .input-container {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 0.75rem;
-  label {
-    margin-bottom: 0.25rem;
-  }
-  input[type=file] {
-    padding: 1em;
-    padding-bottom: 0;
+  input {
+    background-color: $inputBackgroundColour;
+    outline: none;
+    border: 1px solid $borderColour;
+    padding: 0.5em 0.75em;
+    border-radius: 0.5em;
   }
 }
 </style>

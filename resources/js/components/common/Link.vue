@@ -22,7 +22,7 @@ a {
   margin: 0;
   padding: 0;
   background-color: transparent;
-  color: $primary-green;
+  color: $primary;
   &:hover {
     text-decoration: underline;
   }
@@ -31,18 +31,18 @@ a {
     padding: 0.5rem 1rem;
     border: none;
     border-radius: 0.25rem;
-    background-color: $primary-green;
-    color: $white;
-    font-size: $fontSize-m;
+    background-color: $primary;
+    color: white;
+    font-size: $fsBody;
     cursor: pointer;
     &:hover {
-      background-color: $primary-green;
+      background-color: $primary;
     }
     &.link {
       margin: 0;
       padding: 0;
       background-color: transparent;
-      color: $primary-green;
+      color: $primary;
       &:hover {
         text-decoration: underline;
       }
@@ -58,7 +58,7 @@ a {
     }
     &.sm {
       padding: 0.25rem 0.5rem;
-      font-size: $fontSize-s;
+      font-size: $fsSmall;
     }
     &[disabled] {
       opacity: 0.8;

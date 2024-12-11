@@ -5,67 +5,96 @@
 * {
   -webkit-font-smoothing: antialiased; 
   -moz-osx-font-smoothing: grayscale;
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-}
-.container {
-  margin: 0 auto;
-  max-width: 1400px;
-  padding: 20px;
+  font-family: $ffRoboto;
+  font-size: $fsBody;
+  line-height: 1.5;
+  font-weight: normal;
+  color: $textColour;
 }
 
+small {
+  font-size: $fsSmall;
+}
+
+h1, h2, h3, h4, h5 {
+  margin: 0;
+  padding: 0;
+  font-family: $ffInter;
+}
+h1, h2, h3 {
+  font-weight: 700;
+}
 h1 {
-  @include heading;
+  font-size: $fsH1;
 }
 h2 {
-  @include subheading;
+  font-size: $fsH2;
+}
+h3 {
+  font-size: $fsH3;
+}
+h4 {
+  font-size: $fsH4;
+}
+h5 {
+  font-size: $fsH5;
+}
+small {
+  font-size: $fsSmall;
+}
+label {
+  font-size: $fsBody;
+  font-weight: 600;
+  min-width: 100px;
+  margin-right: 20px;
 }
 
-p {
-  font-size: $fontSize-m;
-}
+// p {
+//   font-size: $fsBody;
+// }
 
-a {
-  color: $linkColour;
-  text-decoration: none;
-  font-size: $fontSize-m;
-  &:hover {
-    text-decoration: underline;
-  }
-}
+// a {
+//   color: $linkColour;
+//   text-decoration: none;
+//   font-size: $fsBody;
+//   &:hover {
+//     text-decoration: underline;
+//   }
+// }
 
-input, select {
-  min-width: 350px;
-  height: 35px;
-  padding-left: 0.5em;
-  background: $grey-700;
-  color: $white;
-  outline: none;
-  border: 1px solid $grey-500;
-  border-radius: 0.25em;
-}
+// input, select {
+//   min-width: 350px;
+//   height: 35px;
+//   padding-left: 0.5em;
+//   background: $grey-500;
+//   color: white;
+//   outline: none;
+//   border: 1px solid $grey-500;
+//   border-radius: 0.25em;
+// }
 
-.inputs-contain {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 1rem;
-  :deep(.display-input) {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 0.75rem;
-    label {
-      margin-bottom: 0.25rem;
-    }
-  }
-  .inputs-row {
-    @include device ('desktop', 'all') {
-      display: flex;
-      > * {
-        flex: 1;
-        margin-right: 0.5rem;
-      }
-    }
-  }
-}
-.error {
-  color: #ff0000;
-}
+// .inputs-contain {
+//   display: flex;
+//   flex-direction: column;
+//   margin-bottom: 1rem;
+//   :deep(.display-input) {
+//     display: flex;
+//     flex-direction: column;
+//     margin-bottom: 0.75rem;
+//     label {
+//       margin-bottom: 0.25rem;
+//     }
+//   }
+//   .inputs-row {
+//     @include device ('desktop', 'all') {
+//       display: flex;
+//       > * {
+//         flex: 1;
+//         margin-right: 0.5rem;
+//       }
+//     }
+//   }
+// }
+// .error {
+//   color: #ff0000;
+// }

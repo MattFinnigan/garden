@@ -29,11 +29,12 @@ export default {
 
 <style scoped lang="scss">
 .select-container {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 0.75rem;
-  label {
-    margin-bottom: 0.25rem;
+  select {
+    background-color: $inputBackgroundColour;
+    outline: none;
+    border: 1px solid $borderColour;
+    padding: 0.5em 0.75em;
+    border-radius: 0.5em;
   }
 }
 </style>
