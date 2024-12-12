@@ -142,7 +142,7 @@ export const draggable = (el, relativeEl, start, update, end, padding = 0) => {
 
     isDragging = true
 
-    start({ x: startX, y: startY })
+    // start({ x: startX, y: startY })
 
     document.addEventListener('mousemove', onMouseMove)
     document.addEventListener('mouseup', onMouseUp)

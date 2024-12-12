@@ -1,12 +1,13 @@
 <template>
   <div>
     <p v-if="errors" class="error">{{ errors }}</p>
-    <Form @submit="submitForm">
+    <Form :canDelete="!!current.id" @remove="$emit('remove', current)" @submit="submitForm">
       <template #inputs>
         <Display label="Location" :val="location.name"/>
         <Input v-model="name" label="Name" maxlength="255" :flex="true" placeholder="Herbs Bed" required/>
         <Input v-model="description" type="textarea" label="Description" placeholder="Nice sunny location. Snails seem to hate it here!" :flex="true" maxlength="255"/>
-        <Input :modelValue="image" type="file" label="Image" :flex="true" @change="e => image = e.target.value"/>
+        <Images :modelValue="images" label="Images" multiple @addImage="addImage" @removeImage="removeImage"/>
+        <!-- <Input :modelValue="image" type="file" label="Image" :flex="true" @change="e => image = e.target.value"/> -->
       </template>
       <template #buttons>
         <Button type="submit" classes="secondary2" :disabled="loading">Done</Button>
@@ -22,7 +23,7 @@ import { updateLocation } from '../../utils/api'
 
 export default {
   name: 'BedsForm',
-  emits: ['done'],
+  emits: ['done', 'remove'],
   data () {
     return {
       errors: false,
@@ -68,12 +69,12 @@ export default {
         this.$store.commit('beds/setCurrentBedDescription', value)
       }
     },
-    image: {
+    images: {
       get () {
-        return this.current.image
+        return this.current.images
       },
       set (value) {
-        this.$store.commit('beds/setCurrentBedImage', value)
+        this.$store.commit('beds/setCurrentBedImages', value)
       }
     },
     remainingArea () {
@@ -103,6 +104,12 @@ export default {
     }
   },
   methods: {
+    addImage (image) {
+      this.$store.commit('beds/addImageToCurrentBed', { bed_id: this.current.id || 0, name: image })
+    },
+    removeImage (index) {
+      this.images.splice(index, 1)
+    },
     submitForm (e) {
       e.preventDefault()
       this.errors = false
@@ -116,12 +123,21 @@ export default {
       }
       if (!this.errors) {
         this.loading = true
-        const beds = clone(this.location.beds)
-        beds.push(this.current)
+        let beds = clone(this.location.beds)
+        if (this.current.id) {
+          beds = beds.map(b => {
+            if (b.id === this.current.id) {
+              return this.current
+            }
+            return b
+          })
+        } else {
+          beds.push(this.current)
+        }
         updateLocation(this, this.location.id, { ...this.location, beds }).then(() => {
+          this.$emit('done', this.current)
           this.$store.commit('beds/setCurrentBed', null)
           this.loading = false
-          this.$emit('done', this.current)
         })
       }
     }

@@ -4,6 +4,7 @@
 /public/.htaccess
 /public/storage
 /storage/*.key
+/public/images
 /vendor
 .env
 .env.backup

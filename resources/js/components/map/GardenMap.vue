@@ -11,7 +11,7 @@
       </div>
       <div class="buttons-contain">
         <Button class="primary outline icon">Grid</Button>
-        <Button class="primary icon" @click="showNewMenu = !showNewMenu" v-click-outside="showNewMenu"><Icon name="plus"></Icon></Button>
+        <Button class="primary icon" @click="showNewMenu = !showNewMenu"><Icon name="plus"></Icon></Button>
         <div :class="['dropdown', { 'show': showNewMenu }]">
           <div class="item">Location</div>
           <div class="item" @click="createNewBed">Bed</div>
@@ -24,15 +24,15 @@
       <div v-if="newBedExplain" class="new-bed-explain" @mousedown="beginNewBed">
         <h4>Click and drag to create a new bed</h4>
       </div>
-      <BedMap v-for="bed in location.beds" :key="'bed' + bed.id" :bed="bed" ref="bed"/>
+      <BedMap v-for="bed in location.beds" :key="'bed' + bed.id" :bed="bed" ref="bed" @positionUpdated="fetchMaps"/>
     </div>
-    <Modal v-if="newBed">
+    <Modal v-if="currentBed" @close="cancelBed(currentBed)">
       <template #header>
-        <h5>Create a New Bed</h5>
-        <p>You’ve placed your new bed. Now just give it a name, & maybe a happy snap</p>
+        <h5>{{ bedFormText.heading }}</h5>
+        <p>{{ bedFormText.text }}</p>
       </template>
       <template #content>
-        <BedsForm @done="cancelNewBed(); fetchMaps()" @cancel="cancelNewBed">
+        <BedsForm @done="(bed) => { cancelBed(bed); fetchMaps() }" @remove="(bed) => { deleteBed(bed, true) }">
           <template #buttons>
             <Button class="primary">Add a Crop</Button>
           </template>
@@ -43,7 +43,7 @@
 </template>
 
 <script>
-import { fetchMaps } from '../../utils/api'
+import { fetchMaps, updateLocation } from '../../utils/api'
 import { arrangePlantsInBedWithOverlapCheck } from '../../utils/helpers'
 
 import BedMap from './BedMap.vue'
@@ -83,20 +83,34 @@ export default {
         this.$store.commit('locations/setCurrentLocation', this.maps.find(l => l.id === value))
       }
     },
-    newBed () {
+    currentBed () {
       return this.$store.state.beds.current
+    },
+    bedFormText () {
+      return {
+        heading: this.currentBed.id ? 'Update Bed' : 'New Bed',
+        text: this.currentBed.id ? 'Here you can change the Bed\'s details or you can remove it. This will DELETE all crops associated with it.' : 'You’ve placed your new bed. Now just give it a name, & maybe a happy snap'
+      }
     }
   },
   methods: {
+    deleteBed (bed) {
+      updateLocation(this, this.location.id, { ...this.location, beds: this.location.beds.filter(b => b.id !== bed.id) }).then(() => {
+        this.$store.commit('beds/setCurrentBed', null)
+        this.fetchMaps()
+      })
+    },
     beginNewBed (e) {
       this.newBedExplain = false
       const ev = new MouseEvent('mousedown', e)
       this.$refs.grid.dispatchEvent(ev)
     },
-    cancelNewBed () {
-      this.newBedExplain = false
+    cancelBed (bed) {
+      if (!bed.id) {
+        this.$refs.grid.removeChild(this.$refs.grid.querySelector('.newBed'))
+        this.newBedExplain = false
+      }
       this.$store.commit('beds/setCurrentBed', null)
-      this.$refs.grid.removeChild(this.$refs.grid.querySelector('.newBed'))
     },
     createNewBed () {
       this.newBedExplain = true
@@ -108,7 +122,7 @@ export default {
         h: 0,
         name: '',
         description: '',
-        image: '',
+        images: [],
         crop_entries: []
       }
       let isDragging = false

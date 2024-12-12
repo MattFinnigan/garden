@@ -8,6 +8,8 @@ use App\Models\Bed;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use App\Models\BedImage;
+
 class LocationController extends Controller {
 
   public function index() {
@@ -71,13 +73,18 @@ class LocationController extends Controller {
       $b = new Bed();
       $b->name = $bed['name'];
       $b->description = $bed['description'];
-      $b->image = $bed['image'];
       $b->l = $bed['l'];
       $b->w = $bed['w'];
       $b->x = $bed['x'];
       $b->y = $bed['y'];
       $b->location_id = $location->id;
       $b->save();
+      foreach($bed['images'] as $image) {
+        $img = new BedImage();
+        $img->bed_id = $b->id;
+        $img->name = $image['name'];
+        $img->save();
+      }
     }
     return response()->json([
       "status" => "success",
@@ -101,16 +108,28 @@ class LocationController extends Controller {
     $location->save();
     foreach ($request->beds as $bed) {
       if (!isset($bed['id'])) {
-        $location->beds()->create($bed);
+        $b = $location->beds()->create($bed);
+        foreach($bed['images'] as $image) {
+          $img = new BedImage();
+          $img->bed_id = $b->id;
+          $img->name = $image['name'];
+          $img->save();
+        }
       } else {
         $b = Bed::find($bed['id']);
         $b->name = $bed['name'];
         $b->description = $bed['description'];
-        $b->image = $bed['image'];
         $b->l = $bed['l'];
         $b->w = $bed['w'];
         $b->x = $bed['x'];
         $b->y = $bed['y'];
+        $b->images()->delete();
+        foreach($bed['images'] as $image) {
+          $img = new BedImage();
+          $img->bed_id = $b->id;
+          $img->name = $image['name'];
+          $img->save();
+        }
         $b->save();
       }
     }

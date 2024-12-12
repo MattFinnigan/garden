@@ -19,6 +19,7 @@ import Link from './components/common/Link.vue'
 import Display from './components/forms/common/Display.vue'
 import Table from './components/common/Table.vue'
 import Icon from './components/common/Icon.vue'
+import Images from './components/forms/common/Images.vue'
 
 const routes = [
   { path: '/', name: '', component: Landing },
@@ -44,5 +45,6 @@ app.component('Link', Link)
 app.component('Display', Display)
 app.component('Table', Table)
 app.component('Icon', Icon)
+app.component('Images', Images)
 app.use(vClickOutside)
 app.mount('#app')

@@ -5,19 +5,18 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Bed;
 use App\Models\Location;
+use App\Models\BedImage;
 
 class BedController extends Controller {
   public function store (Request $request) {
     $bed = new Bed();
     $bed->name = $request->name;
     $bed->description = $request->description;
-    $bed->image = $request->image;
     $bed->location_id = $request->location_id;
     $bed->l = $request->l;
     $bed->w = $request->w;
     $bed->x = $request->x;
     $bed->y = $request->y;
-
     $location = Location::find($request->location_id);
     $remainingSpace = $location->areaRemaining();
     if ($bed->w * $bed->l > $remainingSpace['area']) {
@@ -37,6 +36,12 @@ class BedController extends Controller {
       ]);
     }
     $bed->save();
+    foreach($request->images as $image) {
+      $img = new BedImage();
+      $img->bed_id = $bed->id;
+      $img->name = $image['name'];
+      $img->save();
+    }
     return response()->json([
       "status" => "success",
       "message" => "Bed created successfully",
@@ -48,13 +53,18 @@ class BedController extends Controller {
     $bed = Bed::find($id);
     $bed->name = $request->name;
     $bed->description = $request->description;
-    $bed->image = $request->image;
     $bed->location_id = $request->location_id;
     $bed->l = $request->l;
     $bed->w = $request->w;
     $bed->x = $request->x;
     $bed->y = $request->y;
-    
+    $bed->images()->delete();
+    foreach($request->images as $image) {
+      $img = new BedImage();
+      $img->bed_id = $bed->id;
+      $img->name = $image['name'];
+      $img->save();
+    }
     $location = Location::find($request->location_id);
     $remainingSpace = $location->areaRemaining();
     if ($bed->w * $bed->l > $remainingSpace['area']) {

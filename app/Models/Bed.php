@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\Location;
 use App\Models\CropEntry;
 use Illuminate\Support\Carbon;
+use App\Models\BedImage;
 
 class Bed extends Model {
   use HasFactory;
@@ -14,12 +15,13 @@ class Bed extends Model {
   protected $fillable = [
     'name',
     'description',
-    'image',
     'l',
     'w',
     'x',
     'y'
   ];
+
+  protected $with = ['images'];
 
   public function location () {
     return $this->belongsTo(Location::class);
@@ -27,6 +29,10 @@ class Bed extends Model {
 
   public function crop_entries () {
     return $this->hasMany(CropEntry::class);
+  }
+
+  public function images () {
+    return $this->hasMany(BedImage::class);
   }
 
   public function areaRemaining ($date) {

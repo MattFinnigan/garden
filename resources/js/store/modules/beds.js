@@ -23,8 +23,11 @@ const mutations = {
   setCurrentBedDescription (state, description) {
     state.current.description = description
   },
-  setCurrentBedImage (state, image) {
-    state.current.image = image
+  setCurrentBedImages (state, image) {
+    state.current.images = image
+  },
+  addImageToCurrentBed (state, image) {
+    state.current.images.push(image)
   }
 }
 

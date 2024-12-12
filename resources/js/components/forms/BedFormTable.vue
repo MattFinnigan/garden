@@ -92,12 +92,12 @@ export default {
         this.$store.commit('beds/setCurrentBedDescription', value)
       }
     },
-    image: {
+    images: {
       get () {
-        return this.current.image
+        return this.current.images
       },
       set (value) {
-        this.$store.commit('beds/setCurrentBedImage', value)
+        this.$store.commit('beds/setCurrentBedImages', value)
       }
     },
     remainingArea () {
@@ -128,7 +128,7 @@ export default {
   },
   methods: {
     newBed () {
-      this.$store.commit('beds/setCurrentBed', { name: '', description: '', image: '' })
+      this.$store.commit('beds/setCurrentBed', { name: '', description: '', images: [] })
     },
     editBed (bed, i) {
       this.$store.commit('beds/setCurrentBed', { ...clone(bed), index: i })
