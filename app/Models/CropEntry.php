@@ -12,7 +12,7 @@ use App\Models\Unit;
 class CropEntry extends Model {
   use HasFactory;
   protected $table = 'crop_entries';
-  protected $fillable = ['crop_id', 'location_id', 'action', 'stage', 'notes', 'image', 'qty', 'datetimestamp', 'bed_id', 'unit_id', 'area'];
+  protected $fillable = ['crop_id', 'location_id', 'action', 'stage', 'notes', 'image', 'qty', 'datetimestamp', 'bed_id', 'unit_id', 'area', 'plant_pos'];
 
   protected $with = ['location', 'bed', 'unit'];
 

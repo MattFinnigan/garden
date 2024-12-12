@@ -35,6 +35,7 @@ class CropEntryController extends Controller {
     $entry->unit_id = $request->unit_id;
     $entry->x = $request->x;
     $entry->y = $request->y;
+    $entry->plant_pos = $request->plant_pos;
     if ($request->days_to_harvest) {
       $c = Crop::where('id', $entry->crop_id)->first();
       $c->days_to_harvest = $request->days_to_harvest;
@@ -82,6 +83,7 @@ class CropEntryController extends Controller {
     $entry->unit_id = $request->unit_id;
     $entry->x = $request->x;
     $entry->y = $request->y;
+    $entry->plant_pos = $request->plant_pos;
     $entry->update();
     if ($request->days_to_harvest) {
       $c = Crop::where('id', $entry->crop_id)->first();

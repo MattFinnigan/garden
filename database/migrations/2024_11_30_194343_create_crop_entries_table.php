@@ -28,6 +28,7 @@ return new class extends Migration {
       $table->bigInteger('area')->default(1);
       $table->number('x')->nullable();
       $table->number('y')->nullable();
+      $table->longText('plant_pos')->nullable();
       $table->timestamps();
     });
   }

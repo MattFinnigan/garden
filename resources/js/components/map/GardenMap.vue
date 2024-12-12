@@ -1,7 +1,7 @@
 <template>
   <div v-if="!loading" class="garden-map">
-    <div class="controls-row">
-      <Select v-model="location" :options="maps.map(l => { return { label: l.name, value: l.id } })" label="Location"/>
+    <div v-if="location" class="controls-row">
+      <Select v-model.number="location.id" :options="maps.map(l => { return { label: l.name, value: l.id } })" label="Location"/>
       <div class="date-select">
         <Button class="icon secondary" @click="removeDays(7)"><Icon name="rewind" size="16px" maskSize="15px"></Icon></Button>
         <Button class="icon secondary" @click="removeDays(1)"><Icon name="play reverse"></Icon></Button>
@@ -14,15 +14,23 @@
         <Button class="primary icon"><Icon name="plus"></Icon></Button>
       </div>
     </div>
-    <div class="grid"></div>
+    <div class="grid">
+      <BedMap v-for="bed in location.beds" :key="'bed' + bed.id" :bed="bed"/>
+    </div>
   </div>
 </template>
 
 <script>
-import { fetchMaps } from '../../utils/api';
+import { fetchMaps } from '../../utils/api'
+import { arrangePlantsInBedWithOverlapCheck } from '../../utils/helpers'
+
+import BedMap from './BedMap.vue'
 
 export default {
   name: 'GardenMap',
+  components: {
+    BedMap
+  },
   data () {
     return {
       loading: true,
@@ -43,7 +51,12 @@ export default {
       this.loading = true
       fetchMaps(this, this.date).then(response => {
         this.loading = false
-        this.location = this.maps[0]?.id
+        this.location = this.maps[0]
+        this.location.beds.forEach(bed => {
+          bed.crop_entries.forEach(ce => {
+            // console.log(JSON.stringify(arrangePlantsInBedWithOverlapCheck(ce, bed)))
+          })
+        })
       })
     },
     addDays (days) {
@@ -84,6 +97,7 @@ export default {
   }
 }
 .grid {
+  position: relative;
   background: $primary2;
   height: 500px;
   width: 100%;

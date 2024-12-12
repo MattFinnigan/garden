@@ -260,13 +260,6 @@ export const fetchMaps = (context, date = null) => {
   return new Promise((resolve) => {
     get('maps?date=' + date).then((response) => {
       console.log('fetchMaps', 'response', response)
-      // let data = response.data.filter((loc) => {
-      //   console.log(loc)
-      //   return loc.beds.filter(bed => {
-      //     console.log(bed)
-      //     return bed.crop_entries.length && bed.l && bed.w
-      //   }).length
-      // })
       context.$store.commit('maps/setMaps', response.data)
       resolve(response)
     }).catch((error) => {

@@ -18,12 +18,12 @@ class LocationController extends Controller {
     // DB::enableQueryLog();
     $date = Carbon::createFromFormat('Y-m-d', $request->date)->startOfDay();
     $locations = Location::with(['beds' => function ($q) {
-        $q->whereNotNull('l')->whereNotNull('w');
+        $q->whereNotNull('l')->whereNotNull('w')->whereNotNull('x')->whereNotNull('y');
       }, 'beds.crop_entries.crop' => function ($q) {
         $q->whereNotNull('days_to_harvest');
       }, 'beds.crop_entries' => function ($q) {
       $q->whereHas('crop', function ($q) {
-        $q->whereNotNull('days_to_harvest');
+        $q->whereNotNull('days_to_harvest')->whereNotNull('plant_pos');
       });
     }])->get();
     $exludeCrops = [];
