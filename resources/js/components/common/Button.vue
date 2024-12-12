@@ -26,7 +26,7 @@ export default {
 
 <style scoped lang="scss">
 button {
-  padding: 0.5rem 2rem;
+  padding: 0.75rem 2rem;
   border-radius: 0.5rem;
   font-size: $fsBody;
   transition: all 0.25s;
@@ -58,6 +58,19 @@ button {
       }
     }
   }
+  &.secondary2 {
+    background-color: $secondary2;
+    color: $secondary;
+    &.outline {
+      background-color: transparent;
+      border: 1px solid $secondary2;
+      color: $secondary2;
+      &:hover {
+        background-color: $secondary2;
+        color: $secondary;
+      }
+    }
+  }
   &.sm {
     font-size: $fsSmall;
     padding: 0.5rem 1.5rem;
@@ -65,6 +78,20 @@ button {
   &.icon {
     padding: 0.4em 0.785em;
     border-radius: 0.625rem;
+  }
+  &.link {
+    margin: 0;
+    padding: 0;
+    background-color: transparent;
+    border: none !important;
+    outline: none;
+    &:hover {
+      text-decoration: underline;
+      background-color: transparent !important;
+      &.primary {
+        color: $primary;
+      }
+    }
   }
 }
 // button {

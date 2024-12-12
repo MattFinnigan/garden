@@ -32,7 +32,7 @@ export default {
   select {
     background-color: $inputBackgroundColour;
     outline: none;
-    border: 1px solid $borderColour;
+    border: none;
     padding: 0.5em 0.75em;
     border-radius: 0.5em;
   }

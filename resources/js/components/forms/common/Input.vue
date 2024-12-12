@@ -1,5 +1,5 @@
 <template>
-  <div class="input-container">
+  <div :class="['input-container', { flex }]">
     <label v-if="label">{{ label }}</label>
     <input :type="type" :value="modelValue" @input="$emit('update:modelValue', $event.target.value)" :placeholder="label" v-bind="$attrs"/>
   </div>
@@ -19,6 +19,10 @@ export default {
     },
     modelValue: {
       required: true
+    },
+    flex: {
+      type: Boolean,
+      default: false
     }
   },
   emits: ['update:modelValue']
@@ -30,9 +34,20 @@ export default {
   input {
     background-color: $inputBackgroundColour;
     outline: none;
-    border: 1px solid $borderColour;
-    padding: 0.5em 0.75em;
+    border: none;
+    padding: 0.65em 0.85em;
     border-radius: 0.5em;
+    // placeholder
+    &::placeholder {
+      font-style: italic;
+    }
+  }
+  &.flex {
+    display: flex;
+    flex-direction: column;
+    input {
+      margin-top: 0.5em;
+    }
   }
 }
 </style>

@@ -21,7 +21,8 @@ export default {
 </script>
 
 <style scoped lang="scss">
-label {
-  display: block;
+.display-input {
+  display: flex;
+  margin-bottom: 1em;
 }
 </style>

@@ -1,7 +1,7 @@
 <template>
   <div v-if="!loading" class="garden-map">
     <div v-if="location" class="controls-row">
-      <Select v-model.number="location.id" :options="maps.map(l => { return { label: l.name, value: l.id } })" label="Location"/>
+      <Select v-model.number="location_id" :options="maps.map(l => { return { label: l.name, value: l.id } })" label="Location"/>
       <div class="date-select">
         <Button class="icon secondary" @click="removeDays(7)"><Icon name="rewind" size="16px" maskSize="15px"></Icon></Button>
         <Button class="icon secondary" @click="removeDays(1)"><Icon name="play reverse"></Icon></Button>
@@ -11,12 +11,34 @@
       </div>
       <div class="buttons-contain">
         <Button class="primary outline icon">Grid</Button>
-        <Button class="primary icon"><Icon name="plus"></Icon></Button>
+        <Button class="primary icon" @click="showNewMenu = !showNewMenu" v-click-outside="showNewMenu"><Icon name="plus"></Icon></Button>
+        <div :class="['dropdown', { 'show': showNewMenu }]">
+          <div class="item">Location</div>
+          <div class="item" @click="createNewBed">Bed</div>
+          <div class="item">Crop</div>
+          <div class="item">Crop Entry</div>
+        </div>
       </div>
     </div>
-    <div class="grid">
-      <BedMap v-for="bed in location.beds" :key="'bed' + bed.id" :bed="bed"/>
+    <div class="grid" ref="grid">
+      <div v-if="newBedExplain" class="new-bed-explain" @mousedown="beginNewBed">
+        <h4>Click and drag to create a new bed</h4>
+      </div>
+      <BedMap v-for="bed in location.beds" :key="'bed' + bed.id" :bed="bed" ref="bed"/>
     </div>
+    <Modal v-if="newBed">
+      <template #header>
+        <h5>Create a New Bed</h5>
+        <p>You’ve placed your new bed. Now just give it a name, & maybe a happy snap</p>
+      </template>
+      <template #content>
+        <BedsForm @done="cancelNewBed(); fetchMaps()" @cancel="cancelNewBed">
+          <template #buttons>
+            <Button class="primary">Add a Crop</Button>
+          </template>
+        </BedsForm>
+      </template>
+    </Modal>
   </div>
 </template>
 
@@ -25,17 +47,22 @@ import { fetchMaps } from '../../utils/api'
 import { arrangePlantsInBedWithOverlapCheck } from '../../utils/helpers'
 
 import BedMap from './BedMap.vue'
+import BedsForm from '../forms/BedsForm.vue'
+import Modal from '../common/Modal.vue'
 
 export default {
   name: 'GardenMap',
   components: {
-    BedMap
+    BedMap,
+    BedsForm,
+    Modal
   },
   data () {
     return {
       loading: true,
       date: new Date().toISOString().split('T')[0],
-      location: null
+      newBedExplain: false,
+      showNewMenu: false
     }
   },
   mounted () {
@@ -44,19 +71,173 @@ export default {
   computed: {
     maps () {
       return this.$store.state.maps.list
+    },
+    location () {
+      return this.$store.state.locations.current
+    },
+    location_id: {
+      get () {
+        return this.$store.state.locations.current?.id
+      },
+      set (value) {
+        this.$store.commit('locations/setCurrentLocation', this.maps.find(l => l.id === value))
+      }
+    },
+    newBed () {
+      return this.$store.state.beds.current
     }
   },
   methods: {
+    beginNewBed (e) {
+      this.newBedExplain = false
+      const ev = new MouseEvent('mousedown', e)
+      this.$refs.grid.dispatchEvent(ev)
+    },
+    cancelNewBed () {
+      this.newBedExplain = false
+      this.$store.commit('beds/setCurrentBed', null)
+      this.$refs.grid.removeChild(this.$refs.grid.querySelector('.newBed'))
+    },
+    createNewBed () {
+      this.newBedExplain = true
+      this.showNewMenu = false
+      const newBed = {
+        x: 0,
+        y: 0,
+        l: 0,
+        h: 0,
+        name: '',
+        description: '',
+        image: '',
+        crop_entries: []
+      }
+      let isDragging = false
+      let startX = 0
+      let startY = 0
+      let shape = null
+      const parent = this.$refs.grid
+
+      const onMouseMove = (e) => {
+        if (!isDragging || !shape) {
+          return
+        }
+
+        const parentRect = parent.getBoundingClientRect()
+
+        // Calculate the current mouse position relative to the parent
+        const currentX = Math.min(
+          parentRect.width,
+          Math.max(0, e.clientX - parentRect.left)
+        )
+        const currentY = Math.min(
+          parentRect.height,
+          Math.max(0, e.clientY - parentRect.top)
+        )
+
+        // Calculate width and height of the shape
+        const width = Math.abs(currentX - startX)
+        const height = Math.abs(currentY - startY)
+
+        // Update shape dimensions and position
+        shape.style.left = `${Math.min(startX, currentX)}px`
+        shape.style.top = `${Math.min(startY, currentY)}px`
+        shape.style.width = `${width}px`
+        shape.style.height = `${height}px`
+      }
+
+      const onMouseUp = () => {
+        if (!isDragging || !shape) {
+          return
+        }
+
+        isDragging = false
+
+        document.removeEventListener('mousemove', onMouseMove)
+        document.removeEventListener('mouseup', onMouseUp)
+        parent.removeEventListener('mousedown', onMouseDown)
+
+        const shapeRect = shape.getBoundingClientRect()
+        const parentRect = parent.getBoundingClientRect()
+
+        // Update the new bed's properties
+        newBed.x = shapeRect.left - parentRect.left
+        newBed.y = shapeRect.top - parentRect.top
+        newBed.l = shapeRect.width
+        newBed.w = shapeRect.height
+
+        // Check for collisions with existing beds
+        const beds = this.$refs.bed.map(bed => bed.$el.getBoundingClientRect())
+        const hasCollision = beds.some(bedRect => {
+          const bedLeft = bedRect.left - parentRect.left
+          const bedTop = bedRect.top - parentRect.top
+          const bedRight = bedLeft + bedRect.width
+          const bedBottom = bedTop + bedRect.height
+
+          const newBedLeft = newBed.x
+          const newBedTop = newBed.y
+          const newBedRight = newBed.x + newBed.l
+          const newBedBottom = newBed.y + newBed.w
+
+          return !(
+            newBedRight <= bedLeft || // No overlap on the left
+            newBedLeft >= bedRight || // No overlap on the right
+            newBedBottom <= bedTop || // No overlap on the top
+            newBedTop >= bedBottom    // No overlap on the bottom
+          )
+        })
+
+        if (hasCollision) {
+          // alert('Collision detected! The new bed overlaps with an existing bed.')
+          this.cancelNewBed()
+        } else {
+          this.$store.commit('beds/setCurrentBed', newBed)
+        }
+        shape = null
+      }
+
+      const onMouseDown = (e) => {
+        if (e.target !== parent) {
+          return
+        }
+        this.newBedExplain = false
+        const parentRect = parent.getBoundingClientRect()
+
+        startX = Math.min(
+          parentRect.width,
+          Math.max(0, e.clientX - parentRect.left)
+        )
+        startY = Math.min(
+          parentRect.height,
+          Math.max(0, e.clientY - parentRect.top)
+        )
+
+        // Create the shape element
+        shape = document.createElement('div')
+        shape.className = 'newBed'
+        shape.style.left = `${startX}px`
+        shape.style.top = `${startY}px`
+        shape.style.width = '0px'
+        shape.style.height = '0px'
+
+        parent.appendChild(shape)
+        isDragging = true
+
+        document.addEventListener('mousemove', onMouseMove)
+        document.addEventListener('mouseup', onMouseUp)
+      }
+
+      parent.addEventListener('mousedown', onMouseDown)
+    },
     fetchMaps () {
       this.loading = true
       fetchMaps(this, this.date).then(response => {
         this.loading = false
-        this.location = this.maps[0]
-        this.location.beds.forEach(bed => {
-          bed.crop_entries.forEach(ce => {
-            // console.log(JSON.stringify(arrangePlantsInBedWithOverlapCheck(ce, bed)))
-          })
-        })
+        this.$store.commit('locations/setCurrentLocation', response.data[0])
+        // this.location.beds.forEach(bed => {
+        //   bed.crop_entries.forEach(ce => {
+        //     console.log(JSON.stringify(arrangePlantsInBedWithOverlapCheck(ce, bed)))
+        //   })
+        // })
       })
     },
     addDays (days) {
@@ -70,7 +251,7 @@ export default {
       date.setDate(date.getDate() - days)
       this.date = date.toISOString().split('T')[0]
       this.fetchMaps()
-    },
+    }
   }
 }
 </script>
@@ -90,10 +271,47 @@ export default {
     gap: 10px;
   }
   .buttons-contain {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: flex-end;
     gap: 10px;
+    .dropdown {
+      border-radius: 0.5em;
+      background: $backgroundColour;
+      position: absolute;
+      top: 130%;
+      right: 0;
+      text-align: right;
+      z-index: -999;
+      width: 120px;
+      border: 1px solid $borderColour;
+      opacity: 0;
+      transition: all 0.3s;
+      &.show {
+        z-index: 999;
+        opacity: 1;
+      }
+      .item {
+        background-color: $backgroundColour;
+        padding: 6px 12px;
+        cursor: pointer;
+        border-bottom: 1px solid $borderColour;
+        &:hover {
+          background: $secondary2;
+        }
+        &:first-child {
+          border-top-left-radius: 0.5em;
+          border-top-right-radius: 0.5em;
+          border-top: 0;
+        }
+        &:last-child {
+          border-bottom: 0;
+          border-bottom-right-radius: 0.5em;
+          border-bottom-left-radius: 0.5em;
+        }
+      }
+    }
   }
 }
 .grid {
@@ -101,5 +319,29 @@ export default {
   background: $primary2;
   height: 500px;
   width: 100%;
+  :deep(.newBed) {
+    border: 2px dashed $textColour;
+    background-color: $primary3;
+    position: absolute;
+    border-radius: 0.5em;
+  }
+  .new-bed-explain {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: $primary3;
+    border-radius: 0.5em;
+    border: 2px dashed $textColour;
+    z-index: 999;
+    h4 {
+      color: $backgroundColour;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+  }
 }
 </style>

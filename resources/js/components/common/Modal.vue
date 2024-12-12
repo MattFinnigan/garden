@@ -3,8 +3,8 @@
     <div class="modal-content">
       <div class="header-contain">
         <slot name="header"></slot>
-        <div>
-          <Button classes="bare" @click="$emit('close')">X</Button>
+        <div class="cancel">
+          <Button classes="link outline primary" @click="$emit('close')">Cancel</Button>
         </div>
       </div>
       <div class="content-contain">
@@ -32,17 +32,23 @@ export default {
   justify-content: center;
   align-items: center;
   .modal-content {
-    background: black;
-    border: 1px solid $grey-600;
-    padding: 20px;
-    border-radius: 5px;
     overflow: auto;
     max-height: 100vh;
+    width: 640px;
+    border-radius: 0.5em;
+    background: $backgroundColour;
+    padding: 2em;
     .header-contain {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      position: relative;
       margin-bottom: 1em;
+      :deep(p) {
+        margin-top: 0.5em;
+      }
+      .cancel {
+        position: absolute;
+        right: 0;
+        top: 0;
+      }
     }
   }
 }

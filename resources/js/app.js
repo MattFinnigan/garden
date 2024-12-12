@@ -2,6 +2,7 @@ import { createApp } from 'vue'
 import store from './store'
 import { createWebHistory, createRouter } from 'vue-router'
 import App from './components/App.vue'
+import vClickOutside from 'v-click-outside'
 
 import Landing from './components/pages/Landing.vue'
 import Crops from './components/pages/Crops.vue'
@@ -32,8 +33,6 @@ const router = createRouter({
   routes,
 })
 
-
-
 const app = createApp(App).use(router)
 app.use(store)
 app.component('Form', Form)
@@ -45,4 +44,5 @@ app.component('Link', Link)
 app.component('Display', Display)
 app.component('Table', Table)
 app.component('Icon', Icon)
+app.use(vClickOutside)
 app.mount('#app')

@@ -1,35 +1,59 @@
 <template>
-  <div>
-    <p v-if="errors" class="error">{{ errors }}</p>
-    <Form @submit="submitForm">
-      <template #inputs>
-        <Display label="Location" :val="location.name"/>
-        <Input v-model="name" label="Name" maxlength="255" :flex="true" placeholder="Herbs Bed" required/>
-        <Input v-model="description" type="textarea" label="Description" placeholder="Nice sunny location. Snails seem to hate it here!" :flex="true" maxlength="255"/>
-        <Input :modelValue="image" type="file" label="Image" :flex="true" @change="e => image = e.target.value"/>
+  <div class="beds-form">
+    <Table
+      :headers="[{ label: 'Name', key: 'name' }, { label: 'Description', key: 'description' }, { label: 'Size', key: 'size' }]"
+      :rows="bedsMapped"
+      :actions="{ edit: true, delete: true }"
+      @edit="(bed, i) => editBed(bed, i)"
+      @delete="(bed, i) => deleteBed(i)">
+      <template #header>
+        <h3>Beds</h3>
+        <Button classes="sm" @click="newBed">New</Button>
       </template>
-      <template #buttons>
-        <Button type="submit" classes="secondary2" :disabled="loading">Done</Button>
-        <slot name="buttons"></slot>
+      <template #prefix>
+        <div v-if="current" class="bed-input">
+          <h4>New Bed</h4>
+          <div class="inputs-wrapper">
+            <Input v-model="name" label="Name" maxlength="255" required/>
+            <Input v-model.number="l" type="number" label="Length (cm)" :required="w"/>
+            <Input v-model.number="w" type="number" label="Width (cm)" :required="l"/>
+            <Input v-model="description" label="Description" maxlength="255"/>
+            <Input :modelValue="image" type="file" label="Image" @change="e => image = e.target.value"/>
+          </div>
+          <p v-if="errors" class="error">{{ errors }}</p>
+          <div class="buttons-wrapper">
+            <Button classes="sm" @click="done">{{ current.id || current.index !== undefined ? 'Update' : 'Add' }}</Button>
+            <Button classes="sm" @click="() => { errors = false; $store.commit('beds/setCurrentBed', null) }">Cancel</Button>
+          </div>
+        </div>
       </template>
-    </Form>
+    </Table>
   </div>
 </template>
 
 <script>
 import { clone } from '../../utils/helpers'
-import { updateLocation } from '../../utils/api'
 
 export default {
   name: 'BedsForm',
-  emits: ['done'],
+  emits: ['done', 'delete'],
   data () {
     return {
-      errors: false,
-      loading: false
+      errors: false
     }
   },
   computed: {
+    beds () {
+      return this.$store.state.locations.current.beds
+    },
+    bedsMapped () {
+      return this.beds.map(bed => {
+        return {
+          ...bed,
+          size: bed.l ? `${bed.l / 100}x${bed.w / 100}m` : 'N/A'
+        }
+      })
+    },
     current () {
       return this.$store.state.beds.current
     },
@@ -103,8 +127,16 @@ export default {
     }
   },
   methods: {
-    submitForm (e) {
-      e.preventDefault()
+    newBed () {
+      this.$store.commit('beds/setCurrentBed', { name: '', description: '', image: '' })
+    },
+    editBed (bed, i) {
+      this.$store.commit('beds/setCurrentBed', { ...clone(bed), index: i })
+    },
+    deleteBed (i) {
+      this.$emit('delete', i)
+    },
+    done () {
       this.errors = false
       if (!this.name.length) {
         this.errors = 'Name is required'
@@ -115,14 +147,8 @@ export default {
         this.errors = `Width exceeds remaining width by ${this.remainingArea.w * -1}cm`
       }
       if (!this.errors) {
-        this.loading = true
-        const beds = clone(this.location.beds)
-        beds.push(this.current)
-        updateLocation(this, this.location.id, { ...this.location, beds }).then(() => {
-          this.$store.commit('beds/setCurrentBed', null)
-          this.loading = false
-          this.$emit('done', this.current)
-        })
+        this.$emit('done', this.current)
+        this.$store.commit('beds/setCurrentBed', null)
       }
     }
   }
@@ -130,4 +156,23 @@ export default {
 </script>
 
 <style scoped lang="scss">
+h4 {
+  margin: 0;
+  margin-bottom: 1em;
+}
+.bed-input {
+  margin-bottom: 1em;
+  background-color: $grey-800;
+  padding: 1em;
+  :deep(input) {
+    min-width: 350px;
+    height: 35px;
+    padding-left: 0.5em;
+    background: $grey-700;
+    color: white;
+    outline: none;
+    border: 1px solid $grey-500;
+    border-radius: 0.25em;
+  }
+}
 </style>

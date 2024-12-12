@@ -1,9 +1,9 @@
 <template>
   <form>
-    <div class="inputs-contain">
+    <div class="form-inputs-contain">
       <slot name="inputs"></slot>
     </div>
-    <div class="buttons-contain">
+    <div class="form-buttons-contain">
       <slot name="buttons"></slot>
     </div>
   </form>
@@ -13,8 +13,10 @@
 export default {
   name: 'Form',
   mounted () {
-    // focus on first input
-    this.$el.querySelector('input').focus()
+    this.$nextTick(() => {
+      // focus on first input
+      this.$el.querySelector('input')?.focus()
+    })
   }
 }
 </script>
@@ -23,6 +25,17 @@ export default {
 form {
   :deep(.error) {
     color: #ff0000;
+  }
+  .form-inputs-contain > * {
+    margin-bottom: 1em;
+  }
+  .form-buttons-contain {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 1em;
+    > * {
+      margin-left: 1em;
+    }
   }
 }
 </style>
