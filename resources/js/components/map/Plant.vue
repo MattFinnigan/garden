@@ -73,7 +73,7 @@ export default {
         padding: (this.plantCopy.entry.area / 2) + 'px',
         // width: (this.plantCopy.l / this.parent.clientWidth) * 100 + '%',
         // height: (this.plantCopy.w / this.parent.clientHeight) * 100 + '%',
-        backgroundImage: `url(./images/${this.plantCopy.entry.crop.plant.image})`
+        backgroundImage: `url(./images/upload/${this.plantCopy.entry.crop.plant.image})`
       }
     }
   },

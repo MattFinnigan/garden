@@ -4,9 +4,9 @@
       <slot name="inputs"></slot>
     </div>
     <div class="form-buttons-contain">
-      <Button v-if="canDelete && !confirmDelete" class="danger link outline left-btn" @click="confirmDelete = true">Delete</Button>
+      <Button v-if="canDelete && !confirmDelete" class="danger link outline left-btn" @click="confirmDelete = true">{{ deleteText || 'Delete' }}</Button>
       <div v-if="confirmDelete" class="left-btn confirm-delete">
-        <div>Are you sure?</div>
+        <div>{{ deleteWarning || 'Are you sure?' }}</div>
         <Button class="sm danger" @click="$emit('remove')">Yes</Button> &nbsp;
         <Button class="sm danger outline" @click="confirmDelete = false">No</Button>
       </div>
@@ -22,6 +22,14 @@ export default {
     canDelete: {
       type: Boolean,
       default: false
+    },
+    deleteText: {
+      type: String,
+      default: 'Delete'
+    },
+    deleteWarning: {
+      type: String,
+      default: 'Are you sure?'
     }
   },
   emits: ['remove'],

@@ -32,6 +32,9 @@ const mutations = {
   removeImageFromCurrentBed (state, index) {
     state.current.images.splice(index, 1)
   },
+  setCurrentBedDeactivated (state, deactivated) {
+    state.current.deactivated = deactivated
+  }
 }
 
 export default {

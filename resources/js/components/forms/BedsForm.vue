@@ -1,7 +1,7 @@
 <template>
   <div>
     <p v-if="errors" class="error">{{ errors }}</p>
-    <Form :canDelete="!!current.id" @remove="$emit('remove', current)" @submit="submitForm">
+    <Form :canDelete="canDelete" deleteText="Remove" :deleteWarning="'Remove bed from ' + localeDate(date) + '?' " @remove="$emit('remove', current)" @submit="submitForm">
       <template #inputs>
         <Display label="Location" :val="location.name"/>
         <Input v-model="name" label="Name" maxlength="255" :flex="true" placeholder="Herbs Bed" required/>
@@ -17,7 +17,7 @@
 </template>
 
 <script>
-import { clone } from '../../utils/helpers'
+import { clone, localeDate } from '../../utils/helpers'
 import { updateLocation } from '../../utils/api'
 
 export default {
@@ -25,6 +25,7 @@ export default {
   emits: ['done', 'remove'],
   data () {
     return {
+      localeDate,
       errors: false,
       loading: false
     }
@@ -35,6 +36,9 @@ export default {
     },
     location () {
       return this.$store.state.locations.current
+    },
+    date () {
+      return this.$store.state.maps.date || new Date().toISOString().split('T')[0] // filter's date?
     },
     name: {
       get () {
@@ -75,6 +79,9 @@ export default {
       set (value) {
         this.$store.commit('beds/setCurrentBedImages', value)
       }
+    },
+    canDelete () {
+      return this.current.id && this.current.crop_entries.length === 0
     },
     remainingArea () {
       if (!this.location.w) {

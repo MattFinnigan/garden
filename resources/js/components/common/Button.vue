@@ -94,7 +94,7 @@ button {
       color: $danger;
       &:hover {
         background-color: $danger;
-        color: $backgroundColour;
+        color: $danger;
         :deep(i) {
           background-color: $backgroundColour;
         }

@@ -12,7 +12,7 @@ class ImageUploadController extends Controller {
     ]);
 
     $imageName = time().'.'.$request->image->extension();
-    $request->image->move(public_path('images'), $imageName);
+    $request->image->move(public_path('images/upload'), $imageName);
 
     return response()->json([
       "status" => "success",

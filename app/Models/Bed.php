@@ -18,7 +18,9 @@ class Bed extends Model {
     'l',
     'w',
     'x',
-    'y'
+    'y',
+    'deactivated',
+    'location_id'
   ];
 
   protected $with = ['images'];

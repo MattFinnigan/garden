@@ -14,7 +14,7 @@
           <Select type="number" v-model.number="sow_from" :options="months" label="Sow From"/>
           <Select type="number" v-model.number="sow_to" :options="months" label="Sow To"/>
           <Input type="file" label="Image" @change="uploadImage"/>
-          <img v-if="image" :src="'./images/' + image"/>
+          <img v-if="image" :src="'./images/upload' + image"/>
         </template>
         <template #buttons>
           <Button type="submit" :disabled="loading">Submit</Button>

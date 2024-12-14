@@ -20,6 +20,7 @@ import Display from './components/forms/common/Display.vue'
 import Table from './components/common/Table.vue'
 import Icon from './components/common/Icon.vue'
 import Images from './components/forms/common/Images.vue'
+import Checkbox from './components/forms/common/Checkbox.vue'
 
 const routes = [
   { path: '/', name: '', component: Landing },
@@ -46,5 +47,6 @@ app.component('Display', Display)
 app.component('Table', Table)
 app.component('Icon', Icon)
 app.component('Images', Images)
+app.component('Checkbox', Checkbox)
 app.use(vClickOutside)
 app.mount('#app')

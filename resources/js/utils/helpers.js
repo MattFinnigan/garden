@@ -159,5 +159,17 @@ export const draggable = (el, relativeEl, start, update, end, padding = 0) => {
   })
 }
 
+export const localeDate = (date) => {
+  return new Date(date).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  })
+}
 
-
+export const watchScreenSize = (callback) => {
+  const resizeObserver = new ResizeObserver(() => {
+    callback()
+  })
+  resizeObserver.observe(document.body)
+}

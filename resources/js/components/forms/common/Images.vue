@@ -35,7 +35,7 @@ export default {
   },
   computed: {
     images () {
-      return this.modelValue.map(val => `./images/${val.name}`)
+      return this.modelValue.map(val => `./images/upload/${val.name}`)
     }
   },
   methods: {

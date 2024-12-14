@@ -95,7 +95,7 @@ export default {
               padding: `${entry.area - 5}px`, // Relative top
               // marginLeft: `${(x / bed.l) * 100}%`, // Relative left
               backgroundColor: "transparent",
-              backgroundImage: `url(./images/${entry.crop.plant.image})`,
+              backgroundImage: `url(./images/upload/${entry.crop.plant.image})`,
               backgroundSize: '25px',
               border: '1px solid grey',
               backgroundPosition: "center",

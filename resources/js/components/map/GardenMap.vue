@@ -5,12 +5,13 @@
       <div class="date-select">
         <Button class="icon secondary" @click="removeDays(7)"><Icon name="rewind" size="16px" maskSize="15px"></Icon></Button>
         <Button class="icon secondary" @click="removeDays(1)"><Icon name="play reverse"></Icon></Button>
-        <Input type="date" v-model="currentDate" @change="fetchMaps"/>
+        <Input type="date" v-model="date" @change="fetchMaps"/>
         <Button class="icon secondary" @click="addDays(1)"><Icon name="play"></Icon></Button>
         <Button class="icon secondary" @click="addDays(7)"><Icon name="rewind reverse" size="16px" maskSize="15px"></Icon></Button>
       </div>
       <div class="buttons-contain">
-        <Button class="primary outline icon">Grid</Button>
+        <!-- <Button class="primary outline icon" @click="zoom += 0.1"><Icon name="zoomin" colour="primary" maskSize="15px" size="14px"></Icon></Button>
+        <Button class="primary outline icon" @click="zoom -= 0.1"><Icon name="zoomout" colour="primary" maskSize="15px" size="14px"></Icon></Button> -->
         <Button class="primary icon" @click="showNewMenu = !showNewMenu"><Icon name="plus"></Icon></Button>
         <div :class="['dropdown', { 'show': showNewMenu }]">
           <div class="item">Location</div>
@@ -32,7 +33,7 @@
         <p>{{ bedFormText.text }}</p>
       </template>
       <template #content>
-        <BedsForm @done="(bed) => { cancelBed(bed); fetchMaps() }" @remove="(bed) => { deleteBed(bed, true) }">
+        <BedsForm @done="(bed) => { cancelBed(bed); fetchMaps() }" @remove="(bed) => { removeBed(bed, true) }">
           <template #buttons>
             <Button class="primary" type="submit" @click="createNewCrop(bed)">Add a Crop</Button>
           </template>
@@ -43,8 +44,8 @@
 </template>
 
 <script>
-import { fetchMaps, updateLocation } from '../../utils/api'
-import { arrangePlantsInBedWithOverlapCheck } from '../../utils/helpers'
+import { fetchMaps, updateBed } from '../../utils/api'
+import { arrangePlantsInBedWithOverlapCheck, watchScreenSize } from '../../utils/helpers'
 
 import BedMap from './BedMap.vue'
 import BedsForm from '../forms/BedsForm.vue'
@@ -60,23 +61,34 @@ export default {
   data () {
     return {
       loading: true,
-      date: new Date().toISOString(),
       newBedExplain: false,
-      showNewMenu: false
+      showNewMenu: false,
+      zoom: 1
     }
   },
   mounted () {
+    this.date = new Date()
     this.fetchMaps()
+    watchScreenSize(this.zoomToFull)
   },
   computed: {
-    currentDate () {
-      return this.date.split('T')[0]
+    date: {
+      get () {
+        return this.$store.state.maps.date?.split('T')[0]
+      },
+      set (value) {
+        return this.$store.commit('maps/setMapDate', value.toISOString())
+      }
     },
     maps () {
       return this.$store.state.maps.list
     },
     styles () {
-      return `height: ${this.location?.w}px; width: ${this.location?.l}px`
+      return {
+        height: `${this.location?.w}px`,
+        width: `${this.location?.l }px`,
+        backgroundSize: `20px 20px`
+      }
     },
     location () {
       return this.$store.state.locations.current
@@ -114,18 +126,17 @@ export default {
   watch: {
     location_id (value) {
       this.zoomToFull()
+    },
+    zoom (value) {
+      this.$refs.grid.style.zoom = value
     }
   },
   methods: {
     zoomToFull () {
       this.$nextTick(() => {
         if (this.$el.offsetWidth > this.$refs.grid?.offsetWidth) {
-          const zoom = 
-          this.$refs.grid.style.zoom = (this.$el.offsetWidth / this.$refs.grid?.offsetWidth)
+          this.zoom = (this.$el.offsetWidth / this.$refs.grid?.offsetWidth)
         }
-        setTimeout(() => {
-          console.log(this.$el.offsetWidth, this.$refs.grid?.offsetWidth)
-        }, 2000)
       })
     },
     createNewCrop (bed) {
@@ -156,8 +167,8 @@ export default {
         })
       })
     },
-    deleteBed (bed) {
-      updateLocation(this, this.location.id, { ...this.location, beds: this.location.beds.filter(b => b.id !== bed.id) }).then(() => {
+    removeBed (bed) {
+      updateBed(this, bed.id, { ...bed, deactivated: this.date }, false).then(() => {
         this.$store.commit('beds/setCurrentBed', null)
         this.fetchMaps()
       })
@@ -173,8 +184,8 @@ export default {
       })
       this.$refs.grid.dispatchEvent(ev)
     },
-    cancelBed (bed) {
-      if (!bed.id) {
+    cancelBed (bed)  {
+      if (!bed || !bed.id) {
         this.$refs.grid.removeChild(this.$refs.grid.querySelector('.newBed'))
         this.newBedExplain = false
       }
@@ -197,8 +208,6 @@ export default {
       let isDragging = false
       let startX = 0
       let startY = 0
-      let clickOffsetX = 0
-      let clickOffsetY = 0
       let shape = null
       const parent = this.$refs.grid
 
@@ -234,6 +243,8 @@ export default {
         shape.style.top = `${Math.min(startY, currentY)}px`
         shape.style.width = `${width}px`
         shape.style.height = `${height}px`
+        shape.querySelector('.shapeWidth').innerText = `${width.toFixed(0)}cm`
+        shape.querySelector('.shapeHeight').innerText = `${height.toFixed(0)}cm`
       }
 
       const onMouseUp = () => {
@@ -279,7 +290,7 @@ export default {
         })
 
         if (hasCollision) {
-          this.cancelNewBed()
+          this.cancelBed()
         } else {
           this.$store.commit('beds/setCurrentBed', newBed)
         }
@@ -313,7 +324,24 @@ export default {
         shape.style.width = '0px'
         shape.style.height = '0px'
 
+        const shapeWidth = document.createElement('div')
+        shapeWidth.className = 'shapeWidth'
+        shapeWidth.innerText = '0cm'
+        
+        const shapeHeight = document.createElement('div')
+        shapeHeight.className = 'shapeHeight'
+        shapeHeight.innerText = '0cm'
+
+        if (startX < 40) {
+          shapeHeight.style.left = '0'
+        }
+        if (startY < 40) {
+          shapeWidth.style.top = '0'
+        }
+
         parent.appendChild(shape)
+        shape.appendChild(shapeWidth)
+        shape.appendChild(shapeHeight)
         isDragging = true
 
         document.addEventListener('mousemove', onMouseMove)
@@ -324,7 +352,7 @@ export default {
     },
     fetchMaps () {
       this.loading = true
-      fetchMaps(this, this.currentDate).then(response => {
+      fetchMaps(this, this.date).then(response => {
         this.loading = false
         this.$store.commit('locations/setCurrentLocation', response.data[0])
         // this.location.beds.forEach(bed => {
@@ -335,13 +363,13 @@ export default {
       })
     },
     addDays (days) {
-      const date = new Date(this.currentDate)
+      const date = new Date(this.date)
       date.setDate(date.getDate() + days + 1)
       this.date = date.toISOString()
       this.fetchMaps()
     },
     removeDays (days) {
-      const date = new Date(this.currentDate)
+      const date = new Date(this.date)
       date.setDate(date.getDate() - days)
       this.date = date.toISOString()
       this.fetchMaps()
@@ -411,17 +439,39 @@ export default {
 .grid {
   position: relative;
   background: $primary2;
-  max-height: 500px;
-  width: 100%;
+  max-height: 50vh;
+  max-width: 100%;
   overflow: auto;
   zoom: 1;
+    background-image:
+      repeating-linear-gradient(#ccc 0 1px, transparent 1px 100%),
+      repeating-linear-gradient(90deg, #ccc 0 1px, transparent 1px 100%);
   :deep(.newBed) {
     border: 2px dashed $textColour;
     background-color: $primary3;
     position: absolute;
     border-radius: 0.5em;
+    .shapeWidth,
+    .shapeHeight {
+      position: absolute;
+      color: $textColour;
+      padding: 0.25em 0.5em;
+      font-size: $fsSmall;
+    }
+    .shapeWidth {
+      top: -25px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    .shapeHeight {
+      left: -45px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
   }
   .new-bed-explain {
+    width: 100%;
+    text-align: center;
     position: absolute;
     top: 0;
     left: 0;

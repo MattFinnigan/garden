@@ -1,6 +1,7 @@
 
 const state = () => ({
-  list: []
+  list: [],
+  date: null,
 })
 
 const getters = {}
@@ -10,6 +11,9 @@ const actions = {}
 const mutations = {
   setMaps (state, maps) {
     state.list = maps
+  },
+  setMapDate (state, date) {
+    state.date = date
   }
 }
 

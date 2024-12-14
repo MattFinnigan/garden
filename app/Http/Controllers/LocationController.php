@@ -20,13 +20,13 @@ class LocationController extends Controller {
     // DB::enableQueryLog();
     $date = Carbon::createFromFormat('Y-m-d', $request->date)->startOfDay();
     $locations = Location::with(['beds' => function ($q) {
-        $q->whereNotNull('l')->whereNotNull('w')->whereNotNull('x')->whereNotNull('y');
+        $q->whereNotNull('l')->whereNotNull('w')->whereNotNull('x')->whereNotNull('y')->whereNull('deactivated');
       }, 'beds.crop_entries.crop' => function ($q) {
         $q->whereNotNull('days_to_harvest');
       }, 'beds.crop_entries' => function ($q) {
       $q->whereHas('crop', function ($q) {
         $q->whereNotNull('days_to_harvest')->whereNotNull('plant_pos');
-      });
+      })->where('stage', '!=', 'completed');
     }])->get();
     $exludeCrops = [];
     foreach ($locations as $loc) {
@@ -123,6 +123,7 @@ class LocationController extends Controller {
         $b->w = $bed['w'];
         $b->x = $bed['x'];
         $b->y = $bed['y'];
+        $b->deactivated = $bed['deactivated'];
         $b->images()->delete();
         foreach($bed['images'] as $image) {
           $img = new BedImage();

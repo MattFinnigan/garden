@@ -20,6 +20,7 @@ return new class extends Migration {
       $table->number('w')->nullable();
       $table->number('x')->nullable();
       $table->number('y')->nullable();
+      $table->date('deactivated')->nullable();
       $table->timestamps();
     });
   }

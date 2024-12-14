@@ -41,6 +41,9 @@ export default {
     &.black {
       background-color: $textColour;
     }
+    &.primary {
+      background-color: $primary;
+    }
     &.danger {
       background-color: $danger;
     }
@@ -67,6 +70,12 @@ export default {
     }
     &.plus {
       mask-image: url('/images/plus.svg');
+    }
+    &.zoomin {
+      mask-image: url('/images/zoom-in.svg');
+    }
+    &.zoomout {
+      mask-image: url('/images/zoom-out.svg');
     }
   }
 </style>
