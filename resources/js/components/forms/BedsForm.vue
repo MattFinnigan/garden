@@ -9,7 +9,6 @@
         <Images class="images" :modelValue="images" label="Images" multiple @addImage="addImage" @removeImage="removeImage"/>
       </template>
       <template #buttons>
-        <Button type="submit" classes="secondary2" :disabled="loading">Done</Button>
         <slot name="buttons"></slot>
       </template>
     </Form>
@@ -118,6 +117,9 @@ export default {
     },
     submitForm (e) {
       e.preventDefault()
+      if (this.loading) {
+        return
+      }
       this.errors = false
       if (!this.name.length) {
         this.errors = 'Name is required'
@@ -142,7 +144,6 @@ export default {
         }
         updateLocation(this, this.location.id, { ...this.location, beds }).then(() => {
           this.$emit('done', this.current)
-          this.$store.commit('beds/setCurrentBed', null)
           this.loading = false
         })
       }

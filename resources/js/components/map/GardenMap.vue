@@ -1,5 +1,5 @@
 <template>
-  <div class="garden-map">
+  <div v-if="render" class="garden-map">
     <div class="controls-row">
       <Select v-model.number="location_id" :options="maps.map(l => { return { label: l.name, value: l.id } })" label="Location"/>
       <div class="date-select">
@@ -33,43 +33,71 @@
         <p>{{ bedFormText.text }}</p>
       </template>
       <template #content>
-        <BedsForm @done="(bed) => { cancelBed(bed); fetchMaps() }" @remove="(bed) => { removeBed(bed, true) }">
+        <BedsForm @done="bedSubmitted()" @remove="(bed) => { removeBed(bed, true) }">
           <template #buttons>
-            <Button class="primary" type="submit" @click="createNewCrop(bed)">Add a Crop</Button>
+            <Button type="submit" classes="secondary2" @click="bedSubmitted = bedUpdated">Done</Button>
+            <Button class="primary" type="submit" @click="bedSubmitted = createNewCrop">Add a Crop</Button>
           </template>
         </BedsForm>
+      </template>
+    </Modal>
+    <Modal v-if="currentCropEntry" @close="cancelCropEntry">
+      <template #header>
+        <h5>Create a new Crop {{ currentCropEntry.crop_id ? 'Entry' : '' }}</h5>
+        <p v-if="!currentCropEntry.crop_id">You've selected a bed. Now let's add a Crop with it's first Entry</p>
+        <p v-else>Add a new Entry to this Crop</p>
+      </template>
+      <template #content>
+        <CropEntryForm @done="cropEntrySubmitted()" @remove="removeCropEntry">
+          <template #buttons>
+            <Button type="submit" classes="secondary2" @click="cropEntrySubmitted = createNewCrop">Submit & create another</Button>
+            <Button class="primary" type="submit" @click="cropEntrySubmitted = cancelCropEntry">Done</Button>
+          </template>
+        </CropEntryForm>
       </template>
     </Modal>
   </div>
 </template>
 
 <script>
-import { fetchMaps, updateBed } from '../../utils/api'
-import { arrangePlantsInBedWithOverlapCheck, watchScreenSize } from '../../utils/helpers'
+import { fetchMaps, updateBed, fetchPlants, deleteCropEntry } from '../../utils/api'
+import { watchScreenSize } from '../../utils/helpers'
 
 import BedMap from './BedMap.vue'
 import BedsForm from '../forms/BedsForm.vue'
 import Modal from '../common/Modal.vue'
+import CropEntryForm from '../forms/CropEntryForm.vue'
 
 export default {
   name: 'GardenMap',
   components: {
     BedMap,
     BedsForm,
-    Modal
+    Modal,
+    CropEntryForm
   },
   data () {
     return {
       loading: true,
       newBedExplain: false,
       showNewMenu: false,
-      zoom: 1
+      zoom: 1,
+      bedSubmitted: null,
+      render: true
     }
   },
   mounted () {
     this.date = new Date()
     this.fetchMaps()
-    watchScreenSize(this.zoomToFull)
+    watchScreenSize(() => {
+      this.render = false
+      this.$nextTick(() => {
+        this.render = true
+        this.$nextTick(() => {
+          this.zoomToFull()
+        })
+      })
+    })
   },
   computed: {
     date: {
@@ -86,8 +114,8 @@ export default {
     styles () {
       return {
         height: `${this.location?.w}px`,
-        width: `${this.location?.l }px`,
-        backgroundSize: `20px 20px`
+        width: `${this.location?.l}px`,
+        backgroundSize: `${2 * this.zoom}% 10px`
       }
     },
     location () {
@@ -126,21 +154,31 @@ export default {
   watch: {
     location_id (value) {
       this.zoomToFull()
-    },
-    zoom (value) {
-      this.$refs.grid.style.zoom = value
     }
   },
   methods: {
-    zoomToFull () {
-      this.$nextTick(() => {
-        if (this.$el.offsetWidth > this.$refs.grid?.offsetWidth) {
-          this.zoom = (this.$el.offsetWidth / this.$refs.grid?.offsetWidth)
-        }
+    removeCropEntry () {
+      deleteCropEntry(this, this.currentCropEntry.id).then(() => {
+        this.fetchMaps()
       })
     },
-    createNewCrop (bed) {
+    cancelCropEntry () {
+      this.$store.commit('crops/setCurrentCrop', null)
+      this.$store.commit('crop_entries/setCurrentCropEntry', null)
+    },
+    bedUpdated () {
+      this.cancelBed(this.currentBed)
+      this.fetchMaps()
+      this.bedSubmitted = null
+    },
+    zoomToFull () {
+      if (this.$el.offsetWidth > this.$refs.grid?.offsetWidth) {
+        this.$refs.grid.style.zoom = (this.$el.offsetWidth / this.$refs.grid?.offsetWidth)
+      }
+    },
+    createNewCrop (bed = null) {
       this.$nextTick(() => {
+        this.bedSubmitted = null
         const promises = []
         if (!this.plants.length) {
           promises.push(fetchPlants(this))
@@ -148,8 +186,8 @@ export default {
         Promise.all(promises).then(() => {
           const e = {
             location_id: this.location_id,
-            bed_id: bed.id,
-            action: 'Sowed',
+            bed_id: bed?.id || this.currentBed.id,
+            action: 'Planned',
             stage: 'Planned',
             qty: 1,
             notes: null,
@@ -355,6 +393,9 @@ export default {
       fetchMaps(this, this.date).then(response => {
         this.loading = false
         this.$store.commit('locations/setCurrentLocation', response.data[0])
+        this.$nextTick(() => {
+          this.zoomToFull()
+        })
         // this.location.beds.forEach(bed => {
         //   bed.crop_entries.forEach(ce => {
         //     console.log(JSON.stringify(arrangePlantsInBedWithOverlapCheck(ce, bed)))

@@ -39,6 +39,9 @@ const mutations = {
   setCurrentCropEntryDatetimestamp (state, date) {
     state.current.datetimestamp = date
   },
+  setCurrentCropEntryPlantPos (state, position) {
+    state.current.plant_pos = position
+  }
 }
 
 export default {

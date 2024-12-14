@@ -29,12 +29,20 @@ export default {
 
 <style scoped lang="scss">
 .select-container {
+  display: flex;
+  align-items: center;
   select {
     background-color: $inputBackgroundColour;
     outline: none;
     border: none;
-    padding: 0.5em 0.75em;
+    padding: 0.65em 0.85em;
+    flex: 1;
     border-radius: 0.5em;
+    height: 45px;
+  }
+  label {
+    min-width: 55px;
+    display: inline-block;
   }
 }
 </style>
