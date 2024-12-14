@@ -14,10 +14,12 @@ class CropEntryController extends Controller {
     if ($request->bed_id) {
       $date = Carbon::parse($request->datetimestamp)->startOfDay();
       $bed = Bed::find($request->bed_id);
-      if ($bed->areaRemaining($date) < (($request->spacing_x * 2) * ($request->spacing_y * 2) * $request->qty)) {
+      if ($bed->areaRemaining($date) < (($request->spacing_x) * ($request->spacing_y) * $request->qty)) {
         return response()->json([
           "status" => "error",
-          "message" => "Bed area is not enough for this crop"
+          "message" => "Bed area is not enough for this crop",
+          "areaRemaining" => $bed->areaRemaining($date),
+          "requiredArea" => (($request->spacing_x) * ($request->spacing_y) * $request->qty)
         ]);
       }
     }

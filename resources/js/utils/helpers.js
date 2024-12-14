@@ -17,12 +17,12 @@ export const isOverlapping = (el1, el2) => {
     rect1.top > rect2.bottom
   )
 }
-export const arrangePlantsInBedWithOverlapCheck = (lastEntry, bed) => {
+export const arrangePlantsInBedWithOverlapCheck = (lastEntry, bed, zoom = 1) => {
   const res = []
   const bedEl = document.createElement('div')
   bedEl.classList.add('bed-container-poscheck')
-  bedEl.style.width = `${bed.l}px`
-  bedEl.style.height = `${bed.w}px`
+  bedEl.style.width = `${bed.l * zoom}px`
+  bedEl.style.height = `${bed.w * zoom}px`
   bedEl.style.position = 'relative'
   bedEl.style.backgroundColor = 'black'
   document.body.appendChild(bedEl)
@@ -49,7 +49,7 @@ export const arrangePlantsInBedWithOverlapCheck = (lastEntry, bed) => {
       const isOverlappingAny = Array.from(bedEl.children).some((existingPlant) => {
         return existingPlant !== plantEl && isOverlapping(plantEl, existingPlant)
       })
-
+      
       if (isOverlappingAny) {
         bedEl.removeChild(plantEl) // Remove to retry placement
         x += step
@@ -62,7 +62,8 @@ export const arrangePlantsInBedWithOverlapCheck = (lastEntry, bed) => {
           console.log('y: ' + y + ' lastEntry.spacing_y: ' + lastEntry.spacing_y + ' bed.w: ' + bed.w)
           console.log('x: ' + x + ' lastEntry.spacing_x: ' + lastEntry.spacing_x + ' bed.l: ' + bed.l)
           console.warn("Not enough space to place all plants.")
-          return { error: 'Not enough space to place all plants.', res, x, y, bedL: bed.l, bedW: bed.w } // Stop placement if no space is left
+          bedEl.remove()
+          return null // Stop placement if no space is left
         }
       } else {
         placed = true
@@ -75,86 +76,69 @@ export const arrangePlantsInBedWithOverlapCheck = (lastEntry, bed) => {
   return res
 }
 
-export const draggable = (el, relativeEl, start, update, end, padding = 0) => {
+export const draggable = (el, relativeEl, start, update, end, constrain = false) => {
   let isDragging = false
   let clickOffsetX = 0
   let clickOffsetY = 0
-
-  const getZoomFactor = () => {
-    const computedStyle = window.getComputedStyle(relativeEl)
-    return parseFloat(computedStyle.zoom) || 1
+  let zoomFactor = document.querySelector('#grid').style.zoom || 1
+  const calculatePosition = (e, parentRect, zoomFactor) => {
+    const x = ((e.clientX - parentRect.left) / zoomFactor) - clickOffsetX + relativeEl.scrollLeft
+    const y = ((e.clientY - parentRect.top) / zoomFactor) - clickOffsetY + relativeEl.scrollTop
+    return { x, y }
   }
 
   const onMouseMove = (e) => {
-    if (!isDragging) {
-      return
+    if (!isDragging) return
+    // find the parent element via dom and get the zoom factor
+    relativeEl = document.querySelector('#' + relativeEl.getAttribute('id'))
+    zoomFactor = document.querySelector('#grid').style.zoom || 1
+    const parentRect = relativeEl.getBoundingClientRect()
+    const { x, y } = calculatePosition(e, parentRect, zoomFactor)
+
+    let constrainedX = x
+    let constrainedY = y
+
+    if (constrain) {
+      const rect = el.getBoundingClientRect()
+      const maxX = (relativeEl.offsetWidth) - (rect.width / zoomFactor)
+      const maxY = (relativeEl.offsetHeight) - (rect.height / zoomFactor)
+      constrainedX = Math.max(0, Math.min(maxX, x))
+      constrainedY = Math.max(0, Math.min(maxY, y))
+    } else {
+      // Constrain to parent's top and left boundaries only
+      constrainedX = Math.max(0, x)
+      constrainedY = Math.max(0, y)
     }
 
-    const parentRect = relativeEl.getBoundingClientRect()
-    const zoomFactor = getZoomFactor()
-
-    // Calculate the new position, adjusting for zoom and offsets
-    let x = ((e.clientX - parentRect.left) / zoomFactor) - clickOffsetX + relativeEl.scrollLeft
-    let y = ((e.clientY - parentRect.top) / zoomFactor) - clickOffsetY + relativeEl.scrollTop
-
-    // Constrain to parent's top and left boundaries only
-    x = Math.max(0, x)
-    y = Math.max(0, y)
-
-    update({ x, y })
+    update({ x: constrainedX, y: constrainedY })
   }
 
   const onMouseUp = (e) => {
-    if (!isDragging) {
-      return
-    }
-
+    if (!isDragging) return
+    e.preventDefault()
     isDragging = false
     document.removeEventListener('mousemove', onMouseMove)
     document.removeEventListener('mouseup', onMouseUp)
 
     const parentRect = relativeEl.getBoundingClientRect()
-    const zoomFactor = getZoomFactor()
-
-    let x = ((e.clientX - parentRect.left) / zoomFactor) - clickOffsetX + relativeEl.scrollLeft
-    let y = ((e.clientY - parentRect.top) / zoomFactor) - clickOffsetY + relativeEl.scrollTop
-
-    // Constrain to parent's top and left boundaries only
-    x = Math.max(0, x)
-    y = Math.max(0, y)
+    const { x, y } = calculatePosition(e, parentRect, zoomFactor)
 
     end({ x, y })
   }
 
   el.addEventListener('mousedown', (e) => {
-    if (e.target !== el) {
-      return
-    }
-
-    if (padding) {
-      const rect = el.getBoundingClientRect()
-      if (
-        e.clientX < rect.left + padding ||
-        e.clientX > rect.right - padding ||
-        e.clientY < rect.top + padding ||
-        e.clientY > rect.bottom - padding
-      ) {
-        return
-      }
-    }
+    if (e.target !== el) return
 
     const elRect = el.getBoundingClientRect()
     const parentRect = relativeEl.getBoundingClientRect()
-    const zoomFactor = getZoomFactor()
 
-    // Record the offset where the mouse clicked within the element
     clickOffsetX = (e.clientX - elRect.left) / zoomFactor
     clickOffsetY = (e.clientY - elRect.top) / zoomFactor
 
     isDragging = true
 
-    const startX = (elRect.left - parentRect.left + relativeEl.scrollLeft) / zoomFactor
-    const startY = (elRect.top - parentRect.top + relativeEl.scrollTop) / zoomFactor
+    const startX = ((elRect.left - parentRect.left) + relativeEl.scrollLeft) / zoomFactor
+    const startY = ((elRect.top - parentRect.top) + relativeEl.scrollTop) / zoomFactor
 
     start({ x: startX, y: startY })
 
@@ -162,6 +146,7 @@ export const draggable = (el, relativeEl, start, update, end, padding = 0) => {
     document.addEventListener('mouseup', onMouseUp)
   })
 }
+
 
 export const localeDate = (date) => {
   return new Date(date).toLocaleDateString('en-US', {

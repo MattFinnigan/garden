@@ -214,7 +214,7 @@ export default {
       this.error = null
       // set plant positions
       const pos = arrangePlantsInBedWithOverlapCheck(this.current, this.bed)
-      if (!pos.error) {
+      if (pos) {
         this.$store.commit('crop_entries/setCurrentCropEntryPlantPos', JSON.stringify(pos))
         if (!this.currentCrop?.id) {
           createCrop(this, { ...this.currentCrop, ...this.current }, false).then(response => {
@@ -247,7 +247,7 @@ export default {
         } 
       } else {
         this.loading = false
-        this.error = pos.error
+        this.error = "Not enough space to place all plants."
       }
     }
   }

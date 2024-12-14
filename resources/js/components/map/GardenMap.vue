@@ -10,6 +10,7 @@
         <Button class="icon secondary" @click="addDays(7)"><Icon name="rewind reverse" size="16px" maskSize="15px"></Icon></Button>
       </div>
       <div class="buttons-contain">
+        <!-- <Button class="primary outline icon" @click="zoomToFull"><Icon name="zoomin" colour="primary" maskSize="15px" size="14px"></Icon></Button> -->
         <!-- <Button class="primary outline icon" @click="zoom += 0.1"><Icon name="zoomin" colour="primary" maskSize="15px" size="14px"></Icon></Button>
         <Button class="primary outline icon" @click="zoom -= 0.1"><Icon name="zoomout" colour="primary" maskSize="15px" size="14px"></Icon></Button> -->
         <Button class="primary icon" @click="showNewMenu = !showNewMenu"><Icon name="plus"></Icon></Button>
@@ -21,11 +22,11 @@
         </div>
       </div>
     </div>
-    <div class="grid" ref="grid" :style="styles">
+    <div id="grid" class="grid" ref="grid" :style="styles">
       <div v-if="newBedExplain" class="new-bed-explain" @mousedown="beginNewBed">
         <h4>Click and drag to create a new bed</h4>
       </div>
-      <BedMap v-for="bed in locationBeds" :key="'bed' + bed.id" :bed="bed" ref="bed" @positionUpdated="fetchMaps"/>
+      <BedMap v-for="bed in locationBeds" :key="'bed' + bed.id" :zoom="zoom" :bed="bed" ref="bed" @positionUpdated="fetchMaps"/>
     </div>
     <Modal v-if="currentBed" @close="cancelBed(currentBed)">
       <template #header>
@@ -85,7 +86,8 @@ export default {
       zoom: 1,
       bedSubmitted: null,
       cropEntrySubmitted: null,
-      render: true
+      render: true,
+      zoom: 1
     }
   },
   mounted () {
@@ -179,6 +181,7 @@ export default {
     zoomToFull () {
       if (this.$el.offsetWidth > this.$refs.grid?.offsetWidth) {
         this.$refs.grid.style.zoom = (this.$el.offsetWidth / this.$refs.grid?.offsetWidth)
+        this.zoom = (this.$el.offsetWidth / this.$refs.grid?.offsetWidth)
       }
     },
     createNewCrop (bed = null) {
@@ -388,12 +391,17 @@ export default {
         this.$store.commit('locations/setCurrentLocation', response.data[0])
         this.$nextTick(() => {
           this.zoomToFull()
+          this.$nextTick(() => {
+            this.location.beds.forEach(bed => {
+              bed.crop_entries.forEach(ce => {
+                if (ce.spacing_x && ce.spacing_y && !ce.plant_pos) {
+                  const pos = JSON.stringify(arrangePlantsInBedWithOverlapCheck(ce, bed, 1))
+                  updateCropEntry(this, ce.id, { ...ce, plant_pos: pos }, false)
+                }
+              })
+            })
+          })
         })
-        // this.location.beds.forEach(bed => {
-        //   bed.crop_entries.forEach(ce => {
-        //     updateCropEntry(this, ce.id, { ...ce, plant_pos: JSON.stringify(arrangePlantsInBedWithOverlapCheck(ce, bed)) })
-        //   })
-        // })
       })
     },
     addDays (days) {

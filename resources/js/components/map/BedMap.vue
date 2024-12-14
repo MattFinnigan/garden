@@ -1,5 +1,5 @@
 <template>
-  <div :class="['bed-map', { active: current.id === bed.id, dragging }]" :style="styles" @mouseup.self="selectBed">
+  <div :id="'bedmap' + bed?.id || 'new'" :class="['bed-map', { active: current.id === bed.id, dragging }]" parent-id="grid" :style="styles" @mouseup.prevent.self="selectBed">
     <Plant v-for="plant in plants" ref="plants" :plant="plant" :loading="loading" @updatePositions="updatePositions"/>
   </div>
 </template>
@@ -74,7 +74,7 @@ export default {
             })
           }
         }
-      }, 5)
+      })
     }
   },
   computed: {

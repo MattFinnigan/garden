@@ -154,7 +154,7 @@ export const createCropEntry = (context, cropId, data, storeState = true) => {
   return new Promise((resolve) => {
     post(`crop-entry/create/${cropId}`, data).then((response) => {
       if (response.data.status === 'success') {
-        console.log('createCropEntry', id, data, 'response', response)
+        console.log('createCropEntry', cropId, data, 'response', response)
         if (storeState) {
           context.$store.commit('crops/setCrops', response.data.crops)
           context.$store.commit('crops/setCurrentCrop', response.data.crop)

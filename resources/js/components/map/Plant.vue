@@ -29,14 +29,13 @@ export default {
   mounted () {
     this.parent = this.$el?.parentElement
     draggable(this.$el, this.parent, (start) => {
-      if (!this.loading) {
-        this.dragging = start
-      }
     }, (move) => {
-      if (this.dragging) {
-        this.plantCopy.x = move.x
-        this.plantCopy.y = move.y
-      }
+      if (!this.dragging) {
+          this.dragging = move
+        } else {
+          this.plantCopy.x = move.x
+          this.plantCopy.y = move.y
+        }
     }, (end) => {
       if (this.dragging) {
         // check that no plants are overlapping
@@ -60,7 +59,7 @@ export default {
         this.dragging = false
         this.$emit('updatePositions', this.plantCopy.entry)
       }
-    }, 5)
+    }, true)
   },
   computed: {
     styles () {
@@ -68,8 +67,10 @@ export default {
         return {}
       }
       return {
-        top: (this.plantCopy.y / this.parent.clientHeight) * 100 + '%',
-        left: (this.plantCopy.x / this.parent.clientWidth) * 100 + '%',
+        // top: ((this.plantCopy.y / this.parent.clientHeight)* 100) / this.zoom + '%',
+        // left: ((this.plantCopy.x / this.parent.clientWidth) * 100) / this.zoom + '%',
+        top: ((this.plantCopy.y / this.parent.clientHeight)* 100) + '%',
+        left: ((this.plantCopy.x / this.parent.clientWidth) * 100) + '%',
         width: this.plantCopy.entry.spacing_x + 'px',
         height: this.plantCopy.entry.spacing_y + 'px',
         // width: (this.plantCopy.l / this.parent.clientWidth) * 100 + '%',
