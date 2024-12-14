@@ -1,9 +1,7 @@
 <template>
   <div class="landing">
     <h2>Dashboard</h2>
-    <div class="garden-map">
-      <GardenMap/>
-    </div>
+    <GardenMap/>
   </div>
 </template>
 

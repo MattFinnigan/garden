@@ -73,8 +73,13 @@ export const arrangePlantsInBedWithOverlapCheck = (lastEntry, bed) => {
 
 export const draggable = (el, relativeEl, start, update, end, padding = 0) => {
   let isDragging = false
-  let offsetX = 0
-  let offsetY = 0
+  let clickOffsetX = 0
+  let clickOffsetY = 0
+
+  const getZoomFactor = () => {
+    const computedStyle = window.getComputedStyle(relativeEl)
+    return parseFloat(computedStyle.zoom) || 1
+  }
 
   const onMouseMove = (e) => {
     if (!isDragging) {
@@ -82,14 +87,15 @@ export const draggable = (el, relativeEl, start, update, end, padding = 0) => {
     }
 
     const parentRect = relativeEl.getBoundingClientRect()
-    let x = e.clientX - parentRect.left - offsetX
-    let y = e.clientY - parentRect.top - offsetY
+    const zoomFactor = getZoomFactor()
 
-    const maxX = relativeEl.offsetWidth - el.offsetWidth
-    const maxY = relativeEl.offsetHeight - el.offsetHeight
+    // Calculate the new position, adjusting for zoom and offsets
+    let x = ((e.clientX - parentRect.left) / zoomFactor) - clickOffsetX + relativeEl.scrollLeft
+    let y = ((e.clientY - parentRect.top) / zoomFactor) - clickOffsetY + relativeEl.scrollTop
 
-    x = Math.max(0, Math.min(maxX, x))
-    y = Math.max(0, Math.min(maxY, y))
+    // Constrain to parent's top and left boundaries only
+    x = Math.max(0, x)
+    y = Math.max(0, y)
 
     update({ x, y })
   }
@@ -100,18 +106,20 @@ export const draggable = (el, relativeEl, start, update, end, padding = 0) => {
     }
 
     isDragging = false
-
-    const parentRect = relativeEl.getBoundingClientRect()
-    const x = e.clientX - parentRect.left - offsetX
-    const y = e.clientY - parentRect.top - offsetY
-
     document.removeEventListener('mousemove', onMouseMove)
     document.removeEventListener('mouseup', onMouseUp)
 
-    const finalX = Math.max(0, Math.min(relativeEl.offsetWidth - el.offsetWidth, x))
-    const finalY = Math.max(0, Math.min(relativeEl.offsetHeight - el.offsetHeight, y))
+    const parentRect = relativeEl.getBoundingClientRect()
+    const zoomFactor = getZoomFactor()
 
-    end({ x: finalX, y: finalY })
+    let x = ((e.clientX - parentRect.left) / zoomFactor) - clickOffsetX + relativeEl.scrollLeft
+    let y = ((e.clientY - parentRect.top) / zoomFactor) - clickOffsetY + relativeEl.scrollTop
+
+    // Constrain to parent's top and left boundaries only
+    x = Math.max(0, x)
+    y = Math.max(0, y)
+
+    end({ x, y })
   }
 
   el.addEventListener('mousedown', (e) => {
@@ -133,19 +141,23 @@ export const draggable = (el, relativeEl, start, update, end, padding = 0) => {
 
     const elRect = el.getBoundingClientRect()
     const parentRect = relativeEl.getBoundingClientRect()
+    const zoomFactor = getZoomFactor()
 
-    offsetX = e.clientX - elRect.left
-    offsetY = e.clientY - elRect.top
-
-    const startX = elRect.left - parentRect.left
-    const startY = elRect.top - parentRect.top
+    // Record the offset where the mouse clicked within the element
+    clickOffsetX = (e.clientX - elRect.left) / zoomFactor
+    clickOffsetY = (e.clientY - elRect.top) / zoomFactor
 
     isDragging = true
 
-    // start({ x: startX, y: startY })
+    const startX = (elRect.left - parentRect.left + relativeEl.scrollLeft) / zoomFactor
+    const startY = (elRect.top - parentRect.top + relativeEl.scrollTop) / zoomFactor
+
+    start({ x: startX, y: startY })
 
     document.addEventListener('mousemove', onMouseMove)
     document.addEventListener('mouseup', onMouseUp)
   })
 }
+
+
 

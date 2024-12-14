@@ -115,11 +115,11 @@ export default {
       if (!this.name.length) {
         this.errors = 'Name is required'
       }
-      if (this.remainingArea.l < 0) {
-        this.errors = `Length exceeds remaining length space by ${this.remainingArea.l * -1}cm`
-      } else if (this.remainingArea.w < 0) {
-        this.errors = `Width exceeds remaining width by ${this.remainingArea.w * -1}cm`
-      }
+      // if (this.remainingArea.l < 0) {
+      //   this.errors = `Length exceeds remaining length space by ${this.remainingArea.l * -1}cm`
+      // } else if (this.remainingArea.w < 0) {
+      //   this.errors = `Width exceeds remaining width by ${this.remainingArea.w * -1}cm`
+      // }
       if (!this.errors) {
         this.loading = true
         let beds = clone(this.location.beds)

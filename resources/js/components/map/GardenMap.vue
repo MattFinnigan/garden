@@ -1,6 +1,6 @@
 <template>
-  <div v-if="!loading" class="garden-map">
-    <div v-if="location" class="controls-row">
+  <div class="garden-map">
+    <div class="controls-row">
       <Select v-model.number="location_id" :options="maps.map(l => { return { label: l.name, value: l.id } })" label="Location"/>
       <div class="date-select">
         <Button class="icon secondary" @click="removeDays(7)"><Icon name="rewind" size="16px" maskSize="15px"></Icon></Button>
@@ -20,11 +20,11 @@
         </div>
       </div>
     </div>
-    <div class="grid" ref="grid">
+    <div class="grid" ref="grid" :style="styles">
       <div v-if="newBedExplain" class="new-bed-explain" @mousedown="beginNewBed">
         <h4>Click and drag to create a new bed</h4>
       </div>
-      <BedMap v-for="bed in location.beds" :key="'bed' + bed.id" :bed="bed" ref="bed" @positionUpdated="fetchMaps"/>
+      <BedMap v-for="bed in locationBeds" :key="'bed' + bed.id" :bed="bed" ref="bed" @positionUpdated="fetchMaps"/>
     </div>
     <Modal v-if="currentBed" @close="cancelBed(currentBed)">
       <template #header>
@@ -75,15 +75,21 @@ export default {
     maps () {
       return this.$store.state.maps.list
     },
+    styles () {
+      return `height: ${this.location?.w}px; width: ${this.location?.l}px`
+    },
     location () {
       return this.$store.state.locations.current
     },
     locations () {
       return this.$store.state.locations.list
     },
+    locationBeds () {
+      return this.location?.beds || []
+    },
     location_id: {
       get () {
-        return this.$store.state.locations.current?.id
+        return this.$store.state.locations.current?.id || null
       },
       set (value) {
         this.$store.commit('locations/setCurrentLocation', this.maps.find(l => l.id === value))
@@ -105,7 +111,23 @@ export default {
       return this.$store.state.crop_entries.current
     }
   },
+  watch: {
+    location_id (value) {
+      this.zoomToFull()
+    }
+  },
   methods: {
+    zoomToFull () {
+      this.$nextTick(() => {
+        if (this.$el.offsetWidth > this.$refs.grid?.offsetWidth) {
+          const zoom = 
+          this.$refs.grid.style.zoom = (this.$el.offsetWidth / this.$refs.grid?.offsetWidth)
+        }
+        setTimeout(() => {
+          console.log(this.$el.offsetWidth, this.$refs.grid?.offsetWidth)
+        }, 2000)
+      })
+    },
     createNewCrop (bed) {
       this.$nextTick(() => {
         const promises = []
@@ -142,7 +164,13 @@ export default {
     },
     beginNewBed (e) {
       this.newBedExplain = false
-      const ev = new MouseEvent('mousedown', e)
+      const ev = new MouseEvent('mousedown', {
+        bubbles: false,
+        cancelable: true,
+        view: window,
+        clientX: e.clientX,
+        clientY: e.clientY
+      })
       this.$refs.grid.dispatchEvent(ev)
     },
     cancelBed (bed) {
@@ -155,6 +183,7 @@ export default {
     createNewBed () {
       this.newBedExplain = true
       this.showNewMenu = false
+
       const newBed = {
         x: 0,
         y: 0,
@@ -168,8 +197,15 @@ export default {
       let isDragging = false
       let startX = 0
       let startY = 0
+      let clickOffsetX = 0
+      let clickOffsetY = 0
       let shape = null
       const parent = this.$refs.grid
+
+      const getZoomFactor = () => {
+        const computedStyle = window.getComputedStyle(parent)
+        return parseFloat(computedStyle.zoom) || 1
+      }
 
       const onMouseMove = (e) => {
         if (!isDragging || !shape) {
@@ -177,15 +213,16 @@ export default {
         }
 
         const parentRect = parent.getBoundingClientRect()
+        const zoomFactor = getZoomFactor()
 
         // Calculate the current mouse position relative to the parent
         const currentX = Math.min(
           parentRect.width,
-          Math.max(0, e.clientX - parentRect.left)
+          Math.max(0, (e.clientX - parentRect.left) / zoomFactor)
         )
         const currentY = Math.min(
           parentRect.height,
-          Math.max(0, e.clientY - parentRect.top)
+          Math.max(0, (e.clientY - parentRect.top) / zoomFactor)
         )
 
         // Calculate width and height of the shape
@@ -212,20 +249,21 @@ export default {
 
         const shapeRect = shape.getBoundingClientRect()
         const parentRect = parent.getBoundingClientRect()
+        const zoomFactor = getZoomFactor()
 
         // Update the new bed's properties
-        newBed.x = shapeRect.left - parentRect.left
-        newBed.y = shapeRect.top - parentRect.top
-        newBed.l = shapeRect.width
-        newBed.w = shapeRect.height
+        newBed.x = (shapeRect.left - parentRect.left) / zoomFactor
+        newBed.y = (shapeRect.top - parentRect.top) / zoomFactor
+        newBed.l = shapeRect.width / zoomFactor
+        newBed.w = shapeRect.height / zoomFactor
 
         // Check for collisions with existing beds
         const beds = this.$refs.bed.map(bed => bed.$el.getBoundingClientRect())
         const hasCollision = beds.some(bedRect => {
-          const bedLeft = bedRect.left - parentRect.left
-          const bedTop = bedRect.top - parentRect.top
-          const bedRight = bedLeft + bedRect.width
-          const bedBottom = bedTop + bedRect.height
+          const bedLeft = (bedRect.left - parentRect.left) / zoomFactor
+          const bedTop = (bedRect.top - parentRect.top) / zoomFactor
+          const bedRight = bedLeft + (bedRect.width / zoomFactor)
+          const bedBottom = bedTop + (bedRect.height / zoomFactor)
 
           const newBedLeft = newBed.x
           const newBedTop = newBed.y
@@ -241,11 +279,11 @@ export default {
         })
 
         if (hasCollision) {
-          // alert('Collision detected! The new bed overlaps with an existing bed.')
           this.cancelNewBed()
         } else {
           this.$store.commit('beds/setCurrentBed', newBed)
         }
+
         shape = null
       }
 
@@ -253,16 +291,18 @@ export default {
         if (e.target !== parent) {
           return
         }
+
         this.newBedExplain = false
         const parentRect = parent.getBoundingClientRect()
+        const zoomFactor = getZoomFactor()
 
         startX = Math.min(
           parentRect.width,
-          Math.max(0, e.clientX - parentRect.left)
+          Math.max(0, (e.clientX - parentRect.left) / zoomFactor)
         )
         startY = Math.min(
           parentRect.height,
-          Math.max(0, e.clientY - parentRect.top)
+          Math.max(0, (e.clientY - parentRect.top) / zoomFactor)
         )
 
         // Create the shape element
@@ -371,8 +411,10 @@ export default {
 .grid {
   position: relative;
   background: $primary2;
-  height: 500px;
+  max-height: 500px;
   width: 100%;
+  overflow: auto;
+  zoom: 1;
   :deep(.newBed) {
     border: 2px dashed $textColour;
     background-color: $primary3;
