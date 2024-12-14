@@ -2,9 +2,14 @@
   <div class="input-container">
     <label>{{ label }}</label>
     <label for="upload" class="button">Upload</label>
-    <input type="file" id="upload" hidden @input="newFiles" v-bind="$attrs"/>
+    <input type="file" accept="image/png, image/gif, image/jpeg"  id="upload" hidden @input="newFiles" v-bind="$attrs"/>
     <div class="images-preview">
-      <img v-for="image in images" :src="image" :key="image"/>
+      <div class="image" v-for="(image, i) in images">
+        <div class="delete-btn">
+          <Button class="icon sm rounded danger outline" @click="$emit('removeImage', i)"><Icon name="delete danger"></Icon></Button>
+        </div>
+        <img :src="image" :key="image"/>
+      </div>
     </div>
   </div>
 </template>
@@ -77,13 +82,22 @@ export default {
   .images-preview {
     display: flex;
     flex-wrap: wrap;
-    margin-top: 1em;
-    img {
-      width: 100px;
-      height: 100px;
-      object-fit: cover;
-      margin-top: 0.5em;
-      margin-right: 1rem;
+    margin-top: 2em;
+    .image {
+      position: relative;
+      .delete-btn {
+        position: absolute;
+        top: 0;
+        right: 0;
+      }
+      img {
+        max-width: 100px;
+        height: auto;
+        max-height: 100px;
+        object-fit: cover;
+        margin-top: 0.5em;
+        margin-right: 1rem;
+      }
     }
   }
 }

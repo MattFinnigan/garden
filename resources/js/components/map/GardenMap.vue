@@ -5,7 +5,7 @@
       <div class="date-select">
         <Button class="icon secondary" @click="removeDays(7)"><Icon name="rewind" size="16px" maskSize="15px"></Icon></Button>
         <Button class="icon secondary" @click="removeDays(1)"><Icon name="play reverse"></Icon></Button>
-        <Input type="date" v-model="date" @change="fetchMaps"/>
+        <Input type="date" v-model="currentDate" @change="fetchMaps"/>
         <Button class="icon secondary" @click="addDays(1)"><Icon name="play"></Icon></Button>
         <Button class="icon secondary" @click="addDays(7)"><Icon name="rewind reverse" size="16px" maskSize="15px"></Icon></Button>
       </div>
@@ -34,7 +34,7 @@
       <template #content>
         <BedsForm @done="(bed) => { cancelBed(bed); fetchMaps() }" @remove="(bed) => { deleteBed(bed, true) }">
           <template #buttons>
-            <Button class="primary">Add a Crop</Button>
+            <Button class="primary" type="submit" @click="createNewCrop(bed)">Add a Crop</Button>
           </template>
         </BedsForm>
       </template>
@@ -60,7 +60,7 @@ export default {
   data () {
     return {
       loading: true,
-      date: new Date().toISOString().split('T')[0],
+      date: new Date().toISOString(),
       newBedExplain: false,
       showNewMenu: false
     }
@@ -69,11 +69,17 @@ export default {
     this.fetchMaps()
   },
   computed: {
+    currentDate () {
+      return this.date.split('T')[0]
+    },
     maps () {
       return this.$store.state.maps.list
     },
     location () {
       return this.$store.state.locations.current
+    },
+    locations () {
+      return this.$store.state.locations.list
     },
     location_id: {
       get () {
@@ -83,6 +89,9 @@ export default {
         this.$store.commit('locations/setCurrentLocation', this.maps.find(l => l.id === value))
       }
     },
+    plants () {
+      return this.$store.state.plants.list
+    },
     currentBed () {
       return this.$store.state.beds.current
     },
@@ -91,9 +100,40 @@ export default {
         heading: this.currentBed.id ? 'Update Bed' : 'New Bed',
         text: this.currentBed.id ? 'Here you can change the Bed\'s details or you can remove it. This will DELETE all crops associated with it.' : 'You’ve placed your new bed. Now just give it a name, & maybe a happy snap'
       }
+    },
+    currentCropEntry () {
+      return this.$store.state.crop_entries.current
     }
   },
   methods: {
+    createNewCrop (bed) {
+      this.$nextTick(() => {
+        const promises = []
+        if (!this.plants.length) {
+          promises.push(fetchPlants(this))
+        }
+        Promise.all(promises).then(() => {
+          const e = {
+            location_id: this.location_id,
+            bed_id: bed.id,
+            action: 'Sowed',
+            stage: 'Planned',
+            qty: 1,
+            notes: null,
+            images: [],
+            area: 1,
+            datetimestamp: new Date().toISOString().slice(0, 16),
+            units: []
+          }
+          const c = {
+            plant_id: this.plants[0].id,
+            crop_entries: []
+          }
+          this.$store.commit('crops/setCurrentCrop', c)
+          this.$store.commit('crop_entries/setCurrentCropEntry', e)
+        })
+      })
+    },
     deleteBed (bed) {
       updateLocation(this, this.location.id, { ...this.location, beds: this.location.beds.filter(b => b.id !== bed.id) }).then(() => {
         this.$store.commit('beds/setCurrentBed', null)
@@ -244,7 +284,7 @@ export default {
     },
     fetchMaps () {
       this.loading = true
-      fetchMaps(this, this.date).then(response => {
+      fetchMaps(this, this.currentDate).then(response => {
         this.loading = false
         this.$store.commit('locations/setCurrentLocation', response.data[0])
         // this.location.beds.forEach(bed => {
@@ -255,15 +295,15 @@ export default {
       })
     },
     addDays (days) {
-      const date = new Date(this.date)
+      const date = new Date(this.currentDate)
       date.setDate(date.getDate() + days + 1)
-      this.date = date.toISOString().split('T')[0]
+      this.date = date.toISOString()
       this.fetchMaps()
     },
     removeDays (days) {
-      const date = new Date(this.date)
+      const date = new Date(this.currentDate)
       date.setDate(date.getDate() - days)
-      this.date = date.toISOString().split('T')[0]
+      this.date = date.toISOString()
       this.fetchMaps()
     }
   }

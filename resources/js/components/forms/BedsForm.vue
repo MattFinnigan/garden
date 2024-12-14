@@ -6,8 +6,7 @@
         <Display label="Location" :val="location.name"/>
         <Input v-model="name" label="Name" maxlength="255" :flex="true" placeholder="Herbs Bed" required/>
         <Input v-model="description" type="textarea" label="Description" placeholder="Nice sunny location. Snails seem to hate it here!" :flex="true" maxlength="255"/>
-        <Images :modelValue="images" label="Images" multiple @addImage="addImage" @removeImage="removeImage"/>
-        <!-- <Input :modelValue="image" type="file" label="Image" :flex="true" @change="e => image = e.target.value"/> -->
+        <Images class="images" :modelValue="images" label="Images" multiple @addImage="addImage" @removeImage="removeImage"/>
       </template>
       <template #buttons>
         <Button type="submit" classes="secondary2" :disabled="loading">Done</Button>
@@ -108,7 +107,7 @@ export default {
       this.$store.commit('beds/addImageToCurrentBed', { bed_id: this.current.id || 0, name: image })
     },
     removeImage (index) {
-      this.images.splice(index, 1)
+      this.$store.commit('beds/removeImageFromCurrentBed', index)
     },
     submitForm (e) {
       e.preventDefault()
@@ -146,4 +145,10 @@ export default {
 </script>
 
 <style scoped lang="scss">
+.images {
+  :deep(.images-preview) {
+    max-height: 300px;
+    overflow-y: scroll;
+  }
+}
 </style>

@@ -41,6 +41,9 @@ export default {
     &.black {
       background-color: $textColour;
     }
+    &.danger {
+      background-color: $danger;
+    }
     &.edit {
       mask-image: url('/images/edit.svg');
     }

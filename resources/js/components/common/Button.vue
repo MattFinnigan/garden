@@ -89,9 +89,16 @@ button {
     background-color: $danger;
     color: $backgroundColour;
     &.outline {
-      background-color: transparent;
+      background-color: $backgroundColour;
       border: 1px solid $danger;
       color: $danger;
+      &:hover {
+        background-color: $danger;
+        color: $backgroundColour;
+        :deep(i) {
+          background-color: $backgroundColour;
+        }
+      }
     }
   }
   &.sm {
@@ -101,6 +108,12 @@ button {
   &.icon {
     padding: 0.4em 0.785em;
     border-radius: 0.625rem;
+    &.sm {
+      padding: 0.25em 0.5em;
+    }
+  }
+  &.rounded {
+    border-radius: 1.25rem;
   }
 }
 // button {

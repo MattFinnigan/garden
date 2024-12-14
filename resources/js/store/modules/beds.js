@@ -28,7 +28,10 @@ const mutations = {
   },
   addImageToCurrentBed (state, image) {
     state.current.images.push(image)
-  }
+  },
+  removeImageFromCurrentBed (state, index) {
+    state.current.images.splice(index, 1)
+  },
 }
 
 export default {
