@@ -17,24 +17,24 @@ class BedController extends Controller {
     $bed->w = $request->w;
     $bed->x = $request->x;
     $bed->y = $request->y;
-    $location = Location::find($request->location_id);
-    $remainingSpace = $location->areaRemaining();
-    if ($bed->w * $bed->l > $remainingSpace['area']) {
-      return response()->json([
-        "status" => "error",
-        "message" => "Bed area exceeds location area"
-      ]);
-    } else if ($bed->w > $remainingSpace['w']) {
-      return response()->json([
-        "status" => "error",
-        "message" => "Bed width exceeds location width"
-      ]);
-    } else if ($bed->l > $remainingSpace['l']) {
-      return response()->json([
-        "status" => "error",
-        "message" => "Bed length exceeds location length"
-      ]);
-    }
+    // $location = Location::find($request->location_id);
+    // $remainingSpace = $location->areaRemaining();
+    // if ($bed->w * $bed->l > $remainingSpace['area']) {
+    //   return response()->json([
+    //     "status" => "error",
+    //     "message" => "Bed area exceeds location area"
+    //   ]);
+    // } else if ($bed->w > $remainingSpace['w']) {
+    //   return response()->json([
+    //     "status" => "error",
+    //     "message" => "Bed width exceeds location width"
+    //   ]);
+    // } else if ($bed->l > $remainingSpace['l']) {
+    //   return response()->json([
+    //     "status" => "error",
+    //     "message" => "Bed length exceeds location length"
+    //   ]);
+    // }
     $bed->save();
     foreach($request->images as $image) {
       $img = new BedImage();
@@ -45,7 +45,7 @@ class BedController extends Controller {
     return response()->json([
       "status" => "success",
       "message" => "Bed created successfully",
-      "bed" => $bed
+      "bed" => Bed::with('images', 'crop_entries')->find($bed->id)
     ]);
   }
 

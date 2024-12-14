@@ -14,7 +14,7 @@ class CropEntryController extends Controller {
     if ($request->bed_id) {
       $date = Carbon::parse($request->datetimestamp)->startOfDay();
       $bed = Bed::find($request->bed_id);
-      if ($bed->areaRemaining($date) < (($request->area * 2) * ($request->area * 2) * $request->qty)) {
+      if ($bed->areaRemaining($date) < (($request->spacing_x * 2) * ($request->spacing_y * 2) * $request->qty)) {
         return response()->json([
           "status" => "error",
           "message" => "Bed area is not enough for this crop"
@@ -31,7 +31,8 @@ class CropEntryController extends Controller {
     $entry->qty = $request->qty;
     $entry->bed_id = $request->bed_id;
     $entry->datetimestamp = $request->datetimestamp;
-    $entry->area = $request->area;
+    $entry->spacing_x = $request->spacing_x;
+    $entry->spacing_y = $request->spacing_y;
     $entry->unit_id = $request->unit_id;
     $entry->x = $request->x;
     $entry->y = $request->y;
@@ -56,8 +57,8 @@ class CropEntryController extends Controller {
     if ($request->bed_id) {
       $date = Carbon::parse($request->datetimestamp)->startOfDay();
       $bed = Bed::find($request->bed_id);
-      $oldArea = ($entry->area * $entry->area) * $entry->qty;
-      $replacementArea = ($request->area * $request->area) * $request->qty;
+      $oldArea = ($entry->spacing_x * $entry->spacing_y) * $entry->qty;
+      $replacementArea = ($request->spacing_x * $request->spacing_y) * $request->qty;
       if ($replacementArea > $oldArea) {
         if ($bed->areaRemaining($date) < $replacementArea - $oldArea) {
           return response()->json([
@@ -79,7 +80,8 @@ class CropEntryController extends Controller {
     $entry->qty = $request->qty;
     $entry->bed_id = $request->bed_id;
     $entry->datetimestamp = $request->datetimestamp;
-    $entry->area = $request->area;
+    $entry->spacing_x = $request->spacing_x;
+    $entry->spacing_y = $request->spacing_y;
     $entry->unit_id = $request->unit_id;
     $entry->x = $request->x;
     $entry->y = $request->y;

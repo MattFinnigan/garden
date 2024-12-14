@@ -33,8 +33,11 @@ const mutations = {
   setCurrentCropEntryImage (state, image) {
     state.current.image = image
   },
-  setCurrentCropEntryArea (state, area) {
-    state.current.area = area
+  setCurrentCropEntrySpacingX (state, value) {
+    state.current.spacing_x = value
+  },
+  setCurrentCropEntrySpacingY (state, value) {
+    state.current.spacing_y = value
   },
   setCurrentCropEntryDatetimestamp (state, date) {
     state.current.datetimestamp = date

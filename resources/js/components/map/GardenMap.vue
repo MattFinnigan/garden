@@ -1,5 +1,5 @@
 <template>
-  <div v-if="render" class="garden-map">
+  <div class="garden-map">
     <div class="controls-row">
       <Select v-model.number="location_id" :options="maps.map(l => { return { label: l.name, value: l.id } })" label="Location"/>
       <div class="date-select">
@@ -60,8 +60,9 @@
 </template>
 
 <script>
-import { fetchMaps, updateBed, fetchPlants, deleteCropEntry } from '../../utils/api'
-import { watchScreenSize } from '../../utils/helpers'
+import { fetchMaps, updateBed, fetchPlants, deleteCropEntry, updateCropEntry } from '../../utils/api'
+import { watchScreenSize, arrangePlantsInBedWithOverlapCheck } from '../../utils/helpers'
+import { defaultCrop, defaultCropEntry } from '../../utils/consts'
 
 import BedMap from './BedMap.vue'
 import BedsForm from '../forms/BedsForm.vue'
@@ -83,6 +84,7 @@ export default {
       showNewMenu: false,
       zoom: 1,
       bedSubmitted: null,
+      cropEntrySubmitted: null,
       render: true
     }
   },
@@ -144,7 +146,7 @@ export default {
     bedFormText () {
       return {
         heading: this.currentBed.id ? 'Update Bed' : 'New Bed',
-        text: this.currentBed.id ? 'Here you can change the Bed\'s details or you can remove it. This will DELETE all crops associated with it.' : 'You’ve placed your new bed. Now just give it a name, & maybe a happy snap'
+        text: this.currentBed.id ? 'Here you can change the Bed\'s details or you can remove it if there aren\'t any active crops.' : 'You’ve placed your new bed. Now just give it a name, & maybe a happy snap'
       }
     },
     currentCropEntry () {
@@ -163,8 +165,11 @@ export default {
       })
     },
     cancelCropEntry () {
+      this.cropEntrySubmitted = null
       this.$store.commit('crops/setCurrentCrop', null)
       this.$store.commit('crop_entries/setCurrentCropEntry', null)
+      this.cancelBed(this.currentBed)
+      this.fetchMaps()
     },
     bedUpdated () {
       this.cancelBed(this.currentBed)
@@ -178,28 +183,16 @@ export default {
     },
     createNewCrop (bed = null) {
       this.$nextTick(() => {
+        this.fetchMaps()
         this.bedSubmitted = null
+        this.cropEntrySubmitted = null
         const promises = []
         if (!this.plants.length) {
           promises.push(fetchPlants(this))
         }
         Promise.all(promises).then(() => {
-          const e = {
-            location_id: this.location_id,
-            bed_id: bed?.id || this.currentBed.id,
-            action: 'Planned',
-            stage: 'Planned',
-            qty: 1,
-            notes: null,
-            images: [],
-            area: 1,
-            datetimestamp: new Date().toISOString().slice(0, 16),
-            units: []
-          }
-          const c = {
-            plant_id: this.plants[0].id,
-            crop_entries: []
-          }
+          const e = defaultCropEntry({ id: this.location_id }, bed || this.currentBed)
+          const c = defaultCrop(this.plants[0])
           this.$store.commit('crops/setCurrentCrop', c)
           this.$store.commit('crop_entries/setCurrentCropEntry', e)
         })
@@ -223,7 +216,7 @@ export default {
       this.$refs.grid.dispatchEvent(ev)
     },
     cancelBed (bed)  {
-      if (!bed || !bed.id) {
+      if (this.$refs.grid.querySelector('.newBed')) {
         this.$refs.grid.removeChild(this.$refs.grid.querySelector('.newBed'))
         this.newBedExplain = false
       }
@@ -398,21 +391,22 @@ export default {
         })
         // this.location.beds.forEach(bed => {
         //   bed.crop_entries.forEach(ce => {
-        //     console.log(JSON.stringify(arrangePlantsInBedWithOverlapCheck(ce, bed)))
+        //     updateCropEntry(this, ce.id, { ...ce, plant_pos: JSON.stringify(arrangePlantsInBedWithOverlapCheck(ce, bed)) })
         //   })
         // })
       })
     },
     addDays (days) {
       const date = new Date(this.date)
+      console.log(date)
       date.setDate(date.getDate() + days + 1)
-      this.date = date.toISOString()
+      this.date = date
       this.fetchMaps()
     },
     removeDays (days) {
       const date = new Date(this.date)
       date.setDate(date.getDate() - days)
-      this.date = date.toISOString()
+      this.date = date
       this.fetchMaps()
     }
   }

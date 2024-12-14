@@ -52,7 +52,7 @@ class Bed extends Model {
     foreach ($crops as $crop) {
       // last item of array
       $entry = $crop->last();
-      $perPlant = $entry->area * $entry->area;
+      $perPlant = $entry->spacing_x * $entry->spacing_y;
       $firstDate = Carbon::parse($entry->datetimestamp)->subDays(1);
       $lastDate = Carbon::parse($firstDate)->addDays($entry->crop->days_to_harvest);
       if ($date->between($firstDate, $lastDate)) {

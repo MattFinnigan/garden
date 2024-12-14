@@ -17,7 +17,7 @@
 
 <script>
 import { clone, localeDate } from '../../utils/helpers'
-import { updateLocation } from '../../utils/api'
+import { updateLocation, createBed } from '../../utils/api'
 
 export default {
   name: 'BedsForm',
@@ -80,7 +80,7 @@ export default {
       }
     },
     canDelete () {
-      return this.current.id && this.current.crop_entries.length === 0
+      return this.current.id && this.current.crop_entries.length === 0 || true
     },
     remainingArea () {
       if (!this.location.w) {
@@ -139,13 +139,21 @@ export default {
             }
             return b
           })
+          updateLocation(this, this.location.id, { ...this.location, beds }).then(() => {
+            this.$emit('done', this.current)
+            this.loading = false
+          })
         } else {
-          beds.push(this.current)
+          createBed(this, { ...this.current, location_id: this.location.id }).then(response => {
+            if (response.data.status === 'success') {
+              this.$store.commit('beds/setCurrentBed', response.data.bed)
+              this.$emit('done', response.data.bed)
+            } else {
+              this.errors = response.data.message
+            }
+            this.loading = false
+          })
         }
-        updateLocation(this, this.location.id, { ...this.location, beds }).then(() => {
-          this.$emit('done', this.current)
-          this.loading = false
-        })
       }
     }
   }

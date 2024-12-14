@@ -255,6 +255,17 @@ export const deleteLocation = (context, id, storeState = true) => {
 }
 
 // beds
+export const createBed = (context, data, storeState = true) => {
+  return new Promise((resolve) => {
+    post('beds', data).then((response) => {
+      console.log('createBed', data, 'response', response)
+      if (storeState) {
+        context.$store.commit('beds/setCurrentBed', response.data.bed)
+      }
+      resolve(response)
+    })
+  })
+}
 export const updateBed = (context, id, data, storeState = true) => {
   return new Promise((resolve) => {
     post(`beds/${id}`, data).then((response) => {

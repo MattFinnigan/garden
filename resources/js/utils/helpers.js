@@ -34,7 +34,8 @@ export const arrangePlantsInBedWithOverlapCheck = (lastEntry, bed) => {
   for (let i = 0; i < lastEntry.qty; i++) {
     const plantEl = document.createElement('div')
     plantEl.classList.add('bed-plant-poscheck')
-    plantEl.style.padding = `${lastEntry.area / 2}px`
+    plantEl.style.width = `${lastEntry.spacing_x}px`
+    plantEl.style.height = `${lastEntry.spacing_y}px`
     plantEl.style.position = 'absolute'
     plantEl.style.backgroundColor = 'green'
 
@@ -52,13 +53,16 @@ export const arrangePlantsInBedWithOverlapCheck = (lastEntry, bed) => {
       if (isOverlappingAny) {
         bedEl.removeChild(plantEl) // Remove to retry placement
         x += step
-        if (x + lastEntry.area >= bed.l) {
+        if (x + lastEntry.spacing_x >= bed.l) {
           x = 0
           y += step
         }
-        if (y + (lastEntry.area / 2) > bed.w) {
+        if (y + lastEntry.spacing_y > bed.w) {
+          console.log(res, y, lastEntry.spacing_y, bed.w, x, lastEntry.spacing_x, bed.l)
+          console.log('y: ' + y + ' lastEntry.spacing_y: ' + lastEntry.spacing_y + ' bed.w: ' + bed.w)
+          console.log('x: ' + x + ' lastEntry.spacing_x: ' + lastEntry.spacing_x + ' bed.l: ' + bed.l)
           console.warn("Not enough space to place all plants.")
-          return res // Stop placement if no space is left
+          return { error: 'Not enough space to place all plants.', res, x, y, bedL: bed.l, bedW: bed.w } // Stop placement if no space is left
         }
       } else {
         placed = true
@@ -67,7 +71,7 @@ export const arrangePlantsInBedWithOverlapCheck = (lastEntry, bed) => {
 
     res.push({ x, y })
   }
-
+  bedEl.remove()
   return res
 }
 

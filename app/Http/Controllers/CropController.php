@@ -35,7 +35,8 @@ class CropController extends Controller {
       'qty' => $request->qty,
       'bed_id' => $request->bed_id,
       'datetimestamp' => $request->datetimestamp,
-      'area' => $request->area,
+      'spacing_x' => $request->spacing_x,
+      'spacing_y' => $request->spacing_y,
       'plant_pos' => $request->plant_pos,
       'x' => $request->x,
       'y' => $request->y

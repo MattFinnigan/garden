@@ -70,7 +70,8 @@ export default {
       return {
         top: (this.plantCopy.y / this.parent.clientHeight) * 100 + '%',
         left: (this.plantCopy.x / this.parent.clientWidth) * 100 + '%',
-        padding: (this.plantCopy.entry.area / 2) + 'px',
+        width: this.plantCopy.entry.spacing_x + 'px',
+        height: this.plantCopy.entry.spacing_y + 'px',
         // width: (this.plantCopy.l / this.parent.clientWidth) * 100 + '%',
         // height: (this.plantCopy.w / this.parent.clientHeight) * 100 + '%',
         backgroundImage: `url(./images/upload/${this.plantCopy.entry.crop.plant.image})`
@@ -89,7 +90,10 @@ export default {
   border: 1px solid $borderColour;
   border-radius: 50%;
   background-position: center;
-  background-size: 100%;
+  background-size: contain;
+  background-repeat: no-repeat;
+  min-width: 5px;
+  min-height: 5px;
   &:hover {
     cursor: grab;
   }

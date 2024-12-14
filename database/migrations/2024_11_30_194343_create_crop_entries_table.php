@@ -25,7 +25,8 @@ return new class extends Migration {
       $table->string('image')->nullable();
       $table->bigInteger('qty');
       $table->dateTime('datetimestamp');
-      $table->bigInteger('area')->default(1);
+      $table->bigInteger('spacing_x')->default(1);
+      $table->bigInteger('spacing_y')->default(1);
       $table->number('x')->nullable();
       $table->number('y')->nullable();
       $table->longText('plant_pos')->nullable();

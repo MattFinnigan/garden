@@ -24,6 +24,7 @@
 import CropForm from '../forms/CropForm.vue';
 import { fetchCrops, deleteCrop, fetchPlants, fetchLocations } from '../../utils/api'
 import { clone } from '../../utils/helpers'
+import { defaultCrop, defaultCropEntry } from '../../utils/consts'
 
 export default {
   name: 'Crops',
@@ -83,21 +84,8 @@ export default {
   },
   methods: {
     newCrop () {
-      const e = {
-        location_id: this.locations[0].id,
-        action: 'Sowed',
-        stage: 'Planned',
-        qty: 1,
-        notes: null,
-        image: null,
-        area: 1,
-        datetimestamp: new Date().toISOString().slice(0, 16),
-        units: []
-      }
-      const c = {
-        plant_id: this.plants[0].id,
-        crop_entries: []
-      }
+      const e = defaultCropEntry(this.locations[0])
+      const c = defaultCrop(this.plants[0])
       this.$store.commit('crops/setCurrentCrop', c)
       this.$store.commit('crop_entries/setCurrentCropEntry', e)
       this.mode = 'edit'

@@ -1,7 +1,7 @@
 <template>
   <div class="crop-entry-form">
     <h2>{{ title }}</h2>
-    <Form v-show="!newUnit" @submit="submitForm">
+    <Form @submit="submitForm">
       <template #inputs>
         <Display label="Location" :val="locationName"/>
         <Select v-if="canEditPlant" v-model.number="plant_id" label="Plant" :options="plants.map(p => { return { label: p.name + ' (' + p.variety + ')', value: p.id } })"/>
@@ -11,8 +11,9 @@
         <Select v-model="action" label="Action" :options="actionOptions"/>
         <Select v-model="stage" label="Stage" :options="stageOptions"/>
         <Input v-if="findRule('datetimestamp', 'enabled')" v-model="datetimestamp" type="datetime-local" label="Date"/>
-        <Input v-model.number="qty" type="number" label="Qty" required :min="findRule('qty', 'min') || qtyRule.min" :max="findRule('qty', 'max') || qtyRule.max"/>
-        <Input v-model="area" type="number" label="Spacing" :min="findRule('area', 'min') || spacingRule.min" :max="findRule('area', 'max') || spacingRule.max" suffix="&nbsp;cm"/>
+        <Input v-model.number="qty" type="number" label="Qty" required :min="1"/>
+        <Input v-model.number="spacing_x" type="number" label="Spacing X" :min="findRule('area', 'min') || spacingRule.min" :max="findRule('area', 'max') || spacingRule.max" suffix="&nbsp;cm"/>
+        <Input v-model.number="spacing_y" type="number" label="Spacing Y" :min="findRule('area', 'min') || spacingRule.min" :max="findRule('area', 'max') || spacingRule.max" suffix="&nbsp;cm"/>
         <Input v-model="notes" type="textarea" label="Notes"/>
         <Input :modelValue="image" type="file" label="Image" @change="e => image = e.target.value"/>
         <p v-if="error" class="error">{{ error }}</p>
@@ -21,16 +22,6 @@
         <slot name="buttons"></slot>
       </template>
     </Form>
-    <!-- <Modal v-if="newUnit && savedEntry">
-      <template #header>Individualise a crop plant</template>
-      <template #content>
-        <CropEntryForm
-        :rules="[{ key: 'datetimestamp', enabled: false }, { key: 'qty', min: 1, max: savedEntry.qty }, { key: 'area', min: 1, max: savedEntry.qty }]"
-        :handleSubmit="false"
-        @close="cancelNewUnit"
-        @submit="addNewUnit"/>
-      </template>
-    </Modal> -->
   </div>
 </template>
 
@@ -51,11 +42,10 @@ export default {
       default: () => { return [{ key: 'name', enabled: false }] }
     }
   },
-  emits: ['done', 'submit'],
+  emits: ['done'],
   data () {
     return {
       loading: false,
-      newUnit: false,
       savedEntry: null,
       error: null
     }
@@ -63,6 +53,9 @@ export default {
   mounted () {
     if (!this.currentCrop.id) {
       this.$store.commit('crops/setCurrentCropDaysToHarvest', this.currPlant.days_to_harvest)
+    }
+    if (this.bed.id) {
+      this.bed_id = this.bed.id
     }
   },
   watch: {
@@ -72,7 +65,7 @@ export default {
           this.$store.commit('crops/setCurrentCropDaysToHarvest', this.currPlant.days_to_harvest)
         })
       }
-    },
+    }
   },
   computed: {
     plants () {
@@ -95,18 +88,6 @@ export default {
     },
     currPlant () {
       return this.plants.find(p => p.id === this.currentCrop?.plant_id)
-    },
-    unitsMapped () {
-      return this.currentCrop.units.map(u => {
-        return {
-          id: u.id,
-          name: u.name,
-          curr_loc: u.location.name + (u.bed ? ' - ' + u.bed.name : ''),
-          action: u.action,
-          stage: u.stage,
-          notes: u.notes
-        }
-      })
     },
     actionOptions () {
       return ['Planned', 'Sowed', 'Transplanted', 'Moved', 'Fertilized', 'Watered', 'Weeded', 'Damage/Disease detected', 'Sprayed', 'Pruned', 'Harvested', 'Removed', 'No Action'].map(a => { return { label: a, value: a } })
@@ -178,12 +159,20 @@ export default {
         this.$store.commit('crop_entries/setCurrentCropEntryQty', val)
       }
     },
-    area: {
+    spacing_x: {
       get () {
-        return this.current?.area
+        return this.current?.spacing_x
       },
       set (val) {
-        this.$store.commit('crop_entries/setCurrentCropEntryArea', val)
+        this.$store.commit('crop_entries/setCurrentCropEntrySpacingX', val)
+      }
+    },
+    spacing_y: {
+      get () {
+        return this.current?.spacing_y
+      },
+      set (val) {
+        this.$store.commit('crop_entries/setCurrentCropEntrySpacingY', val)
       }
     },
     notes: {
@@ -203,16 +192,8 @@ export default {
       }
     },
     spacingRule () {
-      let min = 1
-      for (const unit in this.currentCrop.units) {
-        if (unit.area) {
-          min += unit.area
-        }
-      }
-      return { min, max: 999999 }
-    },
-    qtyRule () {
-      return { min: this.currentCrop.units.length, max: 999999 }
+      // todo get from bed remaining area
+      return { min: 1, max: 999999 }
     }
   },
   methods: {
@@ -233,38 +214,41 @@ export default {
       this.error = null
       // set plant positions
       const pos = arrangePlantsInBedWithOverlapCheck(this.current, this.bed)
-      console.log(pos)
-      this.$store.commit('crop_entries/setCurrentCropEntryPlantPos', JSON.stringify(pos))
-      if (!this.currentCrop?.id) {
-        createCrop(this, { ...this.currentCrop, ...this.current }).then(response => {
-          if (response.data.status === 'success') {
-            this.$store.commit('crops/setCurrentCrop', response.data.crop)
-            this.$emit('done')
-          } else {
-            this.loading = false
-            this.error = response.data.message
-          }
-          this.$emit('done')
-        })
-      } else if (!this.current.id) {
-        createCropEntry(this, this.currentCrop.id, { ...this.current, days_to_harvest: this.daysToHarvest }).then((resp) => {
-          if (resp.data.status === 'success') {
-            this.$emit('done')
-          } else {
-            this.loading = false
-            this.error = resp.data.message
-          }
-        })
+      if (!pos.error) {
+        this.$store.commit('crop_entries/setCurrentCropEntryPlantPos', JSON.stringify(pos))
+        if (!this.currentCrop?.id) {
+          createCrop(this, { ...this.currentCrop, ...this.current }, false).then(response => {
+            if (response.data.status === 'success') {
+              this.$store.commit('crops/setCurrentCrop', response.data.crop)
+              this.$emit('done')
+            } else {
+              this.loading = false
+              this.error = response.data.message
+            }
+          })
+        } else if (!this.current.id) {
+          createCropEntry(this, this.currentCrop.id, { ...this.current, days_to_harvest: this.daysToHarvest }).then((resp) => {
+            if (resp.data.status === 'success') {
+              this.$emit('done')
+            } else {
+              this.loading = false
+              this.error = resp.data.message
+            }
+          })
+        } else {
+          updateCropEntry(this, this.current.id, { ...this.current, days_to_harvest: this.daysToHarvest }).then((resp) => {
+            if (resp.data.status === 'success') {
+              this.$emit('done')
+            } else {
+              this.loading = false
+              this.error = resp.data.message
+            }
+          })
+        } 
       } else {
-        updateCropEntry(this, this.current.id, { ...this.current, days_to_harvest: this.daysToHarvest }).then((resp) => {
-          if (resp.data.status === 'success') {
-            this.$emit('done')
-          } else {
-            this.loading = false
-            this.error = resp.data.message
-          }
-        })
-      } 
+        this.loading = false
+        this.error = pos.error
+      }
     }
   }
 }
