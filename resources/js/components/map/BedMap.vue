@@ -1,5 +1,5 @@
 <template>
-  <div :id="'bedmap' + bed?.id || 'new'" :class="['bed-map', { active: current.id === bed.id, dragging }]" parent-id="grid" :style="styles" @mouseup.prevent.self="selectBed">
+  <div :id="'bedmap' + bed?.id || 'new'" :class="['bed-map', { active: current.id === bed.id }, { selectable: dragging || selectionMode }, { dragging }]" parent-id="grid" :style="styles" @mouseup.prevent.self="selectBed">
     <Plant v-for="plant in plants" ref="plants" :plant="plant" :loading="loading" @updatePositions="updatePositions"/>
   </div>
 </template>
@@ -17,8 +17,13 @@ export default {
     bed: {
       type: Object,
       required: true
+    },
+    selectionMode: {
+      type: Boolean,
+      default: false
     }
   },
+  emits: ['selectBed', 'positionUpdated'],
   data () {
     return {
       loading: false,
@@ -32,6 +37,9 @@ export default {
     this.parent = this.$el?.parentElement
     if (this.bed.id) {
       draggable(this.$el, this.parent, (start) => {}, (move) => {
+        if (this.selectionMode) {
+          return
+        }
         if (!this.dragging) {
           this.dragging = move
         } else {
@@ -81,9 +89,11 @@ export default {
     plants () {
       const res = []
       this.bed.crop_entries.forEach(ce => {
-        JSON.parse(ce.plant_pos).forEach(plant => {
-          res.push({ ...plant, entry: ce })
-        })
+        if (JSON.parse(ce.plant_pos)) {
+          JSON.parse(ce.plant_pos).forEach(plant => {
+            res.push({ ...plant, entry: ce })
+          })
+        }
       })
       return res
     },
@@ -110,6 +120,9 @@ export default {
       if (!this.dragging) {
         this.$store.commit('beds/setCurrentBed', this.bed)
       }
+      if (this.selectionMode) {
+        this.$emit('selectBed', this.bed)
+      }
     },
     updatePositions (entry) {
       this.loading = true
@@ -135,11 +148,13 @@ export default {
   &:hover {
     cursor: pointer;
   }
-  &.dragging {
+  &.selectable {
     z-index: 1000;
-    cursor: grabbing;
     background-color: $primary3;
     border: 2px dashed $textColour;
+  }
+  &.dragging {
+    cursor: grabbing;
   }
 }
 </style>

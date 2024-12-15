@@ -212,43 +212,56 @@ export default {
       }
       this.loading = true
       this.error = null
+      const bedData = clone(this.bed)
       // set plant positions
-      const pos = arrangePlantsInBedWithOverlapCheck(this.current, this.bed)
-      if (pos) {
-        this.$store.commit('crop_entries/setCurrentCropEntryPlantPos', JSON.stringify(pos))
-        if (!this.currentCrop?.id) {
-          createCrop(this, { ...this.currentCrop, ...this.current }, false).then(response => {
-            if (response.data.status === 'success') {
-              this.$store.commit('crops/setCurrentCrop', response.data.crop)
-              this.$emit('done')
-            } else {
-              this.loading = false
-              this.error = response.data.message
-            }
-          })
-        } else if (!this.current.id) {
-          createCropEntry(this, this.currentCrop.id, { ...this.current, days_to_harvest: this.daysToHarvest }).then((resp) => {
-            if (resp.data.status === 'success') {
-              this.$emit('done')
-            } else {
-              this.loading = false
-              this.error = resp.data.message
-            }
-          })
-        } else {
-          updateCropEntry(this, this.current.id, { ...this.current, days_to_harvest: this.daysToHarvest }).then((resp) => {
-            if (resp.data.status === 'success') {
-              this.$emit('done')
-            } else {
-              this.loading = false
-              this.error = resp.data.message
-            }
-          })
-        } 
+      if (!this.current.id) {
+        bedData.crop_entries.push(this.current)
       } else {
-        this.loading = false
-        this.error = "Not enough space to place all plants."
+        bedData.crop_entries = bedData.crop_entries.map(ce => {
+          if (ce.id === this.current.id) {
+            return this.current
+          }
+          return ce
+        })
       }
+      arrangePlantsInBedWithOverlapCheck(bedData, (entries) => {
+        if (entries) {
+          const entry = entries.find(e => e.id === this.current.id)
+          this.$store.commit('crop_entries/setCurrentCropEntryPlantPos', entry.plant_pos)
+          if (!this.currentCrop?.id) {
+            createCrop(this, { ...this.currentCrop, ...this.current }, false).then(response => {
+              if (response.data.status === 'success') {
+                this.$store.commit('crops/setCurrentCrop', response.data.crop)
+                this.$emit('done')
+              } else {
+                this.loading = false
+                this.error = response.data.message
+              }
+            })
+          } else if (!this.current.id) {
+            createCropEntry(this, this.currentCrop.id, { ...this.current, days_to_harvest: this.daysToHarvest }).then((resp) => {
+              if (resp.data.status === 'success') {
+                this.$emit('done')
+              } else {
+                this.loading = false
+                this.error = resp.data.message
+              }
+            })
+          } else {
+            updateCropEntry(this, this.current.id, { ...this.current, days_to_harvest: this.daysToHarvest }).then((resp) => {
+              if (resp.data.status === 'success') {
+                this.$emit('done')
+              } else {
+                this.loading = false
+                this.error = resp.data.message
+              }
+            })
+          } 
+        } else {
+          this.loading = false
+          this.error = "Not enough space to place all plants."
+        }
+      })
     }
   }
 }

@@ -17,12 +17,14 @@ export const isOverlapping = (el1, el2) => {
     rect1.top > rect2.bottom
   )
 }
-export const arrangePlantsInBedWithOverlapCheck = (lastEntry, bed, zoom = 1) => {
+export const arrangePlantsInBedWithOverlapCheck = (bed, callback) => {
   const res = []
+  let noSpace = false
+  const bedCopy = clone(bed)
   const bedEl = document.createElement('div')
+  bedEl.style.width = `${bed.l}px`
+  bedEl.style.height = `${bed.w}px`
   bedEl.classList.add('bed-container-poscheck')
-  bedEl.style.width = `${bed.l * zoom}px`
-  bedEl.style.height = `${bed.w * zoom}px`
   bedEl.style.position = 'relative'
   bedEl.style.backgroundColor = 'black'
   document.body.appendChild(bedEl)
@@ -30,50 +32,54 @@ export const arrangePlantsInBedWithOverlapCheck = (lastEntry, bed, zoom = 1) => 
   let x = 0
   let y = 0
   const step = 5 // Increment step for x and y when moving to find space
-
-  for (let i = 0; i < lastEntry.qty; i++) {
-    const plantEl = document.createElement('div')
-    plantEl.classList.add('bed-plant-poscheck')
-    plantEl.style.width = `${lastEntry.spacing_x}px`
-    plantEl.style.height = `${lastEntry.spacing_y}px`
-    plantEl.style.position = 'absolute'
-    plantEl.style.backgroundColor = 'green'
-
-    // Find a position that does not overlap
-    let placed = false
-    while (!placed) {
-      plantEl.style.left = `${x}px`
-      plantEl.style.top = `${y}px`
-      bedEl.appendChild(plantEl) // Temporarily append to check overlap
-
-      const isOverlappingAny = Array.from(bedEl.children).some((existingPlant) => {
-        return existingPlant !== plantEl && isOverlapping(plantEl, existingPlant)
-      })
-      
-      if (isOverlappingAny) {
-        bedEl.removeChild(plantEl) // Remove to retry placement
-        x += step
-        if (x + lastEntry.spacing_x >= bed.l) {
-          x = 0
-          y += step
+  bedCopy.crop_entries.forEach((entry) => {
+    entry.plant_pos = []
+    for (let i = 0; i < entry.qty; i++) {
+      const plantEl = document.createElement('div')
+      plantEl.classList.add('bed-plant-poscheck')
+      plantEl.style.width = `${entry.spacing_x}px`
+      plantEl.style.height = `${entry.spacing_y}px`
+      plantEl.style.position = 'absolute'
+      plantEl.style.backgroundColor = 'green'
+  
+      // Find a position that does not overlap
+      let placed = false
+      while (!placed && !noSpace) {
+        plantEl.style.left = `${x}px`
+        plantEl.style.top = `${y}px`
+        bedEl.appendChild(plantEl) // Temporarily append to check overlap
+        const isOverlappingAny = Array.from(bedEl.children).some((existingPlant) => {
+          return existingPlant !== plantEl && isOverlapping(plantEl, existingPlant)
+        })
+        
+        if (isOverlappingAny) {
+          bedEl.removeChild(plantEl) // Remove to retry placement
+          x += step
+          if (x + entry.spacing_x >= bed.l) {
+            x = 0
+            y += step
+          }
+          if (y + entry.spacing_y > bed.w) {
+            console.log(res, y, entry.spacing_y, bed.w, x, entry.spacing_x, bed.l)
+            console.log('y: ' + y + ' entry.spacing_y: ' + entry.spacing_y + ' bed.w: ' + bed.w)
+            console.log('x: ' + x + ' entry.spacing_x: ' + entry.spacing_x + ' bed.l: ' + bed.l)
+            console.warn("Not enough space to place all plants.")
+            bedEl.remove()
+            noSpace = true
+            break // Stop placement if no space is left
+          }
+        } else {
+          placed = true
         }
-        if (y + lastEntry.spacing_y > bed.w) {
-          console.log(res, y, lastEntry.spacing_y, bed.w, x, lastEntry.spacing_x, bed.l)
-          console.log('y: ' + y + ' lastEntry.spacing_y: ' + lastEntry.spacing_y + ' bed.w: ' + bed.w)
-          console.log('x: ' + x + ' lastEntry.spacing_x: ' + lastEntry.spacing_x + ' bed.l: ' + bed.l)
-          console.warn("Not enough space to place all plants.")
-          bedEl.remove()
-          return null // Stop placement if no space is left
-        }
-      } else {
-        placed = true
       }
+      if (noSpace) {
+        break
+      }
+      entry.plant_pos.push({ x, y })
     }
-
-    res.push({ x, y })
-  }
+  })
   bedEl.remove()
-  return res
+  callback(noSpace ? null : bedCopy.crop_entries.map((e) => { return { ...e, plant_pos: JSON.stringify(e.plant_pos) } }))
 }
 
 export const draggable = (el, relativeEl, start, update, end, constrain = false) => {

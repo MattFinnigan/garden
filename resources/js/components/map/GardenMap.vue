@@ -17,16 +17,16 @@
         <div :class="['dropdown', { 'show': showNewMenu }]">
           <div class="item">Location</div>
           <div class="item" @click="createNewBed">Bed</div>
-          <div class="item">Crop</div>
+          <div class="item" @click="createNewCrop">Crop</div>
           <div class="item">Crop Entry</div>
         </div>
       </div>
     </div>
-    <div id="grid" class="grid" ref="grid" :style="styles">
+    <div id="grid" class="grid" ref="grid" :style="styles" @click.prevent.self="() => { cancelBed(); cancelCropEntry() }">
       <div v-if="newBedExplain" class="new-bed-explain" @mousedown="beginNewBed">
         <h4>Click and drag to create a new bed</h4>
       </div>
-      <BedMap v-for="bed in locationBeds" :key="'bed' + bed.id" :zoom="zoom" :bed="bed" ref="bed" @positionUpdated="fetchMaps"/>
+      <BedMap v-for="bed in locationBeds" :key="'bed' + bed.id" :zoom="zoom" :bed="bed" ref="bed" :selectionMode="currentCropEntry && !currentBed" @positionUpdated="fetchMaps"/>
     </div>
     <Modal v-if="currentBed" @close="cancelBed(currentBed)">
       <template #header>
@@ -42,7 +42,7 @@
         </BedsForm>
       </template>
     </Modal>
-    <Modal v-if="currentCropEntry" @close="cancelCropEntry">
+    <Modal v-if="currentCropEntry && currentBed" @close="cancelCropEntry">
       <template #header>
         <h5>Create a new Crop {{ currentCropEntry.crop_id ? 'Entry' : '' }}</h5>
         <p v-if="!currentCropEntry.crop_id">You've selected a bed. Now let's add a Crop with it's first Entry</p>
@@ -189,12 +189,13 @@ export default {
         this.fetchMaps()
         this.bedSubmitted = null
         this.cropEntrySubmitted = null
+        this.showNewMenu = false
         const promises = []
         if (!this.plants.length) {
           promises.push(fetchPlants(this))
         }
         Promise.all(promises).then(() => {
-          const e = defaultCropEntry({ id: this.location_id }, bed || this.currentBed)
+          const e = defaultCropEntry({ id: this.location_id }, this.currentBed)
           const c = defaultCrop(this.plants[0])
           this.$store.commit('crops/setCurrentCrop', c)
           this.$store.commit('crop_entries/setCurrentCropEntry', e)
@@ -392,12 +393,11 @@ export default {
         this.$nextTick(() => {
           this.zoomToFull()
           this.$nextTick(() => {
-            this.location.beds.forEach(bed => {
-              bed.crop_entries.forEach(ce => {
-                if (ce.spacing_x && ce.spacing_y && !ce.plant_pos) {
-                  const pos = JSON.stringify(arrangePlantsInBedWithOverlapCheck(ce, bed, 1))
-                  updateCropEntry(this, ce.id, { ...ce, plant_pos: pos }, false)
-                }
+            this.location.beds.forEach((bed, i) => {
+              arrangePlantsInBedWithOverlapCheck(bed, (entries) => {
+                entries.forEach(entry => {
+                  updateCropEntry(this, entry.id, entry, false)
+                })
               })
             })
           })
