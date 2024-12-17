@@ -3,10 +3,10 @@
     <div v-if="loading || !current">Loading...</div>
     <div v-else-if="!currentEntry">
       <div class="header-contain">
-        <h1>{{ cropTitle }}</h1>
+        <h2 v-if="!embedded">{{ cropTitle }}</h2>
         <div>
-          <Button classes="sm" @click="newEntry">+</Button>
-          <Button classes="sm" @click="deleteCrop" :disabled="current.crop_entries.length === 1" del></Button>
+          <Button classes="danger icon sm" @click="deleteCrop"><Icon name="delete"></Icon></Button>
+          <Button classes="primary icon sm" @click="newEntry"><Icon name="plus"></Icon></Button>
         </div>
       </div>
       <div>
@@ -19,38 +19,39 @@
         </Table>
       </div>
     </div>
-    <CropEntryForm v-else :title="currentEntry.id ? 'Edit Entry' : 'New Entry'" @close="done"/>
+    <CropEntryForm v-else-if="!embedded" :title="currentEntry.id ? 'Edit Entry' : 'New Entry'" @close="done"/>
   </div>
 </template>
 
 <script>
 import Card from '../common/Card.vue'
 import CropEntryForm from '../forms/CropEntryForm.vue';
-import { fetchCrop, fetchLocations, fetchPlants, deleteCrop, deleteCropEntry } from '../../utils/api'
+import { fetchCrop, fetchLocations, fetchPlants, deleteCrop, deleteCropEntry, fetchBed } from '../../utils/api'
 import { clone } from '../../utils/helpers'
 
 export default {
+  props: {
+    embedded: { type: Boolean, default: false }
+  },
   name: 'Crops',
   components: {
     Card,
     CropEntryForm
   },
-  beforeDestroy () {
-
-  },
-  beforeRouteLeave (to, from, next) {
-    this.$store.commit('crops/setCurrentCrop', null)
-    this.$store.commit('crop_entries/setCurrentCropEntry', null)
-    next()
-  },
+  emits: ['new', 'edit', 'close'],
   data () {
     return {
       loading: true,
-      headers: [{ label: '#', key: 'num' }, { label: 'Location', key: 'curr_loc' }, { label: 'Stage', key: 'stage' }, { label: 'Action', key: 'action' }, { label: 'Date & Time', key: 'datetimestamp' }, { label: 'Notes', key: 'notes' }]
+      headers: [{ label: 'Date & Time', key: 'datetimestamp' }, { label: 'Stage', key: 'stage' }, { label: 'Action', key: 'action' }, { label: 'Notes', key: 'notes' }]
     }
   },
   mounted () {
-    fetchCrop(this, this.$route.params.id).then(() => { this.loading = false })
+    fetchCrop(this, this.$route.params.id || this.current?.id).then(() => {
+      this.loading = false
+      // fetchBed(this, this.current?.bed_id || this.bed.id).then(() => {
+      //   this.loading = false
+      // })
+    })
   },
   computed: {
     current () {
@@ -65,6 +66,9 @@ export default {
     plants () {
       return this.$store.state.plants.list
     },
+    bed () {
+      return this.$store.state.beds.current
+    },
     cropTitle () {
       return `Crop #${this.current.id } ${this.current.plant.name}`
     },
@@ -72,7 +76,6 @@ export default {
       return this.current.crop_entries.map(cropEntry => {
         return {
           id: cropEntry.id,
-          curr_loc: cropEntry.location.name + (cropEntry.bed ? ` (${cropEntry.bed.name})` : ''),
           stage: `x${cropEntry.qty} ${cropEntry.stage}`,
           action: cropEntry.action,
           datetimestamp: new Date(cropEntry.datetimestamp).toLocaleDateString(),
@@ -83,6 +86,10 @@ export default {
   },
   methods: {
     newEntry () {
+      if (this.embedded) {
+        this.$emit('new')
+        return
+      }
       const promises = []
       if (!this.plants.length) {
         promises.push(fetchPlants(this))
@@ -100,13 +107,23 @@ export default {
     },
     deleteCrop () {
       this.loading = true
-      deleteCrop(this, this.current.id).then(response => { this.$router.push('/crops') })
+      deleteCrop(this, this.current.id).then(response => {
+        if (!this.embedded) {
+          this.$router.push({ name: 'crops' })
+        } else {
+          this.$emit('close')
+        }
+      })
     },
     deleteCropEntry (id) {
       this.loading = true
       deleteCropEntry(this, id).then(response => { this.loading = false })
     },
     editCropEntry (id) {
+      if (this.embedded) {
+        this.$emit('edit', id)
+        return
+      }
       const promises = []
       if (!this.plants.length) {
         promises.push(fetchPlants(this))
@@ -133,7 +150,13 @@ export default {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1em;
-  h1 {
+  div {
+    margin-left: auto;
+    > * {
+      margin-left: 0.5em;
+    }
+  }
+  h2 {
     margin: 0;
   }
 }

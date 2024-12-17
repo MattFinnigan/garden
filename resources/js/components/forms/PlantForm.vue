@@ -1,28 +1,21 @@
 <template>
   <div class="plant-form">
-  <Modal @close="cancel">
-    <template #header>
-      <h2>Plant Form</h2>
-    </template>
-    <template #content>
-      <Form @submit="submitForm">
-        <template #inputs>
-          <Input type="text" v-model="name" label="Species" required minlength="2" maxlength="255"/>
-          <Input type="text" v-model="variety" label="Variety" required maxlength="255"/>
-          <Input type="textarea" v-model="description" label="Description" maxlength="255"/>
-          <Input type="number" v-model="daysToHarvest" label="Days to Harvest" required min="1"/>
-          <Select type="number" v-model.number="sow_from" :options="months" label="Sow From"/>
-          <Select type="number" v-model.number="sow_to" :options="months" label="Sow To"/>
-          <Input type="file" label="Image" @change="uploadImage"/>
-          <img v-if="image" :src="'./images/upload' + image"/>
-        </template>
-        <template #buttons>
-          <Button type="submit" :disabled="loading">Submit</Button>
-        </template>
-      </Form>
-    </template>
-  </Modal>
-</div>
+    <Form @submit="submitForm">
+      <template #inputs>
+        <Input type="text" v-model="name" label="Species" required minlength="2" maxlength="255"/>
+        <Input type="text" v-model="variety" label="Variety" required maxlength="255"/>
+        <Input type="textarea" v-model="description" label="Description" maxlength="255"/>
+        <Input type="number" v-model="daysToHarvest" label="Days to Harvest" required min="1"/>
+        <Select type="number" v-model.number="sow_from" :options="months" label="Sow From" required/>
+        <Select type="number" v-model.number="sow_to" :options="months" label="Sow To" required/>
+        <Input type="file" label="Image" @change="uploadImage" required/>
+        <img v-if="image" :src="'./images/upload/' + image"/>
+      </template>
+      <template #buttons>
+        <slot name="buttons"></slot>
+      </template>
+    </Form>
+  </div>
 </template>
 
 <script>
@@ -30,6 +23,7 @@ import { createPlant, updatePlant, uploadImage } from '../../utils/api'
 
 export default {
   name: 'PlantForm',
+  emits: ['done'],
   data () {
     return {
       loading: false
@@ -48,10 +42,11 @@ export default {
       if (this.current.id) {
         updatePlant(this, this.current.id, this.current).then(response => {
           this.$store.commit('plants/setCurrentPlant', null)
+          this.$emit('done')
         })
       } else {
         createPlant(this, this.current).then(response => {
-          this.$store.commit('plants/setCurrentPlant', null)
+          this.$store.commit('plants/setCurrentPlant', response.data.plant)
         })
       }
     },

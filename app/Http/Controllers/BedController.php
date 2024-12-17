@@ -49,6 +49,14 @@ class BedController extends Controller {
     ]);
   }
 
+  public function show (Request $request) {
+    $bed = Bed::with('images', 'crop_entries')->find($request->id);
+    return response()->json([
+      "status" => "success",
+      "bed" => $bed
+    ]);
+  }
+
   public function update (Request $request, $id) {
     $bed = Bed::find($id);
     $bed->name = $request->name;

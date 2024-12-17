@@ -24,5 +24,8 @@ export default {
 .display-input {
   display: flex;
   margin-bottom: 1em;
+  label {
+    min-width: 60px;
+  }
 }
 </style>

@@ -4,8 +4,14 @@
     <Form @submit="submitForm">
       <template #inputs>
         <Display label="Location" :val="locationName"/>
-        <Select v-if="canEditPlant" v-model.number="plant_id" label="Plant" :options="plants.map(p => { return { label: p.name + ' (' + p.variety + ')', value: p.id } })"/>
-        <Display v-else label="Plant" :val="currPlant.name + ' (' + currPlant.variety + ')'"/>
+        <div v-if="canEditPlant" class="plant-edit">
+          <Select
+            v-model.number="plant_id"
+            label="Plant"
+            :options="plants.map(p => { return { label: p.name + ' (' + p.variety + ')', value: p.id } })"/>
+          <Button class="icon primary" @click="$emit('createPlant')"><Icon name="plus"></Icon></Button>
+        </div>
+        <Display v-else label="Plant" :val="currPlantName"/>
         <Input type="number" v-model="daysToHarvest" label="Harvest" suffix="&nbsp; days"/>
         <Input v-if="findRule('name', 'enabled')" v-model="name" label="Name" required/>
         <Select v-model="action" label="Action" :options="actionOptions"/>
@@ -26,7 +32,7 @@
 </template>
 
 <script>
-import { createCropEntry, updateCropEntry, createCrop } from '../../utils/api'
+import { createCropEntry, updateCropEntry, createCrop, fetchPlants } from '../../utils/api'
 import { clone, arrangePlantsInBedWithOverlapCheck } from '../../utils/helpers';
 
 export default {
@@ -42,7 +48,7 @@ export default {
       default: () => { return [{ key: 'name', enabled: false }] }
     }
   },
-  emits: ['done'],
+  emits: ['done', 'createPlant'],
   data () {
     return {
       loading: false,
@@ -53,6 +59,9 @@ export default {
   mounted () {
     if (!this.currentCrop.id) {
       this.$store.commit('crops/setCurrentCropDaysToHarvest', this.currPlant.days_to_harvest)
+    }
+    if (!this.plants.length) {
+      fetchPlants(this)
     }
     if (this.bed.id) {
       this.bed_id = this.bed.id
@@ -87,7 +96,10 @@ export default {
       return !this.currentCrop.id
     },
     currPlant () {
-      return this.plants.find(p => p.id === this.currentCrop?.plant_id)
+      return this.$store.state.plants.current || this.plants.find(p => p.id === this.currentCrop?.plant_id)
+    },
+    currPlantName () {
+      return this.currPlant?.name + ' (' + this.currPlant?.variety + ')'
     },
     actionOptions () {
       return ['Planned', 'Sowed', 'Transplanted', 'Moved', 'Fertilized', 'Watered', 'Weeded', 'Damage/Disease detected', 'Sprayed', 'Pruned', 'Harvested', 'Removed', 'No Action'].map(a => { return { label: a, value: a } })
@@ -268,4 +280,13 @@ export default {
 </script>
 
 <style scoped lang="scss">
+.plant-edit {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  :deep(.select-container) {
+    flex: 1;
+    margin-right: 1em;
+  }
+}
 </style>

@@ -23,7 +23,7 @@ export default {
       default: false
     }
   },
-  emits: ['selectBed', 'positionUpdated'],
+  emits: ['selectBed', 'positionUpdated', 'editingBed'],
   data () {
     return {
       loading: false,
@@ -85,6 +85,14 @@ export default {
       })
     }
   },
+  watch: {
+    bed: {
+      handler (val) {
+        this.bedCopy = clone(val)
+      },
+      deep: true
+    }
+  },
   computed: {
     plants () {
       const res = []
@@ -118,9 +126,11 @@ export default {
   methods: {
     selectBed () {
       if (!this.dragging) {
+        this.$emit('editingBed')
         this.$store.commit('beds/setCurrentBed', this.bed)
       }
       if (this.selectionMode) {
+        this.$emit('editingBed')
         this.$emit('selectBed', this.bed)
       }
     },

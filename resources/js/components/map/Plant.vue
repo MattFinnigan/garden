@@ -1,11 +1,11 @@
 <template>
-  <div :class="['plant', { 'dragging': dragging }]" :style="styles">
+  <div :class="['plant', { 'selectable': dragging || selectMode }]" :style="styles" @mouseup.prevent.self="selectCrop">
   </div>
 </template>
 
 <script>
 import { clone, draggable } from '../../utils/helpers'
-
+import { defaultCropEntry } from '../../utils/consts'
 export default {
   name: 'Plant',
   emits: ['updatePositions'],
@@ -61,7 +61,18 @@ export default {
       }
     }, true)
   },
+  watch: {
+    plant: {
+      handler (val) {
+        this.plantCopy = clone(val)
+      },
+      deep: true
+    }
+  },
   computed: {
+    selectMode () {
+      return this.$store.state.crops.selectCropMode
+    },
     styles () {
       if (!this.parent) {
         return {}
@@ -80,6 +91,18 @@ export default {
     }
   },
   methods: {
+    selectCrop () {
+      this.$store.commit('crops/setSelectCropMode', false)
+      if (!this.dragging) {
+        this.$store.commit('crops/setMode', 'view')
+        this.$store.commit('beds/setCurrentBed', { ...this.plant.entry.bed, crop_entries: this.plant.entry.crop.crop_entries })
+        this.$store.commit('crops/setCurrentCrop', this.plant.entry.crop)
+        // const e = defaultCropEntry(this.plant.entry.location, this.plant.entry.bed, this.plant.entry.crop)
+        // this.$store.commit('beds/setCurrentBed', { ...this.plant.entry.bed, crop_entries: this.plant.entry.crop.crop_entries })
+        // this.$store.commit('crop_entries/setCurrentCropEntry', { ...this.plant.entry.crop.latest_entry })
+        // this.$store.commit('crops/setCurrentCrop', this.plant.entry.crop)
+      }
+    }
   },
 }
 </script>
@@ -89,7 +112,6 @@ export default {
   position: absolute;
   background: $primary2;
   border: 1px solid $borderColour;
-  border-radius: 50%;
   background-position: center;
   background-size: contain;
   background-repeat: no-repeat;
@@ -98,10 +120,12 @@ export default {
   &:hover {
     cursor: grab;
   }
-  &.dragging {
+  &.selectable {
     z-index: 100;
     border: 1px dashed;
-    cursor: grabbing;
+    &.dragging {
+      cursor: grabbing;
+    }
   }
 }
 </style>

@@ -33,6 +33,7 @@ Route::post('/locations', [LocationController::class, 'store']);
 Route::post('/locations/{id}', [LocationController::class, 'update']);
 Route::delete('/locations/{id}', [LocationController::class, 'destroy']);
 
+Route::get('/beds/{id}', [BedController::class, 'show']);
 Route::post('/beds', [BedController::class, 'store']);
 Route::post('/beds/{id}', [BedController::class, 'update']);
 Route::delete('/beds/{id}', [BedController::class, 'destroy']);

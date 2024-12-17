@@ -18,10 +18,10 @@
           <td v-for="header in headers" :key="header.key">
             <span v-html="header.key === 'num' ? i + 1 : row[header.key]"></span>
           </td>
-          <td v-if="actions">
-            <Button v-if="actions.view" classes="sm" @click="$emit('view', row, i)" view></Button>
-            <Button v-if="actions.edit" classes="sm" @click="$emit('edit', row, i)" edit></Button>
-            <Button v-if="actions.delete" classes="sm" @click="$emit('delete', row, i)" del></Button>
+          <td v-if="actions" class="action-buttons">
+            <Button v-if="actions.view" classes="sm secondary3 icon" @click="$emit('view', row, i)"><Icon name="view"></Icon></Button>
+            <Button v-if="actions.edit" classes="sm secondary3 icon" @click="$emit('edit', row, i)"><Icon name="edit"></Icon></Button>
+            <Button v-if="actions.delete" classes="sm danger icon" @click="$emit('delete', row, i)"><Icon name="delete"></Icon></Button>
           </td>
         </tr>
       </tbody>
@@ -34,9 +34,9 @@
           </div>
         </div>
         <div v-if="actions" class="action-buttons">
-          <Button v-if="actions.view" classes="sm" @click="$emit('view', row, i)">View</Button>
-          <Button v-if="actions.edit" classes="sm" @click="$emit('edit', row, i)">Edit</Button>
-          <Button v-if="actions.delete" classes="sm" @click="$emit('delete', row, i)">Delete</Button>
+          <Button v-if="actions.view" classes="sm secondary3 icon" @click="$emit('view', row, i)"><Icon name="view"></Icon></Button>
+          <Button v-if="actions.edit" classes="sm secondary3 icon" @click="$emit('edit', row, i)"><Icon name="edit"></Icon></Button>
+          <Button v-if="actions.delete" classes="sm danger icon" @click="$emit('delete', row, i)"><Icon name="delete"></Icon></Button>
         </div>
       </div>
     </div>
@@ -68,6 +68,12 @@ export default {
 
 <style scoped lang="scss">
 .table-component {
+  .action-buttons {
+    text-align: right;
+    Button {
+      margin-left: 0.5em;
+    }
+  }
   .table-header {
     display: flex;
     justify-content: space-between;
@@ -80,7 +86,7 @@ export default {
     border: 1px solid $grey-500;
     border-radius: 0.5em;
     thead {
-      background-color: $grey-700;
+      background-color: $grey-500;
       border-bottom: 1px solid $grey-500;
       th {
         padding: 10px;
@@ -91,11 +97,13 @@ export default {
     tbody {
       tr {
         &:nth-child(even) {
-          background-color: $grey-800;
+          background-color: $grey-200;
         }
         td {
           padding: 10px;
-          font-size: $fsSmall;
+          span {
+            font-size: $fsSmall;
+          }
         }
       }
     }
@@ -104,7 +112,7 @@ export default {
     display: block;
     .row {
       padding: 10px;
-      border-bottom: 1px solid $grey-500;
+      border: 1px solid $grey-500;
       .header {
         display: flex;
         justify-content: space-between;
@@ -117,7 +125,7 @@ export default {
       }
     }
     > :nth-child(even) {
-      background-color: $grey-800;
+      background-color: $grey-200;
     }
   }
   @include device (desktop, 'all') {

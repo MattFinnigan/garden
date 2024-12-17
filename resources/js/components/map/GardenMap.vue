@@ -1,7 +1,6 @@
 <template>
   <div class="garden-map">
     <div class="controls-row">
-      <Select v-model.number="location_id" :options="maps.map(l => { return { label: l.name, value: l.id } })" label="Location"/>
       <div class="date-select">
         <Button class="icon secondary" @click="removeDays(7)"><Icon name="rewind" size="16px" maskSize="15px"></Icon></Button>
         <Button class="icon secondary" @click="removeDays(1)"><Icon name="play reverse"></Icon></Button>
@@ -10,6 +9,7 @@
         <Button class="icon secondary" @click="addDays(7)"><Icon name="rewind reverse" size="16px" maskSize="15px"></Icon></Button>
       </div>
       <div class="buttons-contain">
+        <Select v-model.number="location_id" :options="maps.map(l => { return { label: l.name, value: l.id } })" label="Location"/>
         <!-- <Button class="primary outline icon" @click="zoomToFull"><Icon name="zoomin" colour="primary" maskSize="15px" size="14px"></Icon></Button> -->
         <!-- <Button class="primary outline icon" @click="zoom += 0.1"><Icon name="zoomin" colour="primary" maskSize="15px" size="14px"></Icon></Button>
         <Button class="primary outline icon" @click="zoom -= 0.1"><Icon name="zoomout" colour="primary" maskSize="15px" size="14px"></Icon></Button> -->
@@ -18,17 +18,17 @@
           <div class="item">Location</div>
           <div class="item" @click="createNewBed">Bed</div>
           <div class="item" @click="createNewCrop">Crop</div>
-          <div class="item">Crop Entry</div>
+          <div class="item" @click="selectCropMode">Crop Entry</div>
         </div>
       </div>
     </div>
-    <div id="grid" class="grid" ref="grid" :style="styles" @click.prevent.self="() => { cancelBed(); cancelCropEntry() }">
+    <div id="grid" class="grid" ref="grid" :style="styles" @click.prevent.self="() => { cancelBed(); cancelCropEntry(); cancelCropSelect() }">
       <div v-if="newBedExplain" class="new-bed-explain" @mousedown="beginNewBed">
         <h4>Click and drag to create a new bed</h4>
       </div>
-      <BedMap v-for="bed in locationBeds" :key="'bed' + bed.id" :zoom="zoom" :bed="bed" ref="bed" :selectionMode="currentCropEntry && !currentBed" @positionUpdated="fetchMaps"/>
+      <BedMap v-for="bed in locationBeds" :key="'bed' + bed.id" :zoom="zoom" :bed="bed" ref="bed" :selectionMode="currentCropEntry && !currentBed" @editingBed="editingBed = true" @positionUpdated="fetchMaps"/>
     </div>
-    <Modal v-if="currentBed" @close="cancelBed(currentBed)">
+    <Modal v-if="currentBed && editingBed" @close="cancelBed(currentBed)">
       <template #header>
         <h5>{{ bedFormText.heading }}</h5>
         <p>{{ bedFormText.text }}</p>
@@ -42,19 +42,42 @@
         </BedsForm>
       </template>
     </Modal>
-    <Modal v-if="currentCropEntry && currentBed" @close="cancelCropEntry">
+    <Modal v-if="currentCropEntry && currentBed && mode === 'edit'" v-show="!currentPlant" @close="cancelCropEntry">
       <template #header>
         <h5>Create a new Crop {{ currentCropEntry.crop_id ? 'Entry' : '' }}</h5>
         <p v-if="!currentCropEntry.crop_id">You've selected a bed. Now let's add a Crop with it's first Entry</p>
         <p v-else>Add a new Entry to this Crop</p>
       </template>
       <template #content>
-        <CropEntryForm @done="cropEntrySubmitted()" @remove="removeCropEntry">
+        <CropEntryForm @done="cropEntrySubmitted()" @remove="removeCropEntry" @createPlant="createNewPlant">
           <template #buttons>
-            <Button type="submit" classes="secondary2" @click="cropEntrySubmitted = createNewCrop">Submit & create another</Button>
+            <Button v-if="editingBed" type="submit" classes="secondary2" @click="cropEntrySubmitted = createNewCrop">Submit & create another</Button>
             <Button class="primary" type="submit" @click="cropEntrySubmitted = cancelCropEntry">Done</Button>
           </template>
         </CropEntryForm>
+      </template>
+    </Modal>
+    <Modal v-if="currentPlant && mode === 'edit'" @close="cancelPlant">
+      <template #header>
+        <h5>Create a new Plant </h5>
+        <p>You've selected a bed. Now let's add a Plant with it's first Entry</p>
+      </template>
+      <template #content>
+        <PlantForm @done="plantSubmitted()">
+          <template #buttons>
+            <Button class="primary" type="submit" >Done</Button>
+          </template>
+        </PlantForm>
+      </template>
+    </Modal>
+    <Modal v-if="currentCrop && mode !== 'edit'" @close="cancelCropEntry(true)">
+      <template #header>
+        <h5>Crop #{{ currentCrop.id }} - {{ currentCrop.plant.name }}</h5>
+        <p>Select & view a crop entry for more details.</p>
+        <Display label="Location" :val="location.name + ' (' + currentBed.name + ')'"></Display>
+      </template>
+      <template #content>
+        <Crop :embedded="true" @new="createNewCrop(false)" @close="cancelCropEntry(true)"></Crop>
       </template>
     </Modal>
   </div>
@@ -69,6 +92,9 @@ import BedMap from './BedMap.vue'
 import BedsForm from '../forms/BedsForm.vue'
 import Modal from '../common/Modal.vue'
 import CropEntryForm from '../forms/CropEntryForm.vue'
+import PlantForm from '../forms/PlantForm.vue'
+
+import Crop from '../pages/Crop.vue'
 
 export default {
   name: 'GardenMap',
@@ -76,7 +102,9 @@ export default {
     BedMap,
     BedsForm,
     Modal,
-    CropEntryForm
+    CropEntryForm,
+    PlantForm,
+    Crop
   },
   data () {
     return {
@@ -87,7 +115,8 @@ export default {
       bedSubmitted: null,
       cropEntrySubmitted: null,
       render: true,
-      zoom: 1
+      zoom: 1,
+      editingBed: false
     }
   },
   mounted () {
@@ -129,7 +158,7 @@ export default {
       return this.$store.state.locations.list
     },
     locationBeds () {
-      return this.location?.beds || []
+      return this.maps.find(l => l.id === this.location_id)?.beds || []
     },
     location_id: {
       get () {
@@ -142,6 +171,9 @@ export default {
     plants () {
       return this.$store.state.plants.list
     },
+    currentPlant () {
+      return this.$store.state.plants.current
+    },
     currentBed () {
       return this.$store.state.beds.current
     },
@@ -153,6 +185,12 @@ export default {
     },
     currentCropEntry () {
       return this.$store.state.crop_entries.current
+    },
+    currentCrop () {
+      return this.$store.state.crops.current
+    },
+    mode () {
+      return this.$store.state.crops.mode
     }
   },
   watch: {
@@ -161,16 +199,47 @@ export default {
     }
   },
   methods: {
+    createNewPlant () {
+      this.$store.commit('plants/setCurrentPlant', {
+        name: '',
+        variety: '',
+        description: '',
+        days_to_harvest: 1,
+        image: ''
+      })
+      this.$nextTick(() => {
+        this.fetchMaps()
+      })
+    },
+    plantSubmitted () {
+      this.fetchMaps()
+    },
+    cancelPlant () {
+      this.$store.commit('plants/setCurrentPlant', null)
+    },
+    selectCropMode () {
+      this.$store.commit('crops/setSelectCropMode', !this.$store.state.crops.selectCropMode)
+      this.showNewMenu = false
+    },
+    cancelCropSelect () {
+      this.$store.commit('crops/setSelectCropMode', false)
+      this.showNewMenu = false
+    },
     removeCropEntry () {
       deleteCropEntry(this, this.currentCropEntry.id).then(() => {
         this.fetchMaps()
       })
     },
-    cancelCropEntry () {
-      this.cropEntrySubmitted = null
-      this.$store.commit('crops/setCurrentCrop', null)
+    cancelCropEntry (close = false) {
+      if (this.editingBed || close) {
+        this.$store.commit('crops/setMode', 'edit')
+        this.cropEntrySubmitted = null
+        this.$store.commit('crops/setCurrentCrop', null)
+        this.cancelBed(this.currentBed)
+      } else {
+        this.$store.commit('crops/setMode', 'view')
+      }
       this.$store.commit('crop_entries/setCurrentCropEntry', null)
-      this.cancelBed(this.currentBed)
       this.fetchMaps()
     },
     bedUpdated () {
@@ -184,7 +253,10 @@ export default {
         this.zoom = (this.$el.offsetWidth / this.$refs.grid?.offsetWidth)
       }
     },
-    createNewCrop (bed = null) {
+    createNewCrop (editingBed = true) {
+      this.editingBed = editingBed
+      this.$store.commit('crops/setMode', 'edit')
+      this.$store.commit('crops/setSelectCropMode', false)
       this.$nextTick(() => {
         this.fetchMaps()
         this.bedSubmitted = null
@@ -195,10 +267,14 @@ export default {
           promises.push(fetchPlants(this))
         }
         Promise.all(promises).then(() => {
-          const e = defaultCropEntry({ id: this.location_id }, this.currentBed)
+          const e = defaultCropEntry({ id: this.location_id }, this.currentBed, this.currentCrop)
           const c = defaultCrop(this.plants[0])
-          this.$store.commit('crops/setCurrentCrop', c)
-          this.$store.commit('crop_entries/setCurrentCropEntry', e)
+          if (!this.currentCrop) {
+            this.$store.commit('crops/setCurrentCrop', c)
+            this.$store.commit('crop_entries/setCurrentCropEntry', e)
+          } else {
+            this.$store.commit('crop_entries/setCurrentCropEntry', { ...this.currentCrop.latest_entry, id: null, datetimestamp: new Date().toISOString().slice(0, 16) })
+          }
         })
       })
     },
@@ -220,6 +296,7 @@ export default {
       this.$refs.grid.dispatchEvent(ev)
     },
     cancelBed (bed)  {
+      this.editingBed = false
       if (this.$refs.grid.querySelector('.newBed')) {
         this.$refs.grid.removeChild(this.$refs.grid.querySelector('.newBed'))
         this.newBedExplain = false
@@ -227,6 +304,8 @@ export default {
       this.$store.commit('beds/setCurrentBed', null)
     },
     createNewBed () {
+      this.editingBed = true
+      this.$store.commit('crops/setSelectCropMode', false)
       this.newBedExplain = true
       this.showNewMenu = false
 
@@ -304,8 +383,9 @@ export default {
         newBed.w = shapeRect.height / zoomFactor
 
         // Check for collisions with existing beds
-        const beds = this.$refs.bed.map(bed => bed.$el.getBoundingClientRect())
-        const hasCollision = beds.some(bedRect => {
+        const beds = this.$refs.bed || []
+        const hasCollision = beds.some(bed => {
+          const bedRect = bed.$el.getBoundingClientRect()
           const bedLeft = (bedRect.left - parentRect.left) / zoomFactor
           const bedTop = (bedRect.top - parentRect.top) / zoomFactor
           const bedRight = bedLeft + (bedRect.width / zoomFactor)
@@ -392,28 +472,27 @@ export default {
         this.$store.commit('locations/setCurrentLocation', response.data[0])
         this.$nextTick(() => {
           this.zoomToFull()
-          this.$nextTick(() => {
-            this.location.beds.forEach((bed, i) => {
-              arrangePlantsInBedWithOverlapCheck(bed, (entries) => {
-                entries.forEach(entry => {
-                  updateCropEntry(this, entry.id, entry, false)
-                })
-              })
-            })
-          })
+          // this.$nextTick(() => {
+          //   this.location.beds.forEach((bed, i) => {
+          //     arrangePlantsInBedWithOverlapCheck(bed, (entries) => {
+          //       entries.forEach(entry => {
+          //         updateCropEntry(this, entry.id, entry, false)
+          //       })
+          //     })
+          //   })
+          // })
         })
       })
     },
     addDays (days) {
       const date = new Date(this.date)
-      console.log(date)
       date.setDate(date.getDate() + days + 1)
       this.date = date
       this.fetchMaps()
     },
     removeDays (days) {
       const date = new Date(this.date)
-      date.setDate(date.getDate() - days)
+      date.setDate(date.getDate() - days + 1)
       this.date = date
       this.fetchMaps()
     }
@@ -477,6 +556,10 @@ export default {
         }
       }
     }
+  }
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 1em;
   }
 }
 .grid {

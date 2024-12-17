@@ -2,7 +2,8 @@
 const state = () => ({
   list: [],
   current: null,
-  mode: 'view'
+  mode: 'edit',
+  selectCropMode: false,
 })
 
 const getters = {}
@@ -27,6 +28,9 @@ const mutations = {
   },
   setCurrentCropDaysToHarvest (state, days) {
     state.current.days_to_harvest = days
+  },
+  setSelectCropMode (state, mode) {
+    state.selectCropMode = mode
   }
 }
 

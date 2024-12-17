@@ -85,6 +85,19 @@ button {
       }
     }
   }
+  &.secondary3 {
+    background-color: $secondary3;
+    color: $secondary;
+    &.outline {
+      background-color: transparent;
+      border: 1px solid $secondary3;
+      color: $secondary3;
+      &:hover {
+        background-color: $secondary3;
+        color: $secondary;
+      }
+    }
+  }
   &.danger {
     background-color: $danger;
     color: $backgroundColour;

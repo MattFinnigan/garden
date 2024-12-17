@@ -19,46 +19,53 @@ class LocationController extends Controller {
   public function mapsIndex (Request $request) {
     // DB::enableQueryLog();
     $date = Carbon::createFromFormat('Y-m-d', $request->date)->startOfDay();
+
     $locations = Location::with(['beds' => function ($q) {
-        $q->whereNotNull('l')->whereNotNull('w')->whereNotNull('x')->whereNotNull('y')->whereNull('deactivated');
-      }, 'beds.crop_entries.crop' => function ($q) {
-        $q->whereNotNull('days_to_harvest');
-      }, 'beds.crop_entries' => function ($q) {
+      $q->whereNotNull('l')
+        ->whereNotNull('w')
+        ->whereNotNull('x')
+        ->whereNotNull('y')
+        ->whereNull('deactivated');
+    }, 'beds.crop_entries.crop' => function ($q) {
+      $q->whereNotNull('days_to_harvest');
+    }, 'beds.crop_entries' => function ($q) {
       $q->whereHas('crop', function ($q) {
-        $q->whereNotNull('days_to_harvest')->whereNotNull('plant_pos');
+        $q->whereNotNull('days_to_harvest')
+          ->whereNotNull('plant_pos');
       })->where('stage', '!=', 'completed');
     }])->get();
-    $exludeCrops = [];
-    foreach ($locations as $loc) {
-      foreach ($loc->beds as $bed) {
-        if ($bed->crop_entries->count() === 0) {
-          continue;
+    
+    $filteredLocations = $locations->map(function ($location) use ($date) {
+      $location->beds = $location->beds->map(function ($bed) use ($date) {
+        // Skip beds with no crop entries
+        if ($bed->crop_entries->isEmpty()) {
+          return $bed;
         }
-        $firstDate = Carbon::parse($bed->crop_entries[0]->crop->crop_entries[0]->datetimestamp)->subDays(1);
-        $lastDate = Carbon::parse($firstDate)->addDays($bed->crop_entries[0]->crop->days_to_harvest);
-        if (!$date->between($firstDate, $lastDate)) {
-          $exludeCrops[] = $bed->crop_entries[0]->crop->id;
-        }
-      }
-    }
-    $locations = $locations->filter(function ($location) use ($exludeCrops, $date) {
-      $location->beds = $location->beds->filter(function ($bed) use ($exludeCrops, $date) {
-        // Group crop entries by crop_id and pick the first entry for each crop
-        $bed->areaRemaining = $bed->areaRemaining($date);
-        $temp = clone $bed->crop_entries;
+        $crop_entries = clone($bed->crop_entries);
         unset($bed->crop_entries);
-        $bed->crop_entries = $temp->filter(function ($entry) use ($exludeCrops) {
-            return !in_array($entry->crop->id, $exludeCrops);
-          })->groupBy('crop_id') // Group by crop_id to eliminate duplicates
-          ->map(function ($entries) {
-              return $entries->first(); // Keep only the first entry per crop
-          })->values(); // Reindex the collection
-        return $bed->crop_entries->count() > 0;
+        // Filter out crops that don't fall within the date range
+        $validEntries = $crop_entries->filter(function ($entry) use ($date) {
+          $firstDate = Carbon::parse($entry->datetimestamp)->subDays(1);
+          $lastDate = $firstDate->copy()->addDays($entry->crop->days_to_harvest);
+          return $date->between($firstDate, $lastDate);
+        });
+    
+        // Group by crop_id and pick only the latest entry per group
+        $latestEntries = $validEntries
+          ->groupBy('crop_id')
+          ->map(fn($entries) => $entries->sortByDesc('datetimestamp')->first())
+          ->values();
+    
+        // // Replace the crop_entries with the latest single entries
+        $bed->crop_entries = $latestEntries;
+    
+        return $bed;
       });
-      return $location->beds->count() > 0;
-    });  
-      
-    return $locations;
+    
+      return $location;
+    });    
+
+    return $filteredLocations;
   }
 
   public function store(Request $request) {
