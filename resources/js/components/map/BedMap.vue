@@ -136,10 +136,13 @@ export default {
     },
     updatePositions (entry) {
       this.loading = true
-      const data = this.$refs.plants.map(plant => {
-        return {
-          x: plant.plantCopy.x,
-          y: plant.plantCopy.y,
+      const data = []
+      this.$refs.plants.forEach(plant => {
+        if (plant.plantCopy.entry.id === entry.id) {
+          data.push({
+            x: plant.plantCopy.x,
+            y: plant.plantCopy.y,
+          })
         }
       })
       this.loading = false

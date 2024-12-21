@@ -66,20 +66,16 @@ export const arrangePlantsInBedWithOverlapCheck = (bed, callback) => {
             console.warn("Not enough space to place all plants.")
             bedEl.remove()
             noSpace = true
-            break // Stop placement if no space is left
           }
         } else {
           placed = true
         }
       }
-      if (noSpace) {
-        break
-      }
       entry.plant_pos.push({ x, y })
     }
   })
   bedEl.remove()
-  callback(noSpace ? null : bedCopy.crop_entries.map((e) => { return { ...e, plant_pos: JSON.stringify(e.plant_pos) } }))
+  callback(bedCopy.crop_entries.map((e) => { return { ...e, plant_pos: JSON.stringify(e.plant_pos) } }))
 }
 
 export const draggable = (el, relativeEl, start, update, end, constrain = false) => {

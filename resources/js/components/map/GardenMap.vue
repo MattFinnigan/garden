@@ -146,9 +146,11 @@ export default {
     },
     styles () {
       return {
-        height: `${this.location?.w}px`,
-        width: `${this.location?.l}px`,
-        backgroundSize: `${2 * this.zoom}% 10px`
+        height: '500px',
+        width: '100%'
+        // height: `${this.location?.w}px`,
+        // width: `${this.location?.l}px`,
+        // backgroundSize: `${2 * this.zoom}% 10px`
       }
     },
     location () {
@@ -565,7 +567,7 @@ export default {
 .grid {
   position: relative;
   background: $primary2;
-  max-height: 50vh;
+  max-height: 80vh;
   max-width: 100%;
   overflow: auto;
   zoom: 1;

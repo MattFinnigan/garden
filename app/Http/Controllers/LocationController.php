@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use App\Models\BedImage;
-
 class LocationController extends Controller {
 
   public function index() {
@@ -32,7 +31,7 @@ class LocationController extends Controller {
       $q->whereHas('crop', function ($q) {
         $q->whereNotNull('days_to_harvest')
           ->whereNotNull('plant_pos');
-      })->where('stage', '!=', 'completed');
+      })->where('stage', '!=', 'Complete');
     }])->get();
     
     $filteredLocations = $locations->map(function ($location) use ($date) {

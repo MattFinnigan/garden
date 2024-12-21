@@ -23,7 +23,8 @@ export default {
     return {
       plantCopy: clone(this.plant),
       parent: null,
-      dragging: false
+      dragging: false,
+      test: 0
     }
   },
   mounted () {
@@ -38,26 +39,10 @@ export default {
         }
     }, (end) => {
       if (this.dragging) {
-        // check that no plants are overlapping
-        for (const c in this.parent.children) {
-          const child = this.parent.children[c]
-          if (child !== this.$el && typeof child === 'object') {
-            const rect1 = this.$el.getBoundingClientRect()
-            const rect2 = child.getBoundingClientRect()
-            if (rect1.x < rect2.x + rect2.width &&
-              rect1.x + rect1.width > rect2.x &&
-              rect1.y < rect2.y + rect2.height &&
-              rect1.y + rect1.height > rect2.y) {
-              // collision detected!
-              console.log('collision detected')
-              this.plantCopy.x = this.dragging.x
-              this.plantCopy.y = this.dragging.y
-              break
-            }
-          }
-        }
-        this.dragging = false
-        this.$emit('updatePositions', this.plantCopy.entry)
+        this.checkCollision(() => {
+          this.dragging = false
+          this.$emit('updatePositions', this.plantCopy.entry)
+        })
       }
     }, true)
   },
@@ -91,6 +76,30 @@ export default {
     }
   },
   methods: {
+    checkCollision (callback) {
+      const rect1 = this.$el.getBoundingClientRect()
+      for (const key in this.$parent.$refs.plants) {
+        const sibling = this.$parent.$refs.plants[key]
+        const rect2 = sibling.$el.getBoundingClientRect()
+        if (this.$el === sibling.$el) {
+          continue
+        }
+        if (rect1.x < rect2.x + rect2.width &&
+          rect1.x + rect1.width > rect2.x &&
+          rect1.y < rect2.y + rect2.height &&
+          rect1.y + rect1.height > rect2.y) {
+          // collision detected!
+          console.log('collision detected')
+          // find next available position
+          this.plantCopy.x = sibling.plantCopy.x
+          this.plantCopy.y = sibling.plantCopy.y
+          sibling.plantCopy.x = this.dragging.x
+          sibling.plantCopy.y = this.dragging.y
+          break
+        }
+      }
+      callback()
+    },
     selectCrop () {
       this.$store.commit('crops/setSelectCropMode', false)
       if (!this.dragging) {

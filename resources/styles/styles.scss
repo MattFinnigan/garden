@@ -1,6 +1,10 @@
-@import './partials/_colours.scss';
-@import './partials/_typography.scss';
-@import './partials/_devices.scss';
+@forward './partials/_colours.scss';
+@forward './partials/_typography.scss';
+@forward './partials/_devices.scss';
+
+@use './partials/_colours.scss' as *;
+@use './partials/_typography.scss' as *;
+@use './partials/_devices.scss' as *;
 
 * {
   -webkit-font-smoothing: antialiased; 

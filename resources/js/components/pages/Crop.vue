@@ -13,8 +13,7 @@
         <Table
           :headers="headers"
           :rows="cropEntriesMapped"
-          :actions="{ edit: true, delete: cropEntriesMapped.length > 1 }"
-          @edit="(cropEntry) => editCropEntry(cropEntry.id)"
+          :actions="{ delete: cropEntriesMapped.length > 1 }"
           @delete="(cropEntry) => deleteCropEntry(cropEntry.id)">
         </Table>
       </div>
