@@ -19,7 +19,8 @@
             { label: 'October', value: 10 },
             { label: 'November', value: 11 },
             { label: 'December', value: 12 }
-          ]"/>
+          ]"
+          @input="fetchCrops()"/>
         <!-- <Button class="icon secondary" @click="addDays(1)"><Icon name="play"></Icon></Button>
         <Button class="icon secondary" @click="addDays(7)"><Icon name="rewind reverse" size="16px" maskSize="15px"></Icon></Button> -->
       </div>
@@ -35,13 +36,13 @@
         </div>
       </div>
     </div>
-    <div v-if="beds.length" id="grid" class="grid" ref="grid" :style="styles" @click.prevent.self="() => { cancelBed(); cancelCropEntry(); cancelCropSelect() }">
+    <div id="grid" class="grid" ref="grid" :style="styles" @click.prevent.self="() => { cancelBed(); cancelCropEntry(); cancelCropSelect() }">
       <div v-if="newBedExplain" class="new-bed-explain" @mousedown="beginNewBed">
         <h4>Click and drag to create a new bed</h4>
       </div>
-      <BedMap v-for="bed in beds" :key="'bed' + bed.id" :zoom="zoom" :bed="bed" ref="bed" :selectionMode="currentCropEntry && !currentBed" @editingBed="editingBed = true" @positionUpdated="fetchMaps"/>
+      <BedMap v-for="bed in beds" :key="'bed' + bed.id" :zoom="zoom" :bed="bed" ref="bed" :selectionMode="currentCropEntry && !currentBed" @editingBed="editingBed = true"/>
     </div>
-    <Crops v-else-if="!loading" :embedded="true"></Crops>
+    <!-- <Crops v-else-if="!loading" :embedded="true"></Crops> -->
     <Modal v-if="currentBed && editingBed" @close="cancelBed(currentBed)">
       <template #header>
         <h5>{{ bedFormText.heading }}</h5>
@@ -97,9 +98,9 @@
 </template>
 
 <script>
-import { fetchCrops, updateBed, fetchPlants, deleteCropEntry, updateCropEntry } from '../../utils/api'
+import { fetchCrops, fetchBeds, updateBed, fetchPlants, deleteCropEntry, updateCropEntry } from '../../utils/api'
 import { watchScreenSize, arrangePlantsInBedWithOverlapCheck } from '../../utils/helpers'
-import { defaultCrop, defaultCropEntry } from '../../utils/consts'
+import { defaultCrop, defaultCropEntry, defaultBed } from '../../utils/consts'
 
 import BedMap from './BedMap.vue'
 import BedsForm from '../forms/BedsForm.vue'
@@ -136,6 +137,7 @@ export default {
   },
   mounted () {
     this.fetchCrops()
+    fetchBeds(this)
     watchScreenSize(() => {
       this.render = false
       this.$nextTick(() => {
@@ -201,12 +203,8 @@ export default {
         days_to_harvest: 1,
         image: ''
       })
-      this.$nextTick(() => {
-        this.fetchMaps()
-      })
     },
     plantSubmitted () {
-      this.fetchMaps()
     },
     cancelPlant () {
       this.$store.commit('plants/setCurrentPlant', null)
@@ -220,9 +218,7 @@ export default {
       this.showNewMenu = false
     },
     removeCropEntry () {
-      deleteCropEntry(this, this.currentCropEntry.id).then(() => {
-        this.fetchMaps()
-      })
+      deleteCropEntry(this, this.currentCropEntry.id)
     },
     cancelCropEntry (close = false) {
       if (this.editingBed || close) {
@@ -234,11 +230,9 @@ export default {
         this.$store.commit('crops/setMode', 'view')
       }
       this.$store.commit('crop_entries/setCurrentCropEntry', null)
-      this.fetchMaps()
     },
     bedUpdated () {
       this.cancelBed(this.currentBed)
-      this.fetchMaps()
       this.bedSubmitted = null
     },
     zoomToFull () {
@@ -252,7 +246,6 @@ export default {
       this.$store.commit('crops/setMode', 'edit')
       this.$store.commit('crops/setSelectCropMode', false)
       this.$nextTick(() => {
-        this.fetchMaps()
         this.bedSubmitted = null
         this.cropEntrySubmitted = null
         this.showNewMenu = false
@@ -275,7 +268,6 @@ export default {
     removeBed (bed) {
       updateBed(this, bed.id, { ...bed, deactivated: this.date }, false).then(() => {
         this.$store.commit('beds/setCurrentBed', null)
-        this.fetchMaps()
       })
     },
     beginNewBed (e) {
@@ -303,16 +295,8 @@ export default {
       this.newBedExplain = true
       this.showNewMenu = false
 
-      const newBed = {
-        x: 0,
-        y: 0,
-        l: 0,
-        h: 0,
-        name: '',
-        description: '',
-        images: [],
-        crop_entries: []
-      }
+      const newBed = defaultBed()
+
       let isDragging = false
       let startX = 0
       let startY = 0
@@ -351,8 +335,8 @@ export default {
         shape.style.top = `${Math.min(startY, currentY)}px`
         shape.style.width = `${width}px`
         shape.style.height = `${height}px`
-        shape.querySelector('.shapeWidth').innerText = `${width.toFixed(0)}cm`
-        shape.querySelector('.shapeHeight').innerText = `${height.toFixed(0)}cm`
+        shape.querySelector('.shapeWidth').innerText = `${(width / 100).toFixed(1)}m`
+        shape.querySelector('.shapeHeight').innerText = `${(height / 100).toFixed(1)}m`
       }
 
       const onMouseUp = () => {
@@ -373,36 +357,10 @@ export default {
         // Update the new bed's properties
         newBed.x = (shapeRect.left - parentRect.left) / zoomFactor
         newBed.y = (shapeRect.top - parentRect.top) / zoomFactor
-        newBed.l = shapeRect.width / zoomFactor
-        newBed.w = shapeRect.height / zoomFactor
+        newBed.width = shapeRect.width / zoomFactor
+        newBed.height = shapeRect.height / zoomFactor
 
-        // Check for collisions with existing beds
-        const beds = this.$refs.bed || []
-        const hasCollision = beds.some(bed => {
-          const bedRect = bed.$el.getBoundingClientRect()
-          const bedLeft = (bedRect.left - parentRect.left) / zoomFactor
-          const bedTop = (bedRect.top - parentRect.top) / zoomFactor
-          const bedRight = bedLeft + (bedRect.width / zoomFactor)
-          const bedBottom = bedTop + (bedRect.height / zoomFactor)
-
-          const newBedLeft = newBed.x
-          const newBedTop = newBed.y
-          const newBedRight = newBed.x + newBed.l
-          const newBedBottom = newBed.y + newBed.w
-
-          return !(
-            newBedRight <= bedLeft || // No overlap on the left
-            newBedLeft >= bedRight || // No overlap on the right
-            newBedBottom <= bedTop || // No overlap on the top
-            newBedTop >= bedBottom    // No overlap on the bottom
-          )
-        })
-
-        if (hasCollision) {
-          this.cancelBed()
-        } else {
-          this.$store.commit('beds/setCurrentBed', newBed)
-        }
+        this.$store.commit('beds/setCurrentBed', newBed)
 
         shape = null
       }
@@ -461,7 +419,10 @@ export default {
     },
     fetchCrops () {
       this.loading = true
-      fetchCrops(this, this.date).then(response => {
+      if (!this.month) {
+        this.month = new Date().getMonth() + 1
+      }
+      fetchCrops(this, this.month).then(response => {
         this.loading = false
         this.$nextTick(() => {
           this.zoomToFull()
@@ -481,13 +442,11 @@ export default {
       const date = new Date(this.date)
       date.setDate(date.getDate() + days + 1)
       this.date = date
-      this.fetchMaps()
     },
     removeDays (days) {
       const date = new Date(this.date)
       date.setDate(date.getDate() - days)
       this.date = date
-      this.fetchMaps()
     }
   }
 }

@@ -9,6 +9,9 @@ const getters = {}
 const actions = {}
 
 const mutations = {
+  setBeds (state, beds) {
+    state.list = beds
+  },
   setCurrentBed (state, bed) {
     state.current = bed
   },
@@ -16,10 +19,10 @@ const mutations = {
     state.current.name = name
   },
   setCurrentBedWidth (state, width) {
-    state.current.w = width
+    state.current.width = width
   },
-  setCurrentBedLength (state, len) {
-    state.current.l = len
+  setCurrentBedHeight (state, len) {
+    state.current.height = len
   },
   setCurrentBedDescription (state, description) {
     state.current.description = description

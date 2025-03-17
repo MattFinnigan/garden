@@ -18,6 +18,7 @@ Route::post('/plants/{id}', [PlantController::class, 'update']);
 Route::delete('/plants/{id}', [PlantController::class, 'destroy']);
 
 Route::get('/crops', [CropController::class, 'index']);
+Route::get('/crops/month/{month}', [CropController::class, 'byMonth']);
 Route::get('/crops/{id}', [CropController::class, 'show']);
 Route::post('/crops', [CropController::class, 'store']);
 Route::delete('/crops/{id}', [CropController::class, 'destroy']);
@@ -26,6 +27,7 @@ Route::post('/crop-entry/create/{id}', [CropEntryController::class, 'store']);
 Route::post('/crop-entry/{id}', [CropEntryController::class, 'update']);
 Route::delete('/crop-entry/{id}', [CropEntryController::class, 'destroy']);
 
+Route::get('/beds', [BedController::class, 'index']);
 Route::get('/beds/{id}', [BedController::class, 'show']);
 Route::post('/beds', [BedController::class, 'store']);
 Route::post('/beds/{id}', [BedController::class, 'update']);

@@ -15,8 +15,6 @@
           <h4>New Bed</h4>
           <div class="inputs-wrapper">
             <Input v-model="name" label="Name" maxlength="255" required/>
-            <Input v-model.number="l" type="number" label="Length (cm)" :required="w"/>
-            <Input v-model.number="w" type="number" label="Width (cm)" :required="l"/>
             <Input v-model="description" label="Description" maxlength="255"/>
             <Input :modelValue="image" type="file" label="Image" @change="e => image = e.target.value"/>
           </div>
@@ -50,7 +48,7 @@ export default {
       return this.beds.map(bed => {
         return {
           ...bed,
-          size: bed.l ? `${bed.l / 100}x${bed.w / 100}m` : 'N/A'
+          size: bed.width ? `${bed.width / 100}x${bed.height / 100}m` : 'N/A'
         }
       })
     },
@@ -65,20 +63,20 @@ export default {
         this.$store.commit('beds/setCurrentBedName', value)
       }
     },
-    w: {
+    width: {
       get () {
-        return this.current.w
+        return this.current.width
       },
       set (value) {
         this.$store.commit('beds/setCurrentBedWidth', value)
       }
     },
-    l: {
+    height: {
       get () {
-        return this.current.l
+        return this.current.height
       },
       set (value) {
-        this.$store.commit('beds/setCurrentBedLength', value)
+        this.$store.commit('beds/setCurrentBedHeight', value)
       }
     },
     description: {

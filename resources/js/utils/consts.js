@@ -22,7 +22,20 @@ const defaultCropEntry = (bed = null, crop = null) => {
   }
 }
 
+const defaultBed = () => {
+  return {
+    x: 0,
+    y: 0,
+    width: 0,
+    height: 0,
+    name: '',
+    description: '',
+    images: []
+  }
+}
+
 export {
   defaultCrop,
-  defaultCropEntry
+  defaultCropEntry,
+  defaultBed
 }

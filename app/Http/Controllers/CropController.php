@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Crop;
-use App\Models\Unit;
 use App\Models\Plant;
 
 class CropController extends Controller {
@@ -14,6 +13,20 @@ class CropController extends Controller {
         $query->whereHas('crop_entries');
       })->orderBy('id', 'desc')->get();
     return $crops;
+  }
+
+  public function byMonth ($month) {
+    $crops = Crop::where(function($query) {
+        $query->whereHas('crop_entries');
+      })->orderBy('id', 'desc')->get();
+    $cropsByMonth = [];
+    foreach ($crops as $crop) {
+      $crop->crop_entries = $crop->crop_entries->where('datetimestamp', 'like', "%-$month-%");
+      if (count($crop->crop_entries) > 0) {
+        array_push($cropsByMonth, $crop);
+      }
+    }
+    return $cropsByMonth;
   }
 
   public function store(Request $request) {

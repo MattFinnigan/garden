@@ -7,12 +7,21 @@ use App\Models\Bed;
 use App\Models\BedImage;
 
 class BedController extends Controller {
+
+  public function index () {
+    $beds = Bed::whereNull('deactivated')->with('images')->get();
+    return response()->json([
+      "status" => "success",
+      "beds" => $beds
+    ]);
+  }
+
   public function store (Request $request) {
     $bed = new Bed();
     $bed->name = $request->name;
     $bed->description = $request->description;
-    $bed->l = $request->l;
-    $bed->w = $request->w;
+    $bed->width = $request->width;
+    $bed->height = $request->height;
     $bed->x = $request->x;
     $bed->y = $request->y;
     $bed->save();
@@ -41,8 +50,8 @@ class BedController extends Controller {
     $bed = Bed::find($id);
     $bed->name = $request->name;
     $bed->description = $request->description;
-    $bed->l = $request->l;
-    $bed->w = $request->w;
+    $bed->width = $request->width;
+    $bed->height = $request->height;
     $bed->x = $request->x;
     $bed->y = $request->y;
     $bed->deactivated = $request->deactivated;

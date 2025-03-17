@@ -93,9 +93,10 @@ export const deletePlant = (context, id, storeState = true) => {
 }
 
 // crops
-export const fetchCrops = (context, storeState = true) => {
+export const fetchCrops = (context, month = null, storeState = true) => {
   return new Promise((resolve) => {
-    get('crops').then((response) => {
+    const url = month ? `crops/month/${month}` : 'crops'
+    get(url).then((response) => {
       console.log('fetchCrops', 'response', response)
       if (storeState) {
         context.$store.commit('crops/setCrops', response.data)
@@ -198,6 +199,18 @@ export const deleteCropEntry = (context, id, storeState = true) => {
 }
 
 // beds
+export const fetchBeds = (context, storeState = true) => {
+  return new Promise((resolve) => {
+    get('beds').then((response) => {
+      console.log('fetchBeds', 'response', response)
+      if (storeState) {
+        context.$store.commit('beds/setBeds', response.data.beds)
+      }
+      resolve(response)
+    })
+  })
+}
+
 export const fetchBed = (context, id, storeState = true) => {
   return new Promise((resolve) => {
     get(`beds/${id}`).then((response) => {

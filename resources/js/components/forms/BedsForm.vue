@@ -16,7 +16,7 @@
 
 <script>
 import { clone, localeDate } from '../../utils/helpers'
-import { createBed } from '../../utils/api'
+import { createBed, updateBed } from '../../utils/api'
 
 export default {
   name: 'BedsForm',
@@ -29,6 +29,9 @@ export default {
     }
   },
   computed: {
+    beds () {
+      return this.$store.state.beds.list
+    },
     current () {
       return this.$store.state.beds.current
     },
@@ -43,20 +46,20 @@ export default {
         this.$store.commit('beds/setCurrentBedName', value)
       }
     },
-    w: {
+    height: {
       get () {
-        return this.current.w
+        return this.current.height
+      },
+      set (value) {
+        this.$store.commit('beds/setCurrentBedHeight', value)
+      }
+    },
+    width: {
+      get () {
+        return this.current.width
       },
       set (value) {
         this.$store.commit('beds/setCurrentBedWidth', value)
-      }
-    },
-    l: {
-      get () {
-        return this.current.l
-      },
-      set (value) {
-        this.$store.commit('beds/setCurrentBedLength', value)
       }
     },
     description: {
@@ -76,7 +79,7 @@ export default {
       }
     },
     canDelete () {
-      return this.current.id && this.current.crop_entries.length === 0 || true
+      return !!this.current.id
     }
   },
   methods: {
@@ -105,10 +108,20 @@ export default {
             }
             return b
           })
+          updateBed(this, this.current.id, { ...this.current }).then(response => {
+            if (response.data.status === 'success') {
+              this.$store.commit('beds/setBeds', beds)
+              this.$emit('done', response.data.bed)
+            } else {
+              this.errors = response.data.message
+            }
+            this.loading = false
+          })
         } else {
           createBed(this, { ...this.current }).then(response => {
             if (response.data.status === 'success') {
               this.$store.commit('beds/setCurrentBed', response.data.bed)
+              this.$store.commit('beds/setBeds', [...beds, response.data.bed])
               this.$emit('done', response.data.bed)
             } else {
               this.errors = response.data.message
