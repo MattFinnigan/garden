@@ -3,7 +3,6 @@
     <h2>{{ title }}</h2>
     <Form @submit="submitForm">
       <template #inputs>
-        <Display label="Location" :val="locationName"/>
         <div v-if="canEditPlant" class="plant-edit">
           <Select
             v-model.number="plant_id"
@@ -79,9 +78,6 @@ export default {
   computed: {
     plants () {
       return this.$store.state.plants.list
-    },
-    locationName () {
-      return this.$store.state.locations.current.name + ' (' + this.bed.name + ')'
     },
     bed () {
       return this.$store.state.beds.current

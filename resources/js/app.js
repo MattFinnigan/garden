@@ -7,7 +7,6 @@ import vClickOutside from 'v-click-outside'
 import Landing from './components/pages/Landing.vue'
 import Crops from './components/pages/Crops.vue'
 import Plants from './components/pages/Plants.vue'
-import Locations from './components/pages/Locations.vue'
 import Crop from './components/pages/Crop.vue'
 
 import Form from './components/forms/common/Form.vue'
@@ -26,7 +25,6 @@ const routes = [
   { path: '/', name: '', component: Landing },
   { path: '/crops', name: 'crops', component: Crops },
   { path: '/plants', name: 'plants', component: Plants },
-  { path: '/locations-beds', name: 'locations', component: Locations },
   { path: '/crop/:id', name: 'crop', component: Crop },
 ]
 

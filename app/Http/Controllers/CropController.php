@@ -20,6 +20,12 @@ class CropController extends Controller {
     $crop = new Crop();
     $crop->plant_id = $request->plant_id;
     $crop->days_to_harvest = $request->days_to_harvest;
+    $crop->x = $request->x;
+    $crop->y = $request->y;
+    $crop->height = $request->height;
+    $crop->width = $request->width;
+    $crop->spacing = $request->spacing;
+    $crop->qty = $request->qty;
     if (!$request->days_to_harvest) {
       $crop->days_to_harvest = Plant::find($request->plant_id)->days_to_harvest;
     }
@@ -27,19 +33,11 @@ class CropController extends Controller {
     // attach crop entry
     $crop->crop_entries()->create([
       'crop_id' => $crop->id,
-      'location_id' => $request->location_id,
       'action' => $request->action,
       'stage' => $request->stage,
       'notes' => $request->notes,
       'image' => $request->image,
-      'qty' => $request->qty,
-      'bed_id' => $request->bed_id,
-      'datetimestamp' => $request->datetimestamp,
-      'spacing_x' => $request->spacing_x,
-      'spacing_y' => $request->spacing_y,
-      'plant_pos' => $request->plant_pos,
-      'x' => $request->x,
-      'y' => $request->y
+      'datetimestamp' => $request->datetimestamp
     ]);
     return response()->json([
       "status" => "success",

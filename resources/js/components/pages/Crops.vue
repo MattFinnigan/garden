@@ -2,8 +2,7 @@
   <div v-if="!loading" class="crops-page">
     <div v-if="!current">
       <div class="header-contain">
-        <h1>Crops</h1>
-        <Button classes="sm" @click="newCrop" :disabled="!plants.length || !locations.length">+</Button>
+        <Button classes="sm icon primary" @click="newCrop" :disabled="!plants.length"><Icon name="plus"></Icon></Button>
       </div>
       <div v-if="loading">Loading...</div>
       <div v-else>
@@ -11,50 +10,60 @@
           :headers="headers"
           :rows="cropsMapped"
           :actions="{ view: true, delete: true }"
-          @view="(crop) => { $router.push(`/crop/${crop.id}`) }"
+          @view="(crop) => { viewCrop(crop) }"
           @delete="(crop) => handleDelete(crop.id)">
         </Table>
       </div>
     </div>
-    <CropForm v-else/>
+    <CropForm v-else-if="mode === 'edit'"/>
+    <div v-else-if="embedded">
+      <div class="back-button">
+        <Button classes="sm primary" @click="deselect">Back</Button>
+      </div>
+      <Crop :embedded="embedded"></Crop>
+    </div>
   </div>
 </template>
 
 <script>
 import CropForm from '../forms/CropForm.vue';
-import { fetchCrops, deleteCrop, fetchPlants, fetchLocations } from '../../utils/api'
+import { fetchCrops, deleteCrop, fetchPlants } from '../../utils/api'
 import { clone } from '../../utils/helpers'
 import { defaultCrop, defaultCropEntry } from '../../utils/consts'
-
+import Crop
+ from './Crop.vue';
 export default {
   name: 'Crops',
+  props: {
+    embedded: { type: Boolean, default: false }
+  },
   components: {
-    CropForm
+    CropForm,
+    Crop
   },
   data () {
     return {
       loading: true,
-      headers: [{ label: '#', key: 'id' }, { label: 'Plant', key: 'plant_details' }, { label: 'Location', key: 'curr_loc' }, { label: 'Action', key: 'action' }, { label: 'Time', key: 'datetimestamp', width: '80px'}, { label: 'Notes', key: 'notes' }],
+      headers: [{ label: '#', key: 'id' }, { label: 'Plant', key: 'plant_details' }, { label: 'Action', key: 'action' }, { label: 'Time', key: 'datetimestamp', width: '80px'}, { label: 'Notes', key: 'notes' }],
       mode: 'view'
     }
   },
   mounted () {
     const promises = []
-    if (!this.locations.length) {
-      promises.push(fetchLocations(this))
-    }
     if (!this.plants.length) {
       promises.push(fetchPlants(this))
     }
     Promise.all(promises).then(() => {
-      fetchCrops(this).then(response => {
-        this.loading = false
-      })
+      if (!this.maps) {
+        fetchCrops(this).then(response => {
+          this.loading = false
+        })
+      }
     })
   },
   computed: {
-    locations () {
-      return this.$store.state.locations.list
+    maps () {
+      return this.$store.state.maps.list
     },
     plants () {
       return this.$store.state.plants.list
@@ -74,7 +83,6 @@ export default {
             <em>${crop.latest_entry.stage}</em>
           `,
           qty: crop.latest_entry.qty,
-          curr_loc: `${crop.latest_entry.location.name} ${crop.latest_entry.bed ? `<br/>(${crop.latest_entry.bed.name})` : ''}`,
           action: crop.latest_entry.action,
           datetimestamp: new Date(crop.latest_entry.datetimestamp).toLocaleString(),
           notes: crop.latest_entry.notes
@@ -83,8 +91,20 @@ export default {
     }
   },
   methods: {
+    deselect () {
+      this.$store.commit('crops/setCurrentCrop', null)
+      this.mode = 'view'
+    },
+    viewCrop (crop) {
+      if (!this.embedded) {
+        this.$router.push(`/crops/${crop.id}`)
+        return
+      }
+      this.$store.commit('crops/setCurrentCrop', clone(crop))
+      this.mode = 'view'
+    },
     newCrop () {
-      const e = defaultCropEntry(this.locations[0])
+      const e = defaultCropEntry()
       const c = defaultCrop(this.plants[0])
       this.$store.commit('crops/setCurrentCrop', c)
       this.$store.commit('crop_entries/setCurrentCropEntry', e)
@@ -106,7 +126,7 @@ export default {
 <style scoped lang="scss">
 .header-contain {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   margin-bottom: 1em;
   h1 {

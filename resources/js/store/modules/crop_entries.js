@@ -12,9 +12,6 @@ const mutations = {
   setCurrentCropEntry (state, entry) {
     state.current = entry
   },
-  setCurrentCropEntryLocation (state, id) {
-    state.current.location_id = id
-  },
   setCurrentCropEntryBed (state, id) {
     state.current.bed_id = id
   },

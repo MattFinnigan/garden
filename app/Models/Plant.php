@@ -8,5 +8,5 @@ use Illuminate\Database\Eloquent\Model;
 class Plant extends Model {
   use HasFactory;
   public $timestamps = false;
-  protected $fillable = ['name', 'description', 'image', 'days_to_harvest', 'variety', 'sow_from', 'sow_to'];
+  protected $fillable = ['name', 'description', 'image', 'days_to_harvest', 'variety', 'sow_from', 'sow_to', 'spacing'];
 }

@@ -197,63 +197,6 @@ export const deleteCropEntry = (context, id, storeState = true) => {
   })
 }
 
-// locations
-export const fetchLocations = (context, storeState = true) => {
-  return new Promise((resolve) => {
-    get('locations').then((response) => {
-      console.log('fetchLocations', 'response', response)
-      if (storeState) {
-        context.$store.commit('locations/setLocations', response.data)
-      }
-      resolve(response)
-    })
-  })
-}
-export const fetchLocation = (context, id, storeState = true) => {
-  return new Promise((resolve) => {
-    get(`locations/${id}`).then((response) => {
-      console.log('fetchLocation', id, 'response', response)
-      if (storeState) {
-        context.$store.commit('locations/setCurrentLocation', response.data)
-      }
-      resolve(response)
-    })
-  })
-}
-export const createLocation = (context, data, storeState = true) => {
-  return new Promise((resolve) => {
-    post('locations', data).then((response) => {
-      console.log('createLocation', data, 'response', response)
-      if (storeState) {
-        context.$store.commit('locations/setLocations', response.data.locations)
-      }
-      resolve(response)
-    })
-  })
-}
-export const updateLocation = (context, id, data, storeState = true) => {
-  return new Promise((resolve) => {
-    post(`locations/${id}`, data).then((response) => {
-      console.log('updateLocation', id, data, 'response', response)
-      if (storeState) {
-        context.$store.commit('locations/setLocations', response.data.locations)
-      }
-      resolve(response)
-    })
-  })
-}
-export const deleteLocation = (context, id, storeState = true) => {
-  return new Promise((resolve) => {
-    destroy(`locations/${id}`).then((response) => {
-      console.log('deleteLocation', id, 'response', response)
-      if (storeState) {
-        context.$store.commit('locations/setLocations', response.data.locations)
-      }
-      resolve(response)
-    })
-  })
-}
-
 // beds
 export const fetchBed = (context, id, storeState = true) => {
   return new Promise((resolve) => {
@@ -294,6 +237,16 @@ export const updateBed = (context, id, data, storeState = true) => {
 export const fetchMaps = (context, date = null) => {
   return new Promise((resolve) => {
     get('maps?date=' + date).then((response) => {
+      response.data = response.data.map((map) => {
+        if (map.crops) {
+          map.crops = map.crops.map((crop) => {
+            crop = { ...crop, ...crop.crop }
+            crop.latest_entry = crop
+            return crop
+          })
+        }
+        return map
+      })
       console.log('fetchMaps', 'response', response)
       context.$store.commit('maps/setMaps', response.data)
       resolve(response)

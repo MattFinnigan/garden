@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Bed;
-use App\Models\Location;
 use App\Models\BedImage;
 
 class BedController extends Controller {
@@ -12,29 +11,10 @@ class BedController extends Controller {
     $bed = new Bed();
     $bed->name = $request->name;
     $bed->description = $request->description;
-    $bed->location_id = $request->location_id;
     $bed->l = $request->l;
     $bed->w = $request->w;
     $bed->x = $request->x;
     $bed->y = $request->y;
-    // $location = Location::find($request->location_id);
-    // $remainingSpace = $location->areaRemaining();
-    // if ($bed->w * $bed->l > $remainingSpace['area']) {
-    //   return response()->json([
-    //     "status" => "error",
-    //     "message" => "Bed area exceeds location area"
-    //   ]);
-    // } else if ($bed->w > $remainingSpace['w']) {
-    //   return response()->json([
-    //     "status" => "error",
-    //     "message" => "Bed width exceeds location width"
-    //   ]);
-    // } else if ($bed->l > $remainingSpace['l']) {
-    //   return response()->json([
-    //     "status" => "error",
-    //     "message" => "Bed length exceeds location length"
-    //   ]);
-    // }
     $bed->save();
     foreach($request->images as $image) {
       $img = new BedImage();
@@ -45,12 +25,12 @@ class BedController extends Controller {
     return response()->json([
       "status" => "success",
       "message" => "Bed created successfully",
-      "bed" => Bed::with('images', 'crop_entries')->find($bed->id)
+      "bed" => Bed::with('images')->find($bed->id)
     ]);
   }
 
   public function show (Request $request) {
-    $bed = Bed::with('images', 'crop_entries')->find($request->id);
+    $bed = Bed::with('images')->find($request->id);
     return response()->json([
       "status" => "success",
       "bed" => $bed
@@ -61,7 +41,6 @@ class BedController extends Controller {
     $bed = Bed::find($id);
     $bed->name = $request->name;
     $bed->description = $request->description;
-    $bed->location_id = $request->location_id;
     $bed->l = $request->l;
     $bed->w = $request->w;
     $bed->x = $request->x;
@@ -74,24 +53,6 @@ class BedController extends Controller {
       $img->name = $image['name'];
       $img->save();
     }
-    // $location = Location::find($request->location_id);
-    // $remainingSpace = $location->areaRemaining();
-    // if ($bed->w * $bed->l > $remainingSpace['area']) {
-    //   return response()->json([
-    //     "status" => "error",
-    //     "message" => "Bed area exceeds location area"
-    //   ]);
-    // } else if ($bed->w > $remainingSpace['w']) {
-    //   return response()->json([
-    //     "status" => "error",
-    //     "message" => "Bed width exceeds location width"
-    //   ]);
-    // } else if ($bed->l > $remainingSpace['l']) {
-    //   return response()->json([
-    //     "status" => "error",
-    //     "message" => "Bed length exceeds location length"
-    //   ]);
-    // }
     $bed->save();
     return response()->json([
       "status" => "success",

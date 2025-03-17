@@ -25,7 +25,7 @@
 <script>
 import Card from '../common/Card.vue'
 import CropEntryForm from '../forms/CropEntryForm.vue';
-import { fetchCrop, fetchLocations, fetchPlants, deleteCrop, deleteCropEntry, fetchBed } from '../../utils/api'
+import { fetchCrop, fetchPlants, deleteCrop, deleteCropEntry, fetchBed } from '../../utils/api'
 import { clone } from '../../utils/helpers'
 
 export default {
@@ -59,9 +59,6 @@ export default {
     currentEntry () {
       return this.$store.state.crop_entries.current
     },
-    locations () {
-      return this.$store.state.locations.list
-    },
     plants () {
       return this.$store.state.plants.list
     },
@@ -69,7 +66,7 @@ export default {
       return this.$store.state.beds.current
     },
     cropTitle () {
-      return `Crop #${this.current.id } ${this.current.plant.name}`
+      return `Crop #${this.current.id } ${this.current.plant.name} (${this.current.plant.variety})`
     },
     cropEntriesMapped () {
       return this.current.crop_entries.map(cropEntry => {
@@ -92,9 +89,6 @@ export default {
       const promises = []
       if (!this.plants.length) {
         promises.push(fetchPlants(this))
-      }
-      if (!this.locations.length) {
-        promises.push(fetchLocations(this))
       }
       Promise.all(promises).then(() => {
         this.$store.commit('crop_entries/setCurrentCropEntry', {
@@ -126,9 +120,6 @@ export default {
       const promises = []
       if (!this.plants.length) {
         promises.push(fetchPlants(this))
-      }
-      if (!this.locations.length) {
-        promises.push(fetchLocations(this))
       }
       Promise.all(promises).then(() => {
         this.$store.commit('crop_entries/setCurrentCropEntry', clone(this.current.crop_entries.find(cropEntry => cropEntry.id === id)))

@@ -5,7 +5,7 @@
 </template>
 <script>
 import Plant from './Plant.vue'
-import { updateCropEntry, updateLocation } from '../../utils/api'
+import { updateCropEntry } from '../../utils/api'
 import { clone, draggable } from '../../utils/helpers';
 
 export default {
@@ -70,16 +70,12 @@ export default {
           this.dragging = false
           if (!this.colliding) {
             this.loading = true
-            const beds = this.$store.state.locations.current.beds.map(bed => {
-              if (bed.id === this.bed.id) {
-                return this.bedCopy
-              }
-              return bed
-            })
-            updateLocation(this, this.location.id, { ...this.location, beds }).then(() => {
-              this.$emit('positionUpdated')
-              this.loading = false
-            })
+            // const beds = this.$store.state.beds.list.map(bed => {
+            //   if (bed.id === this.bed.id) {
+            //     return this.bedCopy
+            //   }
+            //   return bed
+            // })
           }
         }
       })
@@ -118,9 +114,6 @@ export default {
     },
     current () {
       return this.$store.state.beds.current || {}
-    },
-    location () {
-      return this.$store.state.locations.current
     }
   },
   methods: {

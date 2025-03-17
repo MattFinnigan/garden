@@ -4,8 +4,6 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-use App\Models\Location;
-
 return new class extends Migration {
   /**
    * Run the migrations.
@@ -13,13 +11,12 @@ return new class extends Migration {
   public function up(): void {
     Schema::create('beds', function (Blueprint $table) {
       $table->id();
-      $table->foreignIdFor(Location::class)->constrained();
       $table->string('name');
       $table->string('description')->nullable();
-      $table->number('l')->nullable();
-      $table->number('w')->nullable();
-      $table->number('x')->nullable();
-      $table->number('y')->nullable();
+      $table->bigInteger('height')->nullable();
+      $table->bigInteger('width')->nullable();
+      $table->bigInteger('x')->nullable();
+      $table->bigInteger('y')->nullable();
       $table->date('deactivated')->nullable();
       $table->timestamps();
     });

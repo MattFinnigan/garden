@@ -1,5 +1,5 @@
 <template>
-  <div :class="['plant', { 'selectable': dragging || selectMode }]" :style="styles" @mouseup.prevent.self="selectCrop">
+  <div :class="['plant', { 'selectable': dragging || selectMode }]" :title="cropTitle" :style="styles" @mouseup.prevent.self="selectCrop">
   </div>
 </template>
 
@@ -55,6 +55,9 @@ export default {
     }
   },
   computed: {
+    cropTitle () {
+      return `Crop #${this.plantCopy.entry.crop.id } ${this.plantCopy.entry.crop.plant.name} (${this.plantCopy.entry.crop.plant.variety})`
+    },
     selectMode () {
       return this.$store.state.crops.selectCropMode
     },
@@ -137,4 +140,5 @@ export default {
     }
   }
 }
+
 </style>

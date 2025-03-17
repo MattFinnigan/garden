@@ -1,6 +1,6 @@
 <template>
   <div class="select-container">
-    <label>{{ label }}</label>
+    <label v-if="label">{{ label }}</label>
     <select :value="modelValue" @input="$emit('update:modelValue', $event.target.value)" v-bind="$attrs">
       <option v-for="option in options" :value="option.value">{{ option.label }}</option>
     </select>
@@ -13,7 +13,7 @@ export default {
   props: {
     label: {
       type: String,
-      required: true
+      required: false
     },
     options: {
       type: Array,

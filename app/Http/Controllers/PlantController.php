@@ -19,6 +19,7 @@ class PlantController extends Controller {
     $plant->days_to_harvest = $request->days_to_harvest;
     $plant->sow_from = $request->sow_from;
     $plant->sow_to = $request->sow_to;
+    $plant->spacing = $request->spacing;
     $plant->save();
     return response()->json([
       "status" => "success",
@@ -41,6 +42,7 @@ class PlantController extends Controller {
     $plant->days_to_harvest = $request->days_to_harvest;
     $plant->sow_from = $request->sow_from;
     $plant->sow_to = $request->sow_to;
+    $plant->spacing = $request->spacing;
     $plant->save();
     return response()->json([
       "status" => "success",

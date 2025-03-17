@@ -4,7 +4,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PlantController;
 use App\Http\Controllers\CropController;
-use App\Http\Controllers\LocationController;
 use App\Http\Controllers\CropEntryController;
 use App\Http\Controllers\BedController;
 use App\Http\Controllers\ImageUploadController;
@@ -27,17 +26,10 @@ Route::post('/crop-entry/create/{id}', [CropEntryController::class, 'store']);
 Route::post('/crop-entry/{id}', [CropEntryController::class, 'update']);
 Route::delete('/crop-entry/{id}', [CropEntryController::class, 'destroy']);
 
-Route::get('/locations', [LocationController::class, 'index']);
-Route::get('/locations/{id}', [LocationController::class, 'show']);
-Route::post('/locations', [LocationController::class, 'store']);
-Route::post('/locations/{id}', [LocationController::class, 'update']);
-Route::delete('/locations/{id}', [LocationController::class, 'destroy']);
-
 Route::get('/beds/{id}', [BedController::class, 'show']);
 Route::post('/beds', [BedController::class, 'store']);
 Route::post('/beds/{id}', [BedController::class, 'update']);
 Route::delete('/beds/{id}', [BedController::class, 'destroy']);
 
-Route::get('/maps', [LocationController::class, 'mapsIndex']);
 
 Route::post('/image-upload', [ImageUploadController::class, 'imageUploadPost']);

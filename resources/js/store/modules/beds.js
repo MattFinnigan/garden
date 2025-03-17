@@ -1,6 +1,7 @@
 
 const state = () => ({
-  current: null
+  current: null,
+  list: []
 })
 
 const getters = {}

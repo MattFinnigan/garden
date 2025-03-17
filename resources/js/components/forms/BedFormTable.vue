@@ -44,7 +44,7 @@ export default {
   },
   computed: {
     beds () {
-      return this.$store.state.locations.current.beds
+      return this.$store.state.beds.list
     },
     bedsMapped () {
       return this.beds.map(bed => {
@@ -56,9 +56,6 @@ export default {
     },
     current () {
       return this.$store.state.beds.current
-    },
-    location () {
-      return this.$store.state.locations.current
     },
     name: {
       get () {
@@ -99,31 +96,6 @@ export default {
       set (value) {
         this.$store.commit('beds/setCurrentBedImages', value)
       }
-    },
-    remainingArea () {
-      if (!this.location.w) {
-        return { l: 99999999999999, w: 99999999999999 }
-      }
-      let beds = []
-      if (this.current.id) {
-        beds = clone(this.location.beds).filter(b => {
-          if (b.id !== this.current.id) {
-            return b
-          }
-        })
-      } else if (this.current.index !== undefined) {
-        beds = clone(this.location.beds).filter((b, i) => {
-          if (i !== this.current.index) {
-            return b
-          }
-        })
-      } else {
-        beds = clone(this.location.beds)
-      }
-      return {
-        l: this.location.l - beds.reduce((acc, bed) => acc + bed.l, 0) - this.current.l,
-        w: this.location.w - beds.reduce((acc, bed) => acc + bed.w, 0) - this.current.w,
-      }
     }
   },
   methods: {
@@ -140,11 +112,6 @@ export default {
       this.errors = false
       if (!this.name.length) {
         this.errors = 'Name is required'
-      }
-      if (this.remainingArea.l < 0) {
-        this.errors = `Length exceeds remaining length space by ${this.remainingArea.l * -1}cm`
-      } else if (this.remainingArea.w < 0) {
-        this.errors = `Width exceeds remaining width by ${this.remainingArea.w * -1}cm`
       }
       if (!this.errors) {
         this.$emit('done', this.current)

@@ -2,32 +2,46 @@
   <div class="garden-map">
     <div class="controls-row">
       <div class="date-select">
-        <Button class="icon secondary" @click="removeDays(7)"><Icon name="rewind" size="16px" maskSize="15px"></Icon></Button>
-        <Button class="icon secondary" @click="removeDays(1)"><Icon name="play reverse"></Icon></Button>
-        <Input type="date" v-model="date" @change="fetchMaps"/>
-        <Button class="icon secondary" @click="addDays(1)"><Icon name="play"></Icon></Button>
-        <Button class="icon secondary" @click="addDays(7)"><Icon name="rewind reverse" size="16px" maskSize="15px"></Icon></Button>
+        <!-- <Button class="icon secondary" @click="removeDays(7)"><Icon name="rewind" size="16px" maskSize="15px"></Icon></Button>
+        <Button class="icon secondary" @click="removeDays(1)"><Icon name="play reverse"></Icon></Button> -->
+        <Select
+          v-model.number="month"
+          :options="[
+            { label: 'January', value: 1 },
+            { label: 'February', value: 2 },
+            { label: 'March', value: 3 },
+            { label: 'April', value: 4 },
+            { label: 'May', value: 5 },
+            { label: 'June', value: 6 },
+            { label: 'July', value: 7 },
+            { label: 'August', value: 8 },
+            { label: 'September', value: 9 },
+            { label: 'October', value: 10 },
+            { label: 'November', value: 11 },
+            { label: 'December', value: 12 }
+          ]"/>
+        <!-- <Button class="icon secondary" @click="addDays(1)"><Icon name="play"></Icon></Button>
+        <Button class="icon secondary" @click="addDays(7)"><Icon name="rewind reverse" size="16px" maskSize="15px"></Icon></Button> -->
       </div>
       <div class="buttons-contain">
-        <Select v-model.number="location_id" :options="maps.map(l => { return { label: l.name, value: l.id } })" label="Location"/>
         <!-- <Button class="primary outline icon" @click="zoomToFull"><Icon name="zoomin" colour="primary" maskSize="15px" size="14px"></Icon></Button> -->
         <!-- <Button class="primary outline icon" @click="zoom += 0.1"><Icon name="zoomin" colour="primary" maskSize="15px" size="14px"></Icon></Button>
         <Button class="primary outline icon" @click="zoom -= 0.1"><Icon name="zoomout" colour="primary" maskSize="15px" size="14px"></Icon></Button> -->
         <Button class="primary icon" @click="showNewMenu = !showNewMenu"><Icon name="plus"></Icon></Button>
         <div :class="['dropdown', { 'show': showNewMenu }]">
-          <div class="item">Location</div>
           <div class="item" @click="createNewBed">Bed</div>
           <div class="item" @click="createNewCrop">Crop</div>
           <div class="item" @click="selectCropMode">Crop Entry</div>
         </div>
       </div>
     </div>
-    <div id="grid" class="grid" ref="grid" :style="styles" @click.prevent.self="() => { cancelBed(); cancelCropEntry(); cancelCropSelect() }">
+    <div v-if="beds.length" id="grid" class="grid" ref="grid" :style="styles" @click.prevent.self="() => { cancelBed(); cancelCropEntry(); cancelCropSelect() }">
       <div v-if="newBedExplain" class="new-bed-explain" @mousedown="beginNewBed">
         <h4>Click and drag to create a new bed</h4>
       </div>
-      <BedMap v-for="bed in locationBeds" :key="'bed' + bed.id" :zoom="zoom" :bed="bed" ref="bed" :selectionMode="currentCropEntry && !currentBed" @editingBed="editingBed = true" @positionUpdated="fetchMaps"/>
+      <BedMap v-for="bed in beds" :key="'bed' + bed.id" :zoom="zoom" :bed="bed" ref="bed" :selectionMode="currentCropEntry && !currentBed" @editingBed="editingBed = true" @positionUpdated="fetchMaps"/>
     </div>
+    <Crops v-else-if="!loading" :embedded="true"></Crops>
     <Modal v-if="currentBed && editingBed" @close="cancelBed(currentBed)">
       <template #header>
         <h5>{{ bedFormText.heading }}</h5>
@@ -74,7 +88,6 @@
       <template #header>
         <h5>Crop #{{ currentCrop.id }} - {{ currentCrop.plant.name }}</h5>
         <p>Select & view a crop entry for more details.</p>
-        <Display label="Location" :val="location.name + ' (' + currentBed.name + ')'"></Display>
       </template>
       <template #content>
         <Crop :embedded="true" @new="createNewCrop(false)" @close="cancelCropEntry(true)"></Crop>
@@ -84,7 +97,7 @@
 </template>
 
 <script>
-import { fetchMaps, updateBed, fetchPlants, deleteCropEntry, updateCropEntry } from '../../utils/api'
+import { fetchCrops, updateBed, fetchPlants, deleteCropEntry, updateCropEntry } from '../../utils/api'
 import { watchScreenSize, arrangePlantsInBedWithOverlapCheck } from '../../utils/helpers'
 import { defaultCrop, defaultCropEntry } from '../../utils/consts'
 
@@ -93,6 +106,7 @@ import BedsForm from '../forms/BedsForm.vue'
 import Modal from '../common/Modal.vue'
 import CropEntryForm from '../forms/CropEntryForm.vue'
 import PlantForm from '../forms/PlantForm.vue'
+import Crops from '../pages/Crops.vue'
 
 import Crop from '../pages/Crop.vue'
 
@@ -104,7 +118,8 @@ export default {
     Modal,
     CropEntryForm,
     PlantForm,
-    Crop
+    Crop,
+    Crops
   },
   data () {
     return {
@@ -120,8 +135,7 @@ export default {
     }
   },
   mounted () {
-    this.date = new Date()
-    this.fetchMaps()
+    this.fetchCrops()
     watchScreenSize(() => {
       this.render = false
       this.$nextTick(() => {
@@ -133,12 +147,12 @@ export default {
     })
   },
   computed: {
-    date: {
+    month: {
       get () {
-        return this.$store.state.maps.date?.split('T')[0]
+        return this.$store.state.maps.month
       },
       set (value) {
-        return this.$store.commit('maps/setMapDate', value.toISOString())
+        return this.$store.commit('maps/setMapMonth', value)
       }
     },
     maps () {
@@ -148,26 +162,6 @@ export default {
       return {
         height: '500px',
         width: '100%'
-        // height: `${this.location?.w}px`,
-        // width: `${this.location?.l}px`,
-        // backgroundSize: `${2 * this.zoom}% 10px`
-      }
-    },
-    location () {
-      return this.$store.state.locations.current
-    },
-    locations () {
-      return this.$store.state.locations.list
-    },
-    locationBeds () {
-      return this.maps.find(l => l.id === this.location_id)?.beds || []
-    },
-    location_id: {
-      get () {
-        return this.$store.state.locations.current?.id || null
-      },
-      set (value) {
-        this.$store.commit('locations/setCurrentLocation', this.maps.find(l => l.id === value))
       }
     },
     plants () {
@@ -175,6 +169,9 @@ export default {
     },
     currentPlant () {
       return this.$store.state.plants.current
+    },
+    beds () {
+      return this.$store.state.beds.list
     },
     currentBed () {
       return this.$store.state.beds.current
@@ -193,11 +190,6 @@ export default {
     },
     mode () {
       return this.$store.state.crops.mode
-    }
-  },
-  watch: {
-    location_id (value) {
-      this.zoomToFull()
     }
   },
   methods: {
@@ -269,7 +261,7 @@ export default {
           promises.push(fetchPlants(this))
         }
         Promise.all(promises).then(() => {
-          const e = defaultCropEntry({ id: this.location_id }, this.currentBed, this.currentCrop)
+          const e = defaultCropEntry(this.currentBed, this.currentCrop)
           const c = defaultCrop(this.plants[0])
           if (!this.currentCrop) {
             this.$store.commit('crops/setCurrentCrop', c)
@@ -467,11 +459,10 @@ export default {
 
       parent.addEventListener('mousedown', onMouseDown)
     },
-    fetchMaps () {
+    fetchCrops () {
       this.loading = true
-      fetchMaps(this, this.date).then(response => {
+      fetchCrops(this, this.date).then(response => {
         this.loading = false
-        this.$store.commit('locations/setCurrentLocation', response.data[0])
         this.$nextTick(() => {
           this.zoomToFull()
           // this.$nextTick(() => {
@@ -494,7 +485,7 @@ export default {
     },
     removeDays (days) {
       const date = new Date(this.date)
-      date.setDate(date.getDate() - days + 1)
+      date.setDate(date.getDate() - days)
       this.date = date
       this.fetchMaps()
     }
