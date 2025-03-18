@@ -2,7 +2,6 @@ import { createApp } from 'vue'
 import store from './store'
 import { createWebHistory, createRouter } from 'vue-router'
 import App from './components/App.vue'
-import vClickOutside from 'v-click-outside'
 
 import Landing from './components/pages/Landing.vue'
 import Crops from './components/pages/Crops.vue'
@@ -46,5 +45,4 @@ app.component('Table', Table)
 app.component('Icon', Icon)
 app.component('Images', Images)
 app.component('Checkbox', Checkbox)
-app.directive('click-outside', vClickOutside)
 app.mount('#app')
