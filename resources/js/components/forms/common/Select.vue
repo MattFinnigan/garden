@@ -1,5 +1,5 @@
 <template>
-  <div class="select-container">
+  <div :class="['select-container', { fixedwidthlabel }]">
     <label v-if="label">{{ label }}</label>
     <select :value="modelValue" @input="$emit('update:modelValue', $event.target.value)" v-bind="$attrs">
       <option v-for="option in options" :value="option.value">{{ option.label }}</option>
@@ -21,6 +21,10 @@ export default {
     },
     modelValue: {
       required: true
+    },
+    fixedwidthlabel: {
+      type: Boolean,
+      default: false
     }
   },
   emits: ['update:modelValue']
@@ -39,10 +43,16 @@ export default {
     flex: 1;
     border-radius: 0.5em;
     height: 45px;
+    border-right: 0.85em solid transparent;
   }
   label {
     min-width: 55px;
     display: inline-block;
+  }
+  &.fixedwidthlabel {
+    label {
+      width: 90px;
+    }
   }
 }
 </style>

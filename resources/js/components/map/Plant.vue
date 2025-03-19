@@ -70,8 +70,8 @@ export default {
         // left: ((this.plantCopy.x / this.parent.clientWidth) * 100) / this.zoom + '%',
         top: ((this.plantCopy.y / this.parent.clientHeight)* 100) + '%',
         left: ((this.plantCopy.x / this.parent.clientWidth) * 100) + '%',
-        width: this.plantCopy.entry.spacing_x + 'px',
-        height: this.plantCopy.entry.spacing_y + 'px',
+        width: this.plantCopy.crop.spacing + 'px',
+        height: this.plantCopy.crop.spacing + 'px',
         // width: (this.plantCopy.l / this.parent.clientWidth) * 100 + '%',
         // height: (this.plantCopy.w / this.parent.clientHeight) * 100 + '%',
         backgroundImage: `url(./images/upload/${this.plantCopy.entry.crop.plant.image})`

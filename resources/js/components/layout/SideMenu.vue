@@ -7,76 +7,182 @@
           {{ !closed ? '&#8592;' : '&#8594;' }}
         </Button>
       </div>
-      <ul>
-        <li :class="{ active: $route.name === '' }"><router-link to="/">Dashboard</router-link></li>
-        <li :class="{ active: $route.name === 'crops' }"><router-link to="/crops">Crops</router-link></li>
-        <li :class="{ active: $route.name === 'plants' }"><router-link to="/plants">Plants</router-link></li>
-      </ul>
+      <Select
+        v-model.number="month"
+        :options="[
+          { label: 'January', value: 1 },
+          { label: 'February', value: 2 },
+          { label: 'March', value: 3 },
+          { label: 'April', value: 4 },
+          { label: 'May', value: 5 },
+          { label: 'June', value: 6 },
+          { label: 'July', value: 7 },
+          { label: 'August', value: 8 },
+          { label: 'September', value: 9 },
+          { label: 'October', value: 10 },
+          { label: 'November', value: 11 },
+          { label: 'December', value: 12 }
+        ]"/>
+      <div class="buttons-contain">
+        <Button icon :class="['icon', { primary: viewing === 'plants' }]" @click="viewing = 'plants'"><Icon colour="black" name="seedling" maskSize="16px" size="1.1em"></Icon></Button>
+        <Button icon :class="['icon', { primary: viewing === 'crops' }]" @click="viewing = 'crops'"><Icon colour="black" name="view" maskSize="16px" size="1.1em"></Icon></Button>
+      </div>
+      <div class="list-items">
+        <ListItem
+          v-show="viewing === 'plants'"
+          v-for="plant in plants"
+          :key="plant.id"
+          :highlight="plant.id === currentPlant?.id"
+          @click="selectPlant(plant.id)">
+          <template #image>
+            <img :src="'./images/upload/' + plant.image" alt="Plant icon">
+          </template>
+          <template #title>
+            {{ plant.name }}
+          </template>
+          <template #description>
+            {{ plant.variety }}
+          </template>
+          <template #actions>
+            <Button classes="sm icon secondary" @click="editPlant(plant.id)"><Icon name="edit"/></Button>
+            <Button classes="sm icon danger" @click="deletePlant(plant.id)"><Icon name="delete"/></Button>
+          </template>
+        </ListItem>
+        <div class="add-button">
+          <Button class="sm icon primary" @click="createNewPlant"><Icon name="plus"/></Button>
+        </div>
+      </div>
     </nav>
-    <PlantForm v-if="newPlant" @close="newPlant = false"/>
+    <Modal v-if="currentPlant && mode === 'edit'" @close="cancelPlant">
+      <template #header>
+        <h5>Create a new Plant </h5>
+        <p>Let's add a Plant with it's first Entry</p>
+      </template>
+      <template #content>
+        <PlantForm @done="plantSubmitted()">
+          <template #buttons>
+            <Button class="primary" type="submit" >Done</Button>
+          </template>
+        </PlantForm>
+      </template>
+    </Modal>
   </aside>
 </template>
 
 <script>
-import PlantForm from '../forms/PlantForm.vue';
+import { defaultPlant } from '../../utils/consts'
+import { fetchPlants, deletePlant } from '../../utils/api'
+import ListItem from '../layout/ListItem.vue'
+import PlantForm from '../forms/PlantForm.vue'
 
 export default {
   components: {
-    PlantForm
+    PlantForm,
+    ListItem
   },
   data () {
     return {
-      newPlant: false,
-      closed: true
+      closed: true,
+      viewing: 'plants',
+      mode: 'view'
+    }
+  },
+  mounted () {
+    this.month = new Date().getMonth() + 1
+    fetchPlants(this)
+  },
+  computed: {
+    currentPlant () {
+      return this.$store.state.plants.current
+    },
+    plants () {
+      return this.$store.state.plants.list
+    },
+    month: {
+      get () {
+        return this.$store.state.maps.month
+      },
+      set (value) {
+        return this.$store.commit('maps/setMapMonth', value)
+      }
     }
   },
   watch: {
     $route () {
       this.closed = true
     }
+  },
+  methods: {
+    selectPlant (id) {
+      this.$store.commit('plants/setCurrentPlant', this.plants.find(plant => plant.id === id))
+    },
+    cancelPlant () {
+      this.mode = 'view'
+      this.$store.commit('plants/setCurrentPlant', null)
+    },
+    plantSubmitted () {
+      fetchPlants(this).then(() => {
+        this.mode = 'view'
+      })
+    },
+    createNewPlant () {
+      this.mode = 'edit'
+      this.$store.commit('plants/setCurrentPlant', {
+        name: '',
+        variety: '',
+        description: '',
+        spacing: null,
+        sow_from: null,
+        sow_to: null,
+        days_to_harvest: null,
+        image: ''
+      })
+    },
+    editPlant (id) {
+      this.mode = 'edit'
+      this.$store.commit('plants/setCurrentPlant', this.plants.find(plant => plant.id === id))
+    },
+    deletePlant (id) {
+      deletePlant(this, id).then(() => {
+        fetchPlants(this)
+      })
+    }
   }
 }
 </script>
 <style lang="scss" scoped>
 aside {
-  flex: 0 0 200px;
   transition: all 0.3s;
+  height: 500px;
+  position: relative;
   nav {
-    background-color: $grey-800;
-    position: fixed;
-    top: 0px;
-    left: 0;
+    border: 1px solid $grey-200;
     width: 100%;
-    text-align: center;
-    border-right: 1px solid $grey-500;
     height: 100%;
     transition: all 0.3s;
     .nav-toggle {
-      position: absolute;
-      top: 0;
-      right: 0;
-      transition: all 0.3s;
       font-size: 1em;
     }
-    ul {
-      list-style-type: none;
-      padding: 0;
-      margin: 0;
+    .buttons-contain {
       display: flex;
-      flex-direction: column;
-      margin-top: 25px;
-      li {
-        margin-bottom: 1rem;
-        a, :deep(button.link) {
-          color: $textColour;
-          &:hover {
-            color: $linkColour;
-          }
-        }
-        &.active {
-          a {
-            color: $linkColour;
-          }
+      button {
+        flex: 1;
+        border-radius: 0;
+      }
+    }
+    .list-items {
+      margin-bottom: 10px;
+      max-height: 375px;
+      overflow-y: scroll;
+      .add-button {
+        display: flex;
+        justify-content: flex-end;
+        width: 100%;
+        position: absolute;
+        bottom: 0;
+        padding: 10px 0;
+        button {
+          margin-right: 10px;
         }
       }
     }
@@ -99,10 +205,7 @@ aside {
       }
     }
     nav {
-      background-color: transparent;
       width: unset;
-      padding-right: 50px;
-      text-align: left;
       .nav-toggle {
         display: none;
       }

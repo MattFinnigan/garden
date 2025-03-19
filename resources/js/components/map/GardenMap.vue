@@ -1,41 +1,16 @@
 <template>
   <div class="garden-map">
-    <div class="controls-row">
+    <!-- <div class="controls-row">
       <div class="date-select">
-        <!-- <Button class="icon secondary" @click="removeDays(7)"><Icon name="rewind" size="16px" maskSize="15px"></Icon></Button>
-        <Button class="icon secondary" @click="removeDays(1)"><Icon name="play reverse"></Icon></Button> -->
-        <Select
-          v-model.number="month"
-          :options="[
-            { label: 'January', value: 1 },
-            { label: 'February', value: 2 },
-            { label: 'March', value: 3 },
-            { label: 'April', value: 4 },
-            { label: 'May', value: 5 },
-            { label: 'June', value: 6 },
-            { label: 'July', value: 7 },
-            { label: 'August', value: 8 },
-            { label: 'September', value: 9 },
-            { label: 'October', value: 10 },
-            { label: 'November', value: 11 },
-            { label: 'December', value: 12 }
-          ]"
-          @input="fetchCrops()"/>
-        <!-- <Button class="icon secondary" @click="addDays(1)"><Icon name="play"></Icon></Button>
-        <Button class="icon secondary" @click="addDays(7)"><Icon name="rewind reverse" size="16px" maskSize="15px"></Icon></Button> -->
+        <Button class="icon secondary" @click="removeDays(7)"><Icon name="rewind" size="16px" maskSize="15px"></Icon></Button>
+        <Button class="icon secondary" @click="removeDays(1)"><Icon name="play reverse"></Icon></Button>
+        <Button class="icon secondary" @click="addDays(1)"><Icon name="play"></Icon></Button>
+        <Button class="icon secondary" @click="addDays(7)"><Icon name="rewind reverse" size="16px" maskSize="15px"></Icon></Button>
       </div>
-      <div class="buttons-contain">
-        <!-- <Button class="primary outline icon" @click="zoomToFull"><Icon name="zoomin" colour="primary" maskSize="15px" size="14px"></Icon></Button> -->
-        <!-- <Button class="primary outline icon" @click="zoom += 0.1"><Icon name="zoomin" colour="primary" maskSize="15px" size="14px"></Icon></Button>
-        <Button class="primary outline icon" @click="zoom -= 0.1"><Icon name="zoomout" colour="primary" maskSize="15px" size="14px"></Icon></Button> -->
-        <Button class="primary icon" @click="showNewMenu = !showNewMenu"><Icon name="plus"></Icon></Button>
-        <div :class="['dropdown', { 'show': showNewMenu }]">
-          <div class="item" @click="createNewBed">Bed</div>
-          <div class="item" @click="createNewCrop">Crop</div>
-          <div class="item" @click="selectCropMode">Crop Entry</div>
-        </div>
-      </div>
-    </div>
+        <Button class="primary outline icon" @click="zoomToFull"><Icon name="zoomin" colour="primary" maskSize="15px" size="14px"></Icon></Button> 
+        <Button class="primary outline icon" @click="zoom += 0.1"><Icon name="zoomin" colour="primary" maskSize="15px" size="14px"></Icon></Button>
+        <Button class="primary outline icon" @click="zoom -= 0.1"><Icon name="zoomout" colour="primary" maskSize="15px" size="14px"></Icon></Button>
+    </div> -->
     <div id="grid" class="grid" ref="grid" :style="styles" @click.prevent.self="() => { cancelBed(); cancelCropEntry(); cancelCropSelect() }">
       <div v-if="newBedExplain" class="new-bed-explain" @mousedown="beginNewBed">
         <h4>Click and drag to create a new bed</h4>
@@ -43,13 +18,13 @@
       <BedMap v-for="bed in beds" :key="'bed' + bed.id" :zoom="zoom" :bed="bed" ref="bed" :selectionMode="currentCropEntry && !currentBed" @editingBed="editingBed = true"/>
     </div>
     <!-- <Crops v-else-if="!loading" :embedded="true"></Crops> -->
-    <Modal v-if="currentBed && editingBed" @close="cancelBed(currentBed)">
+    <Modal v-if="currentBed && editingBed" @close="cancelBed()">
       <template #header>
         <h5>{{ bedFormText.heading }}</h5>
         <p>{{ bedFormText.text }}</p>
       </template>
       <template #content>
-        <BedsForm @done="bedSubmitted()" @remove="(bed) => { removeBed(bed, true) }">
+        <BedsForm @done="bedSubmitted()">
           <template #buttons>
             <Button type="submit" classes="secondary2" @click="bedSubmitted = bedUpdated">Done</Button>
             <Button class="primary" type="submit" @click="bedSubmitted = createNewCrop">Add a Crop</Button>
@@ -64,25 +39,12 @@
         <p v-else>Add a new Entry to this Crop</p>
       </template>
       <template #content>
-        <CropEntryForm @done="cropEntrySubmitted()" @remove="removeCropEntry" @createPlant="createNewPlant">
+        <CropEntryForm @done="cropEntrySubmitted()" @remove="removeCropEntry" @createPlant="">
           <template #buttons>
             <Button v-if="editingBed" type="submit" classes="secondary2" @click="cropEntrySubmitted = createNewCrop">Submit & create another</Button>
             <Button class="primary" type="submit" @click="cropEntrySubmitted = cancelCropEntry">Done</Button>
           </template>
         </CropEntryForm>
-      </template>
-    </Modal>
-    <Modal v-if="currentPlant && mode === 'edit'" @close="cancelPlant">
-      <template #header>
-        <h5>Create a new Plant </h5>
-        <p>You've selected a bed. Now let's add a Plant with it's first Entry</p>
-      </template>
-      <template #content>
-        <PlantForm @done="plantSubmitted()">
-          <template #buttons>
-            <Button class="primary" type="submit" >Done</Button>
-          </template>
-        </PlantForm>
       </template>
     </Modal>
     <Modal v-if="currentCrop && mode !== 'edit'" @close="cancelCropEntry(true)">
@@ -98,8 +60,8 @@
 </template>
 
 <script>
-import { fetchCrops, fetchBeds, updateBed, fetchPlants, deleteCropEntry, updateCropEntry } from '../../utils/api'
-import { watchScreenSize, arrangePlantsInBedWithOverlapCheck } from '../../utils/helpers'
+import { fetchCrops, fetchBeds, fetchPlants, deleteCropEntry, updateCropEntry } from '../../utils/api'
+import { watchScreenSize } from '../../utils/helpers'
 import { defaultCrop, defaultCropEntry, defaultBed } from '../../utils/consts'
 
 import BedMap from './BedMap.vue'
@@ -195,15 +157,6 @@ export default {
     }
   },
   methods: {
-    createNewPlant () {
-      this.$store.commit('plants/setCurrentPlant', {
-        name: '',
-        variety: '',
-        description: '',
-        days_to_harvest: 1,
-        image: ''
-      })
-    },
     plantSubmitted () {
     },
     cancelPlant () {
@@ -225,14 +178,14 @@ export default {
         this.$store.commit('crops/setMode', 'edit')
         this.cropEntrySubmitted = null
         this.$store.commit('crops/setCurrentCrop', null)
-        this.cancelBed(this.currentBed)
+        this.cancelBed()
       } else {
         this.$store.commit('crops/setMode', 'view')
       }
       this.$store.commit('crop_entries/setCurrentCropEntry', null)
     },
     bedUpdated () {
-      this.cancelBed(this.currentBed)
+      this.cancelBed()
       this.bedSubmitted = null
     },
     zoomToFull () {
@@ -265,11 +218,6 @@ export default {
         })
       })
     },
-    removeBed (bed) {
-      updateBed(this, bed.id, { ...bed, deactivated: this.date }, false).then(() => {
-        this.$store.commit('beds/setCurrentBed', null)
-      })
-    },
     beginNewBed (e) {
       this.newBedExplain = false
       const ev = new MouseEvent('mousedown', {
@@ -281,7 +229,7 @@ export default {
       })
       this.$refs.grid.dispatchEvent(ev)
     },
-    cancelBed (bed)  {
+    cancelBed ()  {
       this.editingBed = false
       if (this.$refs.grid.querySelector('.newBed')) {
         this.$refs.grid.removeChild(this.$refs.grid.querySelector('.newBed'))
@@ -359,9 +307,11 @@ export default {
         newBed.y = (shapeRect.top - parentRect.top) / zoomFactor
         newBed.width = shapeRect.width / zoomFactor
         newBed.height = shapeRect.height / zoomFactor
-
-        this.$store.commit('beds/setCurrentBed', newBed)
-
+        if (newBed.width > 10 && newBed.height > 10) {
+          this.$store.commit('beds/setCurrentBed', newBed)
+        } else {
+          this.cancelBed()
+        }
         shape = null
       }
 
@@ -453,67 +403,6 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.controls-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.375em;
-  > * {
-    flex: 0.3;
-  }
-  .date-select {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .buttons-contain {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 10px;
-    .dropdown {
-      border-radius: 0.5em;
-      background: $backgroundColour;
-      position: absolute;
-      top: 130%;
-      right: 0;
-      text-align: right;
-      z-index: -999;
-      width: 120px;
-      border: 1px solid $borderColour;
-      opacity: 0;
-      transition: all 0.3s;
-      &.show {
-        z-index: 999;
-        opacity: 1;
-      }
-      .item {
-        background-color: $backgroundColour;
-        padding: 6px 12px;
-        cursor: pointer;
-        border-bottom: 1px solid $borderColour;
-        &:hover {
-          background: $secondary2;
-        }
-        &:first-child {
-          border-top-left-radius: 0.5em;
-          border-top-right-radius: 0.5em;
-          border-top: 0;
-        }
-        &:last-child {
-          border-bottom: 0;
-          border-bottom-right-radius: 0.5em;
-          border-bottom-left-radius: 0.5em;
-        }
-      }
-    }
-  }
-  @media (max-width: 768px) {
-    flex-direction: column;
-    gap: 1em;
-  }
-}
 .grid {
   position: relative;
   background: $primary2;

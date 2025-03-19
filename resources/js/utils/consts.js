@@ -3,8 +3,7 @@ const defaultCrop = (plant = null) => {
   return {
     plant_id: plant ? plant.id : null,
     crop_entries: [],
-    spacing_x: 1,
-    spacing_y: 1,
+    spacing: 1,
     height: 1,
     width: 1,
     qty: 1
@@ -34,8 +33,22 @@ const defaultBed = () => {
   }
 }
 
+const defaultPlant = () => {
+  return {
+    name: '123',
+    variety: '456',
+    description: '456',
+    spacing: 1,
+    sow_from: 1,
+    sow_to: 1,
+    days_to_harvest: 1,
+    image: ''
+  }
+}
+
 export {
   defaultCrop,
   defaultCropEntry,
-  defaultBed
+  defaultBed,
+  defaultPlant
 }

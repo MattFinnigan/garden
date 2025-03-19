@@ -1,7 +1,7 @@
 <template>
   <div>
     <p v-if="errors" class="error">{{ errors }}</p>
-    <Form :canDelete="canDelete" deleteText="Remove" :deleteWarning="'Remove bed from ' + localeDate(date) + '?' " @remove="$emit('remove', current)" @submit="submitForm">
+    <Form :canDelete="canDelete" deleteText="Remove" deleteWarning="Are you sure?" @remove="deleteBed" @submit="submitForm">
       <template #inputs>
         <Input v-model="name" label="Name" maxlength="255" :flex="true" placeholder="Herbs Bed" required/>
         <Input v-model="description" type="textarea" label="Description" placeholder="Nice sunny location. Snails seem to hate it here!" :flex="true" maxlength="255"/>
@@ -16,11 +16,11 @@
 
 <script>
 import { clone, localeDate } from '../../utils/helpers'
-import { createBed, updateBed } from '../../utils/api'
+import { createBed, updateBed, deleteBed } from '../../utils/api'
 
 export default {
   name: 'BedsForm',
-  emits: ['done', 'remove'],
+  emits: ['done'],
   data () {
     return {
       localeDate,
@@ -88,6 +88,22 @@ export default {
     },
     removeImage (index) {
       this.$store.commit('beds/removeImageFromCurrentBed', index)
+    },
+    deleteBed () {
+      if (this.loading) {
+        return
+      }
+      this.loading = true
+      const id = this.current.id
+      deleteBed(this, id).then(response => {
+        if (response.data.status === 'success') {
+          this.$emit('done', null)
+          this.$store.commit('beds/setBeds', this.beds.filter(b => b.id !== id))
+        } else {
+          this.errors = response.data.message
+        }
+        this.loading = false
+      })
     },
     submitForm (e) {
       e.preventDefault()

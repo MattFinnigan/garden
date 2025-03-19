@@ -1,5 +1,5 @@
 <template>
-  <div :class="['input-container', { flex }]">
+  <div :class="['input-container', { flex, fixedwidthlabel }]">
     <label v-if="label">{{ label }}</label>
     <input :type="type" :value="modelValue" @input="$emit('update:modelValue', $event.target.value)" :placeholder="label" v-bind="$attrs"/>
     <div v-if="suffix" v-html="suffix"></div>
@@ -19,7 +19,7 @@ export default {
       default: 'text'
     },
     modelValue: {
-      required: true
+      required: false
     },
     flex: {
       type: Boolean,
@@ -28,9 +28,14 @@ export default {
     suffix: {
       type: String,
       default: ''
-    }
+    },
   },
-  emits: ['update:modelValue']
+  emits: ['update:modelValue'],
+  computed: {
+    fixedwidthlabel () {
+      return this.$attrs && this.$attrs.fixedwidthlabel
+    }
+  }
 }
 </script>
 
@@ -60,6 +65,11 @@ export default {
   label {
     min-width: 60px;
     display: inline-block;
+  }
+  &.fixedwidthlabel {
+    label {
+      width: 100px;
+    }
   }
 }
 </style>

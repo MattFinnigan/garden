@@ -77,5 +77,8 @@ export default {
     &.zoomout {
       mask-image: url('/images/zoom-out.svg');
     }
+    &.seedling {
+      mask-image: url('/images/seedling.svg');
+    }
   }
 </style>

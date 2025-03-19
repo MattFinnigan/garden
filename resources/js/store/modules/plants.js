@@ -35,6 +35,9 @@ const mutations = {
   },
   setCurrentPlantSowTo (state, sowTo) {
     state.current.sow_to = sowTo
+  },
+  setCurrentPlantSpacing (state, spacing) {
+    state.current.spacing = spacing
   }
 }
 

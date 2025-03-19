@@ -30,12 +30,6 @@ const mutations = {
   setCurrentCropEntryImage (state, image) {
     state.current.image = image
   },
-  setCurrentCropEntrySpacingX (state, value) {
-    state.current.spacing_x = value
-  },
-  setCurrentCropEntrySpacingY (state, value) {
-    state.current.spacing_y = value
-  },
   setCurrentCropEntryDatetimestamp (state, date) {
     state.current.datetimestamp = date
   },

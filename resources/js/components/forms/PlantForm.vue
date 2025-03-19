@@ -4,11 +4,13 @@
       <template #inputs>
         <Input type="text" v-model="name" label="Species" required minlength="2" maxlength="255"/>
         <Input type="text" v-model="variety" label="Variety" required maxlength="255"/>
-        <Input type="textarea" v-model="description" label="Description" maxlength="255"/>
-        <Input type="number" v-model="daysToHarvest" label="Days to Harvest" required min="1"/>
-        <Select type="number" v-model.number="sow_from" :options="months" label="Sow From" required/>
-        <Select type="number" v-model.number="sow_to" :options="months" label="Sow To" required/>
-        <Input type="file" label="Image" @change="uploadImage" required/>
+        <Input type="number" v-model="daysToHarvest" label="Harvest" required min="1" suffix="&nbsp;day(s)"/>
+        <Select v-model.number="sow_from" :options="months" label="Sow on" required/>
+        <Select v-model.number="sow_to" :options="months" label="Until" required/>
+        <Input v-model.number="spacing" type="number" label="Spacing" min="0" max="9999" suffix="&nbsp;cm" required/>
+        <Input type="textarea" v-model="description" label="Notes" maxlength="255"/>
+        <Input v-if="image" type="file" label="Image" @change="uploadImage"/>
+        <Input v-else type="file" label="Image" @change="uploadImage" required/>
         <img v-if="image" :src="'./images/upload/' + image"/>
       </template>
       <template #buttons>
@@ -47,6 +49,7 @@ export default {
       } else {
         createPlant(this, this.current).then(response => {
           this.$store.commit('plants/setCurrentPlant', response.data.plant)
+          this.$emit('done')
         })
       }
     },
@@ -112,6 +115,14 @@ export default {
       },
       set (value) {
         this.$store.commit('plants/setCurrentPlantSowTo', value)
+      }
+    },
+    spacing: {
+      get () {
+        return this.current.spacing
+      },
+      set (value) {
+        this.$store.commit('plants/setCurrentPlantSpacing', value)
       }
     },
     months () {

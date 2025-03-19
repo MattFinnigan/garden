@@ -244,6 +244,17 @@ export const updateBed = (context, id, data, storeState = true) => {
     })
   })
 }
+export const deleteBed = (context, id, storeState = true) => {
+  return new Promise((resolve) => {
+    destroy(`beds/${id}`).then((response) => {
+      console.log('deleteBed', id, 'response', response)
+      if (storeState) {
+        context.$store.commit('beds/setCurrentBed', null)
+      }
+      resolve(response)
+    })
+  })
+}
 
 // maps
 
