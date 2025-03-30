@@ -104,3 +104,118 @@ export const watchScreenSize = (callback) => {
   })
   resizeObserver.observe(document.body)
 }
+
+export const createShape = (parent, mouseMoveCallback, mouseUpCallback, mouseDownCallback) => {
+  let isDragging = false
+  let startX = 0
+  let startY = 0
+  let shape = null
+
+  const getZoomFactor = () => {
+    const computedStyle = window.getComputedStyle(parent)
+    return parseFloat(computedStyle.zoom) || 1
+  }
+
+  const onMouseMove = (e) => {
+    if (!isDragging || !shape) {
+      return
+    }
+
+    const parentRect = parent.getBoundingClientRect()
+    const zoomFactor = getZoomFactor()
+
+    // Calculate the current mouse position relative to the parent
+    const currentX = Math.min(
+      parentRect.width,
+      Math.max(0, (e.clientX - parentRect.left) / zoomFactor)
+    )
+    const currentY = Math.min(
+      parentRect.height,
+      Math.max(0, (e.clientY - parentRect.top) / zoomFactor)
+    )
+
+    // Calculate width and height of the shape
+    const width = Math.abs(currentX - startX)
+    const height = Math.abs(currentY - startY)
+
+    // Update shape dimensions and position
+    shape.style.left = `${Math.min(startX, currentX)}px`
+    shape.style.top = `${Math.min(startY, currentY)}px`
+    shape.style.width = `${width}px`
+    shape.style.height = `${height}px`
+    shape.querySelector('.shapeWidth').innerText = `${(width / 100).toFixed(1)}m`
+    shape.querySelector('.shapeHeight').innerText = `${(height / 100).toFixed(1)}m`
+    mouseMoveCallback(shape, width, height)
+  }
+
+  const onMouseUp = () => {
+    if (!isDragging || !shape) {
+      return
+    }
+
+    isDragging = false
+
+    document.removeEventListener('mousemove', onMouseMove)
+    document.removeEventListener('mouseup', onMouseUp)
+    parent.removeEventListener('mousedown', onMouseDown)
+
+    const shapeRect = shape.getBoundingClientRect()
+    const parentRect = parent.getBoundingClientRect()
+    const zoomFactor = getZoomFactor()
+
+    mouseUpCallback(shapeRect, parentRect, zoomFactor)
+    shape = null
+  }
+
+  const onMouseDown = (e) => {
+    if (e.target !== parent) {
+      return
+    }
+
+    mouseDownCallback()
+    const parentRect = parent.getBoundingClientRect()
+    const zoomFactor = getZoomFactor()
+
+    startX = Math.min(
+      parentRect.width,
+      Math.max(0, (e.clientX - parentRect.left) / zoomFactor)
+    )
+    startY = Math.min(
+      parentRect.height,
+      Math.max(0, (e.clientY - parentRect.top) / zoomFactor)
+    )
+
+    // Create the shape element
+    shape = document.createElement('div')
+    shape.className = 'newBed'
+    shape.style.left = `${startX}px`
+    shape.style.top = `${startY}px`
+    shape.style.width = '0px'
+    shape.style.height = '0px'
+
+    const shapeWidth = document.createElement('div')
+    shapeWidth.className = 'shapeWidth'
+    shapeWidth.innerText = '0cm'
+
+    const shapeHeight = document.createElement('div')
+    shapeHeight.className = 'shapeHeight'
+    shapeHeight.innerText = '0cm'
+
+    if (startX < 40) {
+      shapeHeight.style.left = '0'
+    }
+    if (startY < 40) {
+      shapeWidth.style.top = '0'
+    }
+
+    parent.appendChild(shape)
+    shape.appendChild(shapeWidth)
+    shape.appendChild(shapeHeight)
+    isDragging = true
+
+    document.addEventListener('mousemove', onMouseMove)
+    document.addEventListener('mouseup', onMouseUp)
+  }
+
+  parent.addEventListener('mousedown', onMouseDown)
+}

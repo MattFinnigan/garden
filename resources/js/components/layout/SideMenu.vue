@@ -1,13 +1,10 @@
 
 <template>
-  <aside :class="['side-menu', { closed }]">
+  <aside class="side-menu">
     <nav>
-      <div class="nav-toggle">
-        <Button class="sm" @click="closed = !closed">
-          {{ !closed ? '&#8592;' : '&#8594;' }}
-        </Button>
+      <div class="month-select">
+        <Select v-model.number="month" :options="monthOptionsLong"/>
       </div>
-      <Select v-model.number="month" :options="monthOptionsLong"/>
       <div class="buttons-contain">
         <Button icon :class="['icon', { accent: viewing === 'plants' }]" @click="viewing = 'plants'"><Icon colour="black" name="seedling" maskSize="22px" size="1.4em"></Icon>Plants</Button>
         <Button icon :class="['icon', { accent: viewing === 'crops' }]" @click="viewing = 'crops'"><Icon colour="black" name="view" maskSize="22px" size="1.4em"></Icon>Crops</Button>
@@ -71,7 +68,6 @@ export default {
     return {
       monthOptionsLong: monthOptionsLong(),
       monthsShort: monthsShort(),
-      closed: true,
       viewing: 'plants',
       mode: 'view'
     }
@@ -97,11 +93,6 @@ export default {
       set (value) {
         return this.$store.commit('maps/setMapMonth', value)
       }
-    }
-  },
-  watch: {
-    $route () {
-      this.closed = true
     }
   },
   methods: {
@@ -137,19 +128,18 @@ export default {
 <style lang="scss" scoped>
 aside {
   transition: all 0.3s;
-  height: calc(100vh - 60px);
+  height: calc(100vh - 55px);
   position: relative;
   nav {
     border: 1px solid $grey-200;
     width: 100%;
     height: 100%;
     transition: all 0.3s;
-    .nav-toggle {
-      font-size: 1em;
+    .month-select {
+      padding: 10px;
     }
     .buttons-contain {
       display: flex;
-      border: 1px solid $grey-200;
       border-top-right-radius: 10px;
       border-top-left-radius: 10px;
       button {
@@ -185,28 +175,9 @@ aside {
       }
     }
   }
-  &.closed {
-    flex: 0;
-    nav {
-      left: -100%;
-    }
-    .nav-toggle {
-      position: absolute;
-      left: 100%;
-    }
-  }
   @include device (desktop, 'all') {
-    &.closed {
-      flex: 0 0 200px;
-      nav {
-        left: unset;
-      }
-    }
     nav {
       width: 250px;
-      .nav-toggle {
-        display: none;
-      }
     }
   }
 }

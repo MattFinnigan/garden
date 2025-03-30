@@ -11,13 +11,23 @@
         <Button class="primary outline icon" @click="zoom += 0.1"><Icon name="zoomin" colour="primary" maskSize="15px" size="14px"></Icon></Button>
         <Button class="primary outline icon" @click="zoom -= 0.1"><Icon name="zoomout" colour="primary" maskSize="15px" size="14px"></Icon></Button>
     </div> -->
+    <!-- Bed & crop placements -->
     <div id="grid" class="grid" ref="grid" :style="styles" @click.prevent.self="() => { cancelBed(); cancelCropEntry(); cancelCropSelect() }">
-      <div v-if="newBedExplain" class="new-bed-explain" @mousedown="beginNewBed">
-        <h4>Click and drag to create a new bed</h4>
+      <!-- Beds -->
+      <div v-if="newBedExplain" class="new-thing-explain" @mousedown="beginNewBed">
+        <h4>Click and drag to create a new Bed</h4>
       </div>
       <BedMap v-for="bed in beds" :key="'bed' + bed.id" :zoom="zoom" :bed="bed" ref="bed" :selectionMode="currentCropEntry && !currentBed" @editingBed="editingBed = true"/>
+      <div class="new-bed-btn">
+        <Button class="primary icon sm" @click="createNewBed"><Icon name="plus"></Icon></Button>
+      </div>
+      <!-- Crops -->
+      <div v-if="newCropExplain" class="new-thing-explain" @mousedown="beginNewCrop">
+        <h4>Click and drag to create a new Crop</h4>
+      </div>
     </div>
     <!-- <Crops v-else-if="!loading" :embedded="true"></Crops> -->
+     <!-- Bed Form -->
     <Modal v-if="currentBed && editingBed" @close="cancelBed()">
       <template #header>
         <h5>{{ bedFormText.heading }}</h5>
@@ -32,7 +42,7 @@
         </BedsForm>
       </template>
     </Modal>
-    <Modal v-if="currentCropEntry && currentBed && mode === 'edit'" v-show="!currentPlant" @close="cancelCropEntry">
+    <!-- <Modal v-if="currentCropEntry && currentBed && mode === 'edit'" v-show="!currentPlant" @close="cancelCropEntry">
       <template #header>
         <h5>Create a new Crop {{ currentCropEntry.crop_id ? 'Entry' : '' }}</h5>
         <p v-if="!currentCropEntry.crop_id">You've selected a bed. Now let's add a Crop with it's first Entry</p>
@@ -55,13 +65,13 @@
       <template #content>
         <Crop :embedded="true" @new="createNewCrop(false)" @close="cancelCropEntry(true)"></Crop>
       </template>
-    </Modal>
+    </Modal> -->
   </div>
 </template>
 
 <script>
 import { fetchCrops, fetchBeds, fetchPlants, deleteCropEntry, updateCropEntry } from '../../utils/api'
-import { watchScreenSize } from '../../utils/helpers'
+import { watchScreenSize, createShape } from '../../utils/helpers'
 import { defaultCrop, defaultCropEntry, defaultBed } from '../../utils/consts'
 
 import BedMap from './BedMap.vue'
@@ -88,7 +98,7 @@ export default {
     return {
       loading: true,
       newBedExplain: false,
-      showNewMenu: false,
+      newCropExplain: false,
       zoom: 1,
       bedSubmitted: null,
       cropEntrySubmitted: null,
@@ -124,7 +134,7 @@ export default {
     },
     styles () {
       return {
-        height: 'calc(100vh - 60px)',
+        height: 'calc(100vh - 53px)',
         width: '100%'
       }
     },
@@ -157,65 +167,38 @@ export default {
     }
   },
   methods: {
-    plantSubmitted () {
-    },
-    cancelPlant () {
-      this.$store.commit('plants/setCurrentPlant', null)
-    },
-    selectCropMode () {
-      this.$store.commit('crops/setSelectCropMode', !this.$store.state.crops.selectCropMode)
-      this.showNewMenu = false
-    },
-    cancelCropSelect () {
-      this.$store.commit('crops/setSelectCropMode', false)
-      this.showNewMenu = false
-    },
-    removeCropEntry () {
-      deleteCropEntry(this, this.currentCropEntry.id)
-    },
-    cancelCropEntry (close = false) {
-      if (this.editingBed || close) {
-        this.$store.commit('crops/setMode', 'edit')
-        this.cropEntrySubmitted = null
-        this.$store.commit('crops/setCurrentCrop', null)
-        this.cancelBed()
-      } else {
-        this.$store.commit('crops/setMode', 'view')
-      }
-      this.$store.commit('crop_entries/setCurrentCropEntry', null)
-    },
-    bedUpdated () {
-      this.cancelBed()
-      this.bedSubmitted = null
-    },
     zoomToFull () {
       if (this.$el.offsetWidth > this.$refs.grid?.offsetWidth) {
         this.$refs.grid.style.zoom = (this.$el.offsetWidth / this.$refs.grid?.offsetWidth)
         this.zoom = (this.$el.offsetWidth / this.$refs.grid?.offsetWidth)
       }
     },
-    createNewCrop (editingBed = true) {
-      this.editingBed = editingBed
-      this.$store.commit('crops/setMode', 'edit')
+    // bed stuff
+    createNewBed () {
+      const newBed = defaultBed()
+      const parent = this.$refs.grid
+
+      this.editingBed = true
       this.$store.commit('crops/setSelectCropMode', false)
-      this.$nextTick(() => {
-        this.bedSubmitted = null
-        this.cropEntrySubmitted = null
-        this.showNewMenu = false
-        const promises = []
-        if (!this.plants.length) {
-          promises.push(fetchPlants(this))
+      this.newBedExplain = true
+
+      createShape(parent, () => {
+        // move
+      }, (shapeRect, parentRect, zoomFactor) => {
+        // mouse up
+        // Update the new bed's properties
+        newBed.x = (shapeRect.left - parentRect.left) / zoomFactor
+        newBed.y = (shapeRect.top - parentRect.top) / zoomFactor
+        newBed.width = shapeRect.width / zoomFactor
+        newBed.height = shapeRect.height / zoomFactor
+        if (newBed.width > 10 && newBed.height > 10) {
+          this.$store.commit('beds/setCurrentBed', newBed)
+        } else {
+          this.cancelBed()
         }
-        Promise.all(promises).then(() => {
-          const e = defaultCropEntry(this.currentBed, this.currentCrop)
-          const c = defaultCrop(this.plants[0])
-          if (!this.currentCrop) {
-            this.$store.commit('crops/setCurrentCrop', c)
-            this.$store.commit('crop_entries/setCurrentCropEntry', e)
-          } else {
-            this.$store.commit('crop_entries/setCurrentCropEntry', { ...this.currentCrop.latest_entry, id: null, datetimestamp: new Date().toISOString().slice(0, 16) })
-          }
-        })
+      }, () => {
+        // mouse down
+        this.newBedExplain = false
       })
     },
     beginNewBed (e) {
@@ -229,6 +212,10 @@ export default {
       })
       this.$refs.grid.dispatchEvent(ev)
     },
+    bedUpdated () {
+      this.cancelBed()
+      this.bedSubmitted = null
+    },
     cancelBed ()  {
       this.editingBed = false
       if (this.$refs.grid.querySelector('.newBed')) {
@@ -237,135 +224,46 @@ export default {
       }
       this.$store.commit('beds/setCurrentBed', null)
     },
-    createNewBed () {
-      this.editingBed = true
-      this.$store.commit('crops/setSelectCropMode', false)
-      this.newBedExplain = true
-      this.showNewMenu = false
-
-      const newBed = defaultBed()
-
-      let isDragging = false
-      let startX = 0
-      let startY = 0
-      let shape = null
+    // crop stuff
+    createNewCrop () {
+      this.newCropExplain = true
+      const newCrop = defaultCrop()
       const parent = this.$refs.grid
-
-      const getZoomFactor = () => {
-        const computedStyle = window.getComputedStyle(parent)
-        return parseFloat(computedStyle.zoom) || 1
+      createShape(parent, () => {
+        // move
+      }, (shapeRect, parentRect, zoomFactor) => {
+        // mouse up
+        newCrop.x = (shapeRect.left - parentRect.left) / zoomFactor
+        newCrop.y = (shapeRect.top - parentRect.top) / zoomFactor
+        newCrop.width = shapeRect.width / zoomFactor
+        newCrop.height = shapeRect.height / zoomFactor
+        // if (newCrop.width > 10 && newCrop.height > 10) {
+        //   this.$store.commit('beds/setCurrentCrop', newCrop)
+        // } else {
+        //   this.cancelBed()
+        // }
+      }, () => {
+        // mouse down
+        this.newCropExplain = false
+      })
+    },
+    beginNewCrop () {},
+    cancelCropEntry (close = false) {
+      if (this.editingBed || close) {
+        this.$store.commit('crops/setMode', 'edit')
+        this.cropEntrySubmitted = null
+        this.$store.commit('crops/setCurrentCrop', null)
+        this.cancelBed()
+      } else {
+        this.$store.commit('crops/setMode', 'view')
       }
-
-      const onMouseMove = (e) => {
-        if (!isDragging || !shape) {
-          return
-        }
-
-        const parentRect = parent.getBoundingClientRect()
-        const zoomFactor = getZoomFactor()
-
-        // Calculate the current mouse position relative to the parent
-        const currentX = Math.min(
-          parentRect.width,
-          Math.max(0, (e.clientX - parentRect.left) / zoomFactor)
-        )
-        const currentY = Math.min(
-          parentRect.height,
-          Math.max(0, (e.clientY - parentRect.top) / zoomFactor)
-        )
-
-        // Calculate width and height of the shape
-        const width = Math.abs(currentX - startX)
-        const height = Math.abs(currentY - startY)
-
-        // Update shape dimensions and position
-        shape.style.left = `${Math.min(startX, currentX)}px`
-        shape.style.top = `${Math.min(startY, currentY)}px`
-        shape.style.width = `${width}px`
-        shape.style.height = `${height}px`
-        shape.querySelector('.shapeWidth').innerText = `${(width / 100).toFixed(1)}m`
-        shape.querySelector('.shapeHeight').innerText = `${(height / 100).toFixed(1)}m`
-      }
-
-      const onMouseUp = () => {
-        if (!isDragging || !shape) {
-          return
-        }
-
-        isDragging = false
-
-        document.removeEventListener('mousemove', onMouseMove)
-        document.removeEventListener('mouseup', onMouseUp)
-        parent.removeEventListener('mousedown', onMouseDown)
-
-        const shapeRect = shape.getBoundingClientRect()
-        const parentRect = parent.getBoundingClientRect()
-        const zoomFactor = getZoomFactor()
-
-        // Update the new bed's properties
-        newBed.x = (shapeRect.left - parentRect.left) / zoomFactor
-        newBed.y = (shapeRect.top - parentRect.top) / zoomFactor
-        newBed.width = shapeRect.width / zoomFactor
-        newBed.height = shapeRect.height / zoomFactor
-        if (newBed.width > 10 && newBed.height > 10) {
-          this.$store.commit('beds/setCurrentBed', newBed)
-        } else {
-          this.cancelBed()
-        }
-        shape = null
-      }
-
-      const onMouseDown = (e) => {
-        if (e.target !== parent) {
-          return
-        }
-
-        this.newBedExplain = false
-        const parentRect = parent.getBoundingClientRect()
-        const zoomFactor = getZoomFactor()
-
-        startX = Math.min(
-          parentRect.width,
-          Math.max(0, (e.clientX - parentRect.left) / zoomFactor)
-        )
-        startY = Math.min(
-          parentRect.height,
-          Math.max(0, (e.clientY - parentRect.top) / zoomFactor)
-        )
-
-        // Create the shape element
-        shape = document.createElement('div')
-        shape.className = 'newBed'
-        shape.style.left = `${startX}px`
-        shape.style.top = `${startY}px`
-        shape.style.width = '0px'
-        shape.style.height = '0px'
-
-        const shapeWidth = document.createElement('div')
-        shapeWidth.className = 'shapeWidth'
-        shapeWidth.innerText = '0cm'
-        
-        const shapeHeight = document.createElement('div')
-        shapeHeight.className = 'shapeHeight'
-        shapeHeight.innerText = '0cm'
-
-        if (startX < 40) {
-          shapeHeight.style.left = '0'
-        }
-        if (startY < 40) {
-          shapeWidth.style.top = '0'
-        }
-
-        parent.appendChild(shape)
-        shape.appendChild(shapeWidth)
-        shape.appendChild(shapeHeight)
-        isDragging = true
-
-        document.addEventListener('mousemove', onMouseMove)
-        document.addEventListener('mouseup', onMouseUp)
-      }
-
-      parent.addEventListener('mousedown', onMouseDown)
+      this.$store.commit('crop_entries/setCurrentCropEntry', null)
+    },
+    cancelCropSelect () {
+      this.$store.commit('crops/setSelectCropMode', false)
+    },
+    removeCropEntry () {
+      deleteCropEntry(this, this.currentCropEntry.id)
     },
     fetchCrops () {
       this.loading = true
@@ -388,15 +286,8 @@ export default {
         })
       })
     },
-    addDays (days) {
-      const date = new Date(this.date)
-      date.setDate(date.getDate() + days + 1)
-      this.date = date
-    },
-    removeDays (days) {
-      const date = new Date(this.date)
-      date.setDate(date.getDate() - days)
-      this.date = date
+    selectCropMode () {
+      this.$store.commit('crops/setSelectCropMode', !this.$store.state.crops.selectCropMode)
     }
   }
 }
@@ -406,7 +297,6 @@ export default {
 .grid {
   position: relative;
   background: $primary2;
-  max-height: 80vh;
   max-width: 100%;
   overflow: auto;
   zoom: 1;
@@ -436,7 +326,7 @@ export default {
       transform: translateY(-50%);
     }
   }
-  .new-bed-explain {
+  .new-thing-explain {
     width: 100%;
     text-align: center;
     position: absolute;
@@ -455,6 +345,11 @@ export default {
       left: 50%;
       transform: translate(-50%, -50%);
     }
+  }
+  .new-bed-btn {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
   }
 }
 </style>

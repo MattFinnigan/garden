@@ -32,7 +32,6 @@ export default {
 <style scoped lang="scss">
 .list-item {
   padding: 10px;
-  background: $backgroundColour;
   border-bottom: 1px solid #ccc;
   cursor: pointer;
   .list-item-wrapper {
@@ -57,7 +56,7 @@ export default {
       display: flex;
       align-items: flex-end;
     }
-    }
+  }
   &.highlight {
     background: $accent;
   }

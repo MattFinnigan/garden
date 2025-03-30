@@ -18,4 +18,7 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
+body {
+  height: 100vh;
+}
 </style>
