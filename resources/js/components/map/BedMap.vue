@@ -120,7 +120,7 @@ export default {
 <style scoped lang="scss">
 .bed-map {
   position: absolute;
-  background: $secondary2;
+  background: $secondary;
   &:hover {
     cursor: pointer;
   }

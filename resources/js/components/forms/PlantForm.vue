@@ -5,8 +5,8 @@
         <Input type="text" v-model="name" label="Species" required minlength="2" maxlength="255"/>
         <Input type="text" v-model="variety" label="Variety" required maxlength="255"/>
         <Input type="number" v-model="daysToHarvest" label="Harvest" required min="1" suffix="&nbsp;day(s)"/>
-        <Select v-model.number="sow_from" :options="months" label="Sow on" required/>
-        <Select v-model.number="sow_to" :options="months" label="Until" required/>
+        <Select v-model.number="sow_from" :options="monthOptionsLong" label="Sow on" required/>
+        <Select v-model.number="sow_to" :options="monthOptionsLong" label="Until" required/>
         <Input v-model.number="spacing" type="number" label="Spacing" min="0" max="9999" suffix="&nbsp;cm" required/>
         <Input type="textarea" v-model="description" label="Notes" maxlength="255"/>
         <Input v-if="image" type="file" label="Image" @change="uploadImage"/>
@@ -21,14 +21,21 @@
 </template>
 
 <script>
+import { defaultPlant, monthOptionsLong } from '../../utils/consts'
 import { createPlant, updatePlant, uploadImage } from '../../utils/api'
 
 export default {
   name: 'PlantForm',
-  emits: ['done'],
+  emits: ['done', 'cancel'],
   data () {
     return {
+      monthOptionsLong: monthOptionsLong(),
       loading: false
+    }
+  },
+  created () {
+    if (!this.current?.id) {
+      this.$store.commit('plants/setCurrentPlant', defaultPlant())
     }
   },
   methods: {
@@ -43,18 +50,17 @@ export default {
       e.preventDefault()
       if (this.current.id) {
         updatePlant(this, this.current.id, this.current).then(response => {
-          this.$store.commit('plants/setCurrentPlant', null)
-          this.$emit('done')
+          this.$emit('done', response.data.plant)
         })
       } else {
         createPlant(this, this.current).then(response => {
-          this.$store.commit('plants/setCurrentPlant', response.data.plant)
-          this.$emit('done')
+          this.$store.commit('plants/setCurrentPlant')
+          this.$emit('done', response.data.plant)
         })
       }
     },
     cancel () {
-      this.$store.commit('plants/setCurrentPlant', null)
+      this.$emit('cancel')
     }
   },
   computed: {
@@ -124,22 +130,6 @@ export default {
       set (value) {
         this.$store.commit('plants/setCurrentPlantSpacing', value)
       }
-    },
-    months () {
-      return [
-        { value: 1, label: 'January' },
-        { value: 2, label: 'February' },
-        { value: 3, label: 'March' },
-        { value: 4, label: 'April' },
-        { value: 5, label: 'May' },
-        { value: 6, label: 'June' },
-        { value: 7, label: 'July' },
-        { value: 8, label: 'August' },
-        { value: 9, label: 'September' },
-        { value: 10, label: 'October' },
-        { value: 11, label: 'November' },
-        { value: 12, label: 'December' }
-      ]
     }
   }
 }

@@ -7,25 +7,10 @@
           {{ !closed ? '&#8592;' : '&#8594;' }}
         </Button>
       </div>
-      <Select
-        v-model.number="month"
-        :options="[
-          { label: 'January', value: 1 },
-          { label: 'February', value: 2 },
-          { label: 'March', value: 3 },
-          { label: 'April', value: 4 },
-          { label: 'May', value: 5 },
-          { label: 'June', value: 6 },
-          { label: 'July', value: 7 },
-          { label: 'August', value: 8 },
-          { label: 'September', value: 9 },
-          { label: 'October', value: 10 },
-          { label: 'November', value: 11 },
-          { label: 'December', value: 12 }
-        ]"/>
+      <Select v-model.number="month" :options="monthOptionsLong"/>
       <div class="buttons-contain">
-        <Button icon :class="['icon', { primary: viewing === 'plants' }]" @click="viewing = 'plants'"><Icon colour="black" name="seedling" maskSize="16px" size="1.1em"></Icon></Button>
-        <Button icon :class="['icon', { primary: viewing === 'crops' }]" @click="viewing = 'crops'"><Icon colour="black" name="view" maskSize="16px" size="1.1em"></Icon></Button>
+        <Button icon :class="['icon', { accent: viewing === 'plants' }]" @click="viewing = 'plants'"><Icon colour="black" name="seedling" maskSize="22px" size="1.4em"></Icon>Plants</Button>
+        <Button icon :class="['icon', { accent: viewing === 'crops' }]" @click="viewing = 'crops'"><Icon colour="black" name="view" maskSize="22px" size="1.4em"></Icon>Crops</Button>
       </div>
       <div class="list-items">
         <ListItem
@@ -33,7 +18,7 @@
           v-for="plant in plants"
           :key="plant.id"
           :highlight="plant.id === currentPlant?.id"
-          @click="selectPlant(plant.id)">
+          @click="selectPlant(plant)">
           <template #image>
             <img :src="'./images/upload/' + plant.image" alt="Plant icon">
           </template>
@@ -41,25 +26,27 @@
             {{ plant.name }}
           </template>
           <template #description>
-            {{ plant.variety }}
+            <p><em>{{ plant.variety }}</em></p>
+            <p>Sow {{ monthsShort[plant.sow_from] }} - {{ monthsShort[plant.sow_to] }}</p>
+            <p>Harvest: {{ plant.days_to_harvest }} Days</p>
           </template>
           <template #actions>
-            <Button classes="sm icon secondary" @click="editPlant(plant.id)"><Icon name="edit"/></Button>
-            <Button classes="sm icon danger" @click="deletePlant(plant.id)"><Icon name="delete"/></Button>
+            <Button classes="sm icon transparent" @click="editPlant(plant)"><Icon name="edit" colour="black"/></Button>
+            <Button classes="sm icon transparent" @click="deletePlant(plant)"><Icon name="delete" colour="black"/></Button>
           </template>
         </ListItem>
         <div class="add-button">
-          <Button class="sm icon primary" @click="createNewPlant"><Icon name="plus"/></Button>
+          <Button class="sm icon primary" @click="createPlant"><Icon name="plus"/></Button>
         </div>
       </div>
     </nav>
-    <Modal v-if="currentPlant && mode === 'edit'" @close="cancelPlant">
+    <Modal v-if="editingPlant" @close="cancelPlant">
       <template #header>
         <h5>Create a new Plant </h5>
         <p>Let's add a Plant with it's first Entry</p>
       </template>
       <template #content>
-        <PlantForm @done="plantSubmitted()">
+        <PlantForm @done="plantSubmitted" @cancel="cancelPlant">
           <template #buttons>
             <Button class="primary" type="submit" >Done</Button>
           </template>
@@ -70,8 +57,8 @@
 </template>
 
 <script>
-import { defaultPlant } from '../../utils/consts'
-import { fetchPlants, deletePlant } from '../../utils/api'
+import { monthsShort, monthOptionsLong } from '../../utils/consts'
+import { fetchPlants, deletePlant, createPlant } from '../../utils/api'
 import ListItem from '../layout/ListItem.vue'
 import PlantForm from '../forms/PlantForm.vue'
 
@@ -82,6 +69,8 @@ export default {
   },
   data () {
     return {
+      monthOptionsLong: monthOptionsLong(),
+      monthsShort: monthsShort(),
       closed: true,
       viewing: 'plants',
       mode: 'view'
@@ -98,6 +87,9 @@ export default {
     plants () {
       return this.$store.state.plants.list
     },
+    editingPlant () {
+      return this.viewing === 'plants' && this.mode === 'edit'
+    },
     month: {
       get () {
         return this.$store.state.maps.month
@@ -113,37 +105,29 @@ export default {
     }
   },
   methods: {
-    selectPlant (id) {
-      this.$store.commit('plants/setCurrentPlant', this.plants.find(plant => plant.id === id))
+    selectPlant (plant) {
+      this.$store.commit('plants/setCurrentPlant', plant)
     },
     cancelPlant () {
       this.mode = 'view'
       this.$store.commit('plants/setCurrentPlant', null)
     },
-    plantSubmitted () {
+    createPlant () {
+      this.$store.commit('plants/setCurrentPlant', null)
+      this.mode = 'edit'
+    },
+    plantSubmitted (plant) {
       fetchPlants(this).then(() => {
+        this.$store.commit('plants/setCurrentPlant', plant)
         this.mode = 'view'
       })
     },
-    createNewPlant () {
+    editPlant (plant) {
+      this.$store.commit('plants/setCurrentPlant', plant)
       this.mode = 'edit'
-      this.$store.commit('plants/setCurrentPlant', {
-        name: '',
-        variety: '',
-        description: '',
-        spacing: null,
-        sow_from: null,
-        sow_to: null,
-        days_to_harvest: null,
-        image: ''
-      })
     },
-    editPlant (id) {
-      this.mode = 'edit'
-      this.$store.commit('plants/setCurrentPlant', this.plants.find(plant => plant.id === id))
-    },
-    deletePlant (id) {
-      deletePlant(this, id).then(() => {
+    deletePlant (plant) {
+      deletePlant(this, plant.id).then(() => {
         fetchPlants(this)
       })
     }
@@ -153,7 +137,7 @@ export default {
 <style lang="scss" scoped>
 aside {
   transition: all 0.3s;
-  height: 500px;
+  height: calc(100vh - 60px);
   position: relative;
   nav {
     border: 1px solid $grey-200;
@@ -165,9 +149,23 @@ aside {
     }
     .buttons-contain {
       display: flex;
+      border: 1px solid $grey-200;
+      border-top-right-radius: 10px;
+      border-top-left-radius: 10px;
       button {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        color: $textColour;
+        gap: 2px;
         flex: 1;
         border-radius: 0;
+        &:first-child {
+          border-top-left-radius: 10px;
+        }
+        &:last-child {
+          border-top-right-radius: 10px;
+        }
       }
     }
     .list-items {
@@ -205,7 +203,7 @@ aside {
       }
     }
     nav {
-      width: unset;
+      width: 250px;
       .nav-toggle {
         display: none;
       }

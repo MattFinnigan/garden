@@ -19,8 +19,8 @@ export default {}
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1em 0;
-    margin: 0 12%;
+    padding: 1em;
+    height: 20px;
   }
 }
 </style>

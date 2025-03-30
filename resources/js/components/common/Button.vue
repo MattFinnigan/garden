@@ -59,6 +59,19 @@ button {
       color: $backgroundColour;
     }
   }
+  &.accent {
+    background-color: $accent;
+    color: $backgroundColour;
+    &.outline {
+      background-color: transparent;
+      border: 1px solid $accent;
+      color: $accent;
+      &:hover {
+        background-color: $accent;
+        color: $backgroundColour;
+      }
+    }
+  }
   &.secondary {
     background-color: $secondary;
     color: $backgroundColour;
@@ -111,6 +124,19 @@ button {
         :deep(i) {
           background-color: $backgroundColour;
         }
+      }
+    }
+  }
+  &.transparent {
+    background-color: transparent;
+    color: $primary;
+    &.outline {
+      background-color: transparent;
+      border: 1px solid $primary;
+      color: $primary;
+      &:hover {
+        background-color: $primary;
+        color: $backgroundColour;
       }
     }
   }

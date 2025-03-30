@@ -124,7 +124,7 @@ export default {
     },
     styles () {
       return {
-        height: '500px',
+        height: 'calc(100vh - 60px)',
         width: '100%'
       }
     },

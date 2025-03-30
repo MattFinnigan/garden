@@ -4,14 +4,16 @@
       <div class="img-contain">
         <slot name="image"></slot>
       </div>
-      <div class="title-contain">
-        <strong><slot name="title"></slot></strong>
-        <em><slot name="description"></slot></em>
+        <div class="details-actions">
+          <div class="title-contain">
+          <strong><slot name="title"></slot></strong>
+          <slot name="description"></slot>
+        </div>
       </div>
-    </div>
-    <div class="actions">
-      <slot name="actions"></slot>
-    </div>
+      <div class="actions">
+        <slot name="actions"></slot>
+      </div>
+      </div>
   </div>
 </template>
 
@@ -30,7 +32,7 @@ export default {
 <style scoped lang="scss">
 .list-item {
   padding: 10px;
-  background: $grey-200;
+  background: $backgroundColour;
   border-bottom: 1px solid #ccc;
   cursor: pointer;
   .list-item-wrapper {
@@ -41,22 +43,23 @@ export default {
         height: 50px;
       }
     }
-    .title-contain, .title-contain > * {
-      font-size: $fsSmall;
+    .details-actions {
+      flex: 1;
       display: flex;
-      flex-direction: column;
-      justify-content: center;
+      .title-contain, .title-contain * {
+        font-size: $fsSmall;
+        :deep(p) {
+          margin: 0;
+        }
+      }
     }
-  }
-  .actions {
-    display: flex;
-    justify-content: flex-end;
-    :deep(button) {
-      margin-left: 5px;
+    .actions {
+      display: flex;
+      align-items: flex-end;
     }
-  }
+    }
   &.highlight {
-    background: $primary;
+    background: $accent;
   }
 }
 </style>
