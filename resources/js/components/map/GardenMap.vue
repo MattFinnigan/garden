@@ -30,6 +30,7 @@
       <div v-if="newCropExplain" class="new-thing-explain" @mousedown="beginNewCrop">
         <h4>Click and drag to create a new Crop</h4>
       </div>
+      <CropMap v-for="crop in crops" :key="'crop' + crop.id" :crop="crop"/>
     </div>
     <!-- <Crops v-else-if="!loading" :embedded="true"></Crops> -->
      <!-- Bed Form -->
@@ -74,9 +75,9 @@
 </template>
 
 <script>
-import { fetchCrops, fetchBeds, createCrop, fetchPlants, deleteCropEntry, updateCropEntry } from '../../utils/api'
+import { fetchCrops, fetchBeds, createCrop, deleteCropEntry } from '../../utils/api'
 import { watchScreenSize, createShape, dimensionsToQty } from '../../utils/helpers'
-import { defaultCrop, defaultCropEntry, defaultBed } from '../../utils/consts'
+import { defaultCrop, defaultBed } from '../../utils/consts'
 
 import BedMap from './BedMap.vue'
 import BedsForm from '../forms/BedsForm.vue'
@@ -84,8 +85,8 @@ import Modal from '../common/Modal.vue'
 import CropEntryForm from '../forms/CropEntryForm.vue'
 import PlantForm from '../forms/PlantForm.vue'
 import Crops from '../pages/Crops.vue'
-
 import Crop from '../pages/Crop.vue'
+import CropMap from './CropMap.vue'
 
 export default {
   name: 'GardenMap',
@@ -96,7 +97,8 @@ export default {
     CropEntryForm,
     PlantForm,
     Crop,
-    Crops
+    Crops,
+    CropMap
   },
   data () {
     return {
@@ -112,17 +114,17 @@ export default {
     }
   },
   mounted () {
-    this.fetchCrops()
+    this.getCrops()
     fetchBeds(this)
-    watchScreenSize(() => {
-      this.render = false
-      this.$nextTick(() => {
-        this.render = true
-        this.$nextTick(() => {
-          this.zoomToFull()
-        })
-      })
-    })
+    // watchScreenSize(() => {
+    //   this.render = false
+    //   this.$nextTick(() => {
+    //     this.render = true
+    //     this.$nextTick(() => {
+    //       this.zoomToFull()
+    //     })
+    //   })
+    // })
   },
   computed: {
     month: {
@@ -160,15 +162,23 @@ export default {
         text: this.currentBed.id ? 'Here you can change the Bed\'s details or you can remove it if there aren\'t any active crops.' : 'You’ve placed your new bed. Now just give it a name, & maybe a happy snap'
       }
     },
-    currentCropEntry () {
-      return this.$store.state.crop_entries.current
+    crops () {
+      return this.$store.state.crops.list
     },
     currentCrop () {
       return this.$store.state.crops.current
     },
     mode () {
       return this.$store.state.crops.mode
+    },
+    currentCropEntry () {
+      return this.$store.state.crop_entries.current
     }
+  },
+  watch: {
+    month (val) {
+      this.getCrops()
+    },
   },
   methods: {
     zoomToFull () {
@@ -246,9 +256,10 @@ export default {
         newCrop.height = shapeRect.height / zoomFactor
         newCrop.qty = dimensionsToQty(newCrop.width, newCrop.height, newCrop.spacing)
         if (newCrop.width > 10 && newCrop.height > 10 && newCrop.qty > 0) {
-          // createCrop(this, newCrop).then(response => {
-          //   this.$store.commit('crops/setCurrentCrop', response.data.crop)
-          // })
+          newCrop.startMonth = this.month
+          createCrop(this, newCrop).then(response => {
+            this.$store.commit('crops/setCurrentCrop', response.data.crop)
+          })
         } else {
           this.cancelCrop()
         }
@@ -292,25 +303,25 @@ export default {
     removeCropEntry () {
       deleteCropEntry(this, this.currentCropEntry.id)
     },
-    fetchCrops () {
+    getCrops () {
       this.loading = true
       if (!this.month) {
         this.month = new Date().getMonth() + 1
       }
       fetchCrops(this, this.month).then(response => {
         this.loading = false
-        this.$nextTick(() => {
-          this.zoomToFull()
-          // this.$nextTick(() => {
-          //   this.location.beds.forEach((bed, i) => {
-          //     arrangePlantsInBedWithOverlapCheck(bed, (entries) => {
-          //       entries.forEach(entry => {
-          //         updateCropEntry(this, entry.id, entry, false)
-          //       })
-          //     })
-          //   })
-          // })
-        })
+        // this.$nextTick(() => {
+        //   this.zoomToFull()
+        //   this.$nextTick(() => {
+        //     this.location.beds.forEach((bed, i) => {
+        //       arrangePlantsInBedWithOverlapCheck(bed, (entries) => {
+        //         entries.forEach(entry => {
+        //           updateCropEntry(this, entry.id, entry, false)
+        //         })
+        //       })
+        //     })
+        //   })
+        // })
       })
     },
     selectCropMode () {

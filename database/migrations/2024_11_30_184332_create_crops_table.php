@@ -20,6 +20,8 @@ return new class extends Migration {
       $table->bigInteger('y');
       $table->bigInteger('height');
       $table->bigInteger('width');
+      $table->bigInteger('startMonth');
+      $table->bigInteger('endMonth');
       $table->timestamps();
     });
   }

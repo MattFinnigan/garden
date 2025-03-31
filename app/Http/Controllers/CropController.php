@@ -16,17 +16,9 @@ class CropController extends Controller {
   }
 
   public function byMonth($month) {
-    $crops = Crop::where(function ($query) {
-      $query->whereHas('crop_entries');
-    })->orderBy('id', 'desc')->get();
-    $cropsByMonth = [];
-    foreach ($crops as $crop) {
-      $crop->crop_entries = $crop->crop_entries->where('datetimestamp', 'like', "%-$month-%");
-      if (count($crop->crop_entries) > 0) {
-        array_push($cropsByMonth, $crop);
-      }
-    }
-    return $cropsByMonth;
+    return Crop::where(function ($query) use ($month) {
+      $query->where('startMonth', '<=', $month)->where('endMonth', '>=', $month);
+    })->orderBy('id', 'desc')->with('plant')->get();
   }
 
   public function store(Request $request) {
@@ -42,6 +34,13 @@ class CropController extends Controller {
     if (!$request->days_to_harvest) {
       $crop->days_to_harvest = Plant::find($request->plant_id)->days_to_harvest;
     }
+    $crop->startMonth = $request->startMonth;
+    if (!$crop->endMonth) {
+      $crop->endMonth = $crop->startMonth + $crop->days_to_harvest / 30;
+      if ($crop->endMonth > 12) {
+        $crop->endMonth = $crop->endMonth - 12;
+      }
+    }
     $crop->save();
     return response()->json([
       "status" => "success",
@@ -53,11 +52,49 @@ class CropController extends Controller {
 
   public function update(Request $request) {
     $c = Crop::where('id', $request->id)->first();
-    $c->days_to_harvest = $request->days_to_harvest;
-    if (!$request->days_to_harvest) {
-      $c->days_to_harvest = Plant::find($request->plant_id)->days_to_harvest;
+    if ($request->days_to_harvest) {
+      $c->days_to_harvest = $request->days_to_harvest;
+    }
+    if ($request->plant_id) {
+      $c->plant_id = $request->plant_id;
+    }
+    if ($request->height) {
+      $c->height = $request->height;
+    }
+    if ($request->width) {
+      $c->width = $request->width;
+    }
+    if ($request->spacing) {
+      $c->spacing = $request->spacing;
+    }
+    if ($request->qty) {
+      $c->qty = $request->qty;
+    }
+    if ($request->x) {
+      $c->x = $request->x;
+    }
+    if ($request->y) {
+      $c->y = $request->y;
+    }
+    if ($request->startMonth) {
+      $c->startMonth = $request->startMonth;
+      $c->endMonth = $c->startMonth + $c->days_to_harvest / 30;
+      if ($c->endMonth > 12) {
+        $c->endMonth = $c->endMonth - 12;
+      }
     }
     $c->update();
+    if ($request->month) {
+      $crops = $this->byMonth($request->month);
+    } else {
+      $crops = Crop::orderBy('id', 'desc')->get();
+    }
+    return response()->json([
+      "status" => "success",
+      "message" => "Crop created successfully",
+      "crop" => Crop::where('id', $c->id)->first(),
+      "crops" => $crops
+    ]);
   }
 
   public function show($id) {

@@ -9,7 +9,9 @@ const defaultCrop = (plant = null) => {
     y: 0,
     height: 1,
     width: 1,
-    crop_entries: []
+    crop_entries: [],
+    startMonth: 1,
+    endMonth: null
   }
 }
 

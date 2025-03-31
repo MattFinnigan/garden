@@ -20,6 +20,7 @@ Route::delete('/plants/{id}', [PlantController::class, 'destroy']);
 Route::get('/crops', [CropController::class, 'index']);
 Route::get('/crops/month/{month}', [CropController::class, 'byMonth']);
 Route::get('/crops/{id}', [CropController::class, 'show']);
+Route::post('/crops/{id}', [CropController::class, 'update']);
 Route::post('/crops', [CropController::class, 'store']);
 Route::delete('/crops/{id}', [CropController::class, 'destroy']);
 

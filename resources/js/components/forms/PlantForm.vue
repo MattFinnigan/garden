@@ -69,7 +69,7 @@ export default {
     },
     name: {
       get () {
-        return this.current.name
+        return this.current?.name
       },
       set (value) {
         this.$store.commit('plants/setCurrentPlantName', value)
@@ -77,7 +77,7 @@ export default {
     },
     variety: {
       get () {
-        return this.current.variety
+        return this.current?.variety
       },
       set (value) {
         this.$store.commit('plants/setCurrentPlantVariety', value)
@@ -85,7 +85,7 @@ export default {
     },
     description: {
       get () {
-        return this.current.description
+        return this.current?.description
       },
       set (value) {
         this.$store.commit('plants/setCurrentPlantDescription', value)
@@ -93,7 +93,7 @@ export default {
     },
     daysToHarvest: {
       get () {
-        return this.current.days_to_harvest
+        return this.current?.days_to_harvest
       },
       set (value) {
         this.$store.commit('plants/setCurrentPlantDaysToHarvest', value)
@@ -101,7 +101,7 @@ export default {
     },
     image: {
       get () {
-        return this.current.image
+        return this.current?.image
       },
       set (value) {
         this.$store.commit('plants/setCurrentPlantImage', value)
@@ -109,7 +109,7 @@ export default {
     },
     sow_from: {
       get () {
-        return this.current.sow_from
+        return this.current?.sow_from
       },
       set (value) {
         this.$store.commit('plants/setCurrentPlantSowFrom', value)
@@ -117,7 +117,7 @@ export default {
     },
     sow_to: {
       get () {
-        return this.current.sow_to
+        return this.current?.sow_to
       },
       set (value) {
         this.$store.commit('plants/setCurrentPlantSowTo', value)
@@ -125,7 +125,7 @@ export default {
     },
     spacing: {
       get () {
-        return this.current.spacing
+        return this.current?.spacing
       },
       set (value) {
         this.$store.commit('plants/setCurrentPlantSpacing', value)

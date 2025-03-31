@@ -147,24 +147,7 @@ export const createShape = (parent, shapeClass, mouseMoveCallback, mouseUpCallba
     shape.querySelector('.shapeHeight').innerText = `${(height / 100).toFixed(1)}m`
     // inject images into the shape
     if (imgFill) {
-      const num = dimensionsToQty(width, height, imgFill.spacing)
-      // remove all images
-      const images = shape.querySelectorAll('img')
-      images.forEach((img) => {
-        img.remove()
-      })
-      for (let i = 0; i < num; i++) {
-        const img = document.createElement('img')
-        img.src = imgFill.image
-        img.style.width = 'auto'
-        img.style.minHeight = '20px'
-        img.style.height = `${imgFill.spacing / 2}px`
-        // ensure the images are spaced out evenly, based on spacing
-        img.style.position = 'absolute'
-        img.style.left = `${((i % Math.floor(width / imgFill.spacing)) * imgFill.spacing) + imgFill.spacing / 4}px`
-        img.style.top = `${(Math.floor(i / Math.floor(width / imgFill.spacing)) * imgFill.spacing) + imgFill.spacing / 4}px`
-        shape.appendChild(img)
-      }
+      const num = fillWithImages(width, height, shape, imgFill)
       // insert text at the mouse position
       if (!shape.querySelector('div.shapeQty')) {
         const text = document.createElement('div')
@@ -255,5 +238,27 @@ export const dimensionsToQty = (width, height, spacing) => {
   const numWidth = Math.floor(width / spacing)
   const numHeight = Math.floor(height / spacing)
   const num = numWidth * numHeight
+  return num
+}
+
+export const fillWithImages = (width, height, el, imgFill) => {
+  const num = dimensionsToQty(width, height, imgFill.spacing)
+  // remove all images
+  const images = el.querySelectorAll('img')
+  images.forEach((img) => {
+    img.remove()
+  })
+  for (let i = 0; i < num; i++) {
+    const img = document.createElement('img')
+    img.src = imgFill.image
+    img.style.width = 'auto'
+    img.style.minHeight = '20px'
+    img.style.height = `${imgFill.spacing / 2}px`
+    // ensure the images are spaced out evenly, based on spacing
+    img.style.position = 'absolute'
+    img.style.left = `${((i % Math.floor(width / imgFill.spacing)) * imgFill.spacing) + imgFill.spacing / 4}px`
+    img.style.top = `${(Math.floor(i / Math.floor(width / imgFill.spacing)) * imgFill.spacing) + imgFill.spacing / 4}px`
+    el.appendChild(img)
+  }
   return num
 }
