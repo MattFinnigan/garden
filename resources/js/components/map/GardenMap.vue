@@ -12,7 +12,12 @@
         <Button class="primary outline icon" @click="zoom -= 0.1"><Icon name="zoomout" colour="primary" maskSize="15px" size="14px"></Icon></Button>
     </div> -->
     <!-- Bed & crop placements -->
-    <div id="grid" class="grid" ref="grid" :style="styles" @click.prevent.self="() => { cancelBed(); cancelCropEntry(); cancelCropSelect() }">
+    <div
+      id="grid" 
+      class="grid"
+      ref="grid"
+      :style="styles"
+      @click.prevent.self="createNewCrop">
       <!-- Beds -->
       <div v-if="newBedExplain" class="new-thing-explain" @mousedown="beginNewBed">
         <h4>Click and drag to create a new Bed</h4>
@@ -37,7 +42,6 @@
         <BedsForm @done="bedSubmitted()">
           <template #buttons>
             <Button type="submit" classes="secondary2" @click="bedSubmitted = bedUpdated">Done</Button>
-            <Button class="primary" type="submit" @click="bedSubmitted = createNewCrop">Add a Crop</Button>
           </template>
         </BedsForm>
       </template>
@@ -70,8 +74,8 @@
 </template>
 
 <script>
-import { fetchCrops, fetchBeds, fetchPlants, deleteCropEntry, updateCropEntry } from '../../utils/api'
-import { watchScreenSize, createShape } from '../../utils/helpers'
+import { fetchCrops, fetchBeds, createCrop, fetchPlants, deleteCropEntry, updateCropEntry } from '../../utils/api'
+import { watchScreenSize, createShape, dimensionsToQty } from '../../utils/helpers'
 import { defaultCrop, defaultCropEntry, defaultBed } from '../../utils/consts'
 
 import BedMap from './BedMap.vue'
@@ -182,7 +186,7 @@ export default {
       this.$store.commit('crops/setSelectCropMode', false)
       this.newBedExplain = true
 
-      createShape(parent, () => {
+      createShape(parent, 'newBed', () => {
         // move
       }, (shapeRect, parentRect, zoomFactor) => {
         // mouse up
@@ -226,10 +230,13 @@ export default {
     },
     // crop stuff
     createNewCrop () {
+      if (!this.currentPlant) {
+        return
+      }
       this.newCropExplain = true
-      const newCrop = defaultCrop()
+      const newCrop = defaultCrop(this.currentPlant)
       const parent = this.$refs.grid
-      createShape(parent, () => {
+      createShape(parent, 'newCrop', () => {
         // move
       }, (shapeRect, parentRect, zoomFactor) => {
         // mouse up
@@ -237,17 +244,37 @@ export default {
         newCrop.y = (shapeRect.top - parentRect.top) / zoomFactor
         newCrop.width = shapeRect.width / zoomFactor
         newCrop.height = shapeRect.height / zoomFactor
-        // if (newCrop.width > 10 && newCrop.height > 10) {
-        //   this.$store.commit('beds/setCurrentCrop', newCrop)
-        // } else {
-        //   this.cancelBed()
-        // }
+        newCrop.qty = dimensionsToQty(newCrop.width, newCrop.height, newCrop.spacing)
+        if (newCrop.width > 10 && newCrop.height > 10 && newCrop.qty > 0) {
+          // createCrop(this, newCrop).then(response => {
+          //   this.$store.commit('crops/setCurrentCrop', response.data.crop)
+          // })
+        } else {
+          this.cancelCrop()
+        }
       }, () => {
         // mouse down
         this.newCropExplain = false
-      })
+      }, { image: '/images/upload/' + this.currentPlant.image, spacing: this.currentPlant.spacing })
     },
-    beginNewCrop () {},
+    beginNewCrop (e) {
+      this.newCropExplain = false
+      const ev = new MouseEvent('mousedown', {
+        bubbles: false,
+        cancelable: true,
+        view: window,
+        clientX: e.clientX,
+        clientY: e.clientY
+      })
+      this.$refs.grid.dispatchEvent(ev)
+    },
+    cancelCrop () {
+      if (this.$refs.grid.querySelector('.newCrop')) {
+        this.$refs.grid.removeChild(this.$refs.grid.querySelector('.newCrop'))
+        this.newCropExplain = false
+      }
+      this.$store.commit('crops/setCurrentCrop', null)
+    },
     cancelCropEntry (close = false) {
       if (this.editingBed || close) {
         this.$store.commit('crops/setMode', 'edit')
@@ -303,13 +330,13 @@ export default {
     background-image:
       repeating-linear-gradient(#ccc 0 1px, transparent 1px 100%),
       repeating-linear-gradient(90deg, #ccc 0 1px, transparent 1px 100%);
-  :deep(.newBed) {
+  :deep(.newShape) {
     border: 2px dashed $textColour;
-    background-color: $primary3;
     position: absolute;
     border-radius: 0.5em;
     .shapeWidth,
-    .shapeHeight {
+    .shapeHeight,
+    .shapeQty {
       position: absolute;
       color: $textColour;
       padding: 0.25em 0.5em;
@@ -324,6 +351,17 @@ export default {
       left: -45px;
       top: 50%;
       transform: translateY(-50%);
+    }
+    .shapeQty {
+      right: -50px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    &.newBed {
+      background-color: $primary3;
+    }
+    &.newCrop {
+      background-color: $secondary2;
     }
   }
   .new-thing-explain {

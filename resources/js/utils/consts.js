@@ -1,12 +1,15 @@
 
 const defaultCrop = (plant = null) => {
   return {
-    plant_id: plant ? plant.id : null,
-    crop_entries: [],
-    spacing: 1,
+    plant_id: plant?.id || null,
+    days_to_harvest: plant?.days_to_harvest || 1,
+    qty: 1,
+    spacing: plant?.spacing || 1,
+    x: 0,
+    y: 0,
     height: 1,
     width: 1,
-    qty: 1
+    crop_entries: []
   }
 }
 
@@ -17,7 +20,7 @@ const defaultCropEntry = (bed = null, crop = null) => {
     notes: null,
     images: [],
     datetimestamp: new Date().toISOString().slice(0, 16),
-    crop_id: crop ? crop.id : null
+    crop_id: crop?.id || null,
   }
 }
 

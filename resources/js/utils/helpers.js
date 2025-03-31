@@ -105,7 +105,7 @@ export const watchScreenSize = (callback) => {
   resizeObserver.observe(document.body)
 }
 
-export const createShape = (parent, mouseMoveCallback, mouseUpCallback, mouseDownCallback) => {
+export const createShape = (parent, shapeClass, mouseMoveCallback, mouseUpCallback, mouseDownCallback, imgFill = null) => {
   let isDragging = false
   let startX = 0
   let startY = 0
@@ -145,6 +145,36 @@ export const createShape = (parent, mouseMoveCallback, mouseUpCallback, mouseDow
     shape.style.height = `${height}px`
     shape.querySelector('.shapeWidth').innerText = `${(width / 100).toFixed(1)}m`
     shape.querySelector('.shapeHeight').innerText = `${(height / 100).toFixed(1)}m`
+    // inject images into the shape
+    if (imgFill) {
+      const num = dimensionsToQty(width, height, imgFill.spacing)
+      // remove all images
+      const images = shape.querySelectorAll('img')
+      images.forEach((img) => {
+        img.remove()
+      })
+      for (let i = 0; i < num; i++) {
+        const img = document.createElement('img')
+        img.src = imgFill.image
+        img.style.width = 'auto'
+        img.style.minHeight = '20px'
+        img.style.height = `${imgFill.spacing / 2}px`
+        // ensure the images are spaced out evenly, based on spacing
+        img.style.position = 'absolute'
+        img.style.left = `${((i % Math.floor(width / imgFill.spacing)) * imgFill.spacing) + imgFill.spacing / 4}px`
+        img.style.top = `${(Math.floor(i / Math.floor(width / imgFill.spacing)) * imgFill.spacing) + imgFill.spacing / 4}px`
+        shape.appendChild(img)
+      }
+      // insert text at the mouse position
+      if (!shape.querySelector('div.shapeQty')) {
+        const text = document.createElement('div')
+        text.className = 'shapeQty'
+        text.innerText = `x${num}`
+        shape.appendChild(text)
+      } else {
+        shape.querySelector('div.shapeQty').innerText = `x${num}`
+      }
+    }
     mouseMoveCallback(shape, width, height)
   }
 
@@ -187,7 +217,7 @@ export const createShape = (parent, mouseMoveCallback, mouseUpCallback, mouseDow
 
     // Create the shape element
     shape = document.createElement('div')
-    shape.className = 'newBed'
+    shape.className = shapeClass + ' newShape'
     shape.style.left = `${startX}px`
     shape.style.top = `${startY}px`
     shape.style.width = '0px'
@@ -218,4 +248,12 @@ export const createShape = (parent, mouseMoveCallback, mouseUpCallback, mouseDow
   }
 
   parent.addEventListener('mousedown', onMouseDown)
+}
+
+export const dimensionsToQty = (width, height, spacing) => {
+  // an item must fit completely in the area.
+  const numWidth = Math.floor(width / spacing)
+  const numHeight = Math.floor(height / spacing)
+  const num = numWidth * numHeight
+  return num
 }
