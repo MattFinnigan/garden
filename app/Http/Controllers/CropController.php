@@ -17,7 +17,7 @@ class CropController extends Controller {
 
   public function byMonth($month) {
     return Crop::where(function ($query) use ($month) {
-      $query->where('startMonth', '<=', $month)->where('endMonth', '>', $month);
+      $query->where('startMonth', '<=', $month)->where('endMonth', '>=', $month);
     })->orderBy('id', 'desc')->with('plant')->get();
   }
 
@@ -36,17 +36,22 @@ class CropController extends Controller {
     }
     $crop->startMonth = $request->startMonth;
     if (!$crop->endMonth) {
-      $crop->endMonth = $crop->startMonth + $crop->days_to_harvest / 30;
+      $crop->endMonth = ($crop->startMonth - 1) + $crop->days_to_harvest / 30;
       if ($crop->endMonth > 12) {
         $crop->endMonth = $crop->endMonth - 12;
       }
     }
     $crop->save();
+    if ($request->month) {
+      $crops = $this->byMonth($request->month);
+    } else {
+      $crops = Crop::orderBy('id', 'desc')->get();
+    }
     return response()->json([
       "status" => "success",
       "message" => "Crop created successfully",
       "crop" => Crop::where('id', $crop->id)->first(),
-      "crops" => Crop::orderBy('id', 'desc')->get()
+      "crops" => $crops
     ]);
   }
 
@@ -78,7 +83,7 @@ class CropController extends Controller {
     }
     if ($request->startMonth) {
       $c->startMonth = $request->startMonth;
-      $c->endMonth = $c->startMonth + $c->days_to_harvest / 30;
+      $c->endMonth = ($c->startMonth - 1) + $c->days_to_harvest / 30;
       if ($c->endMonth > 12) {
         $c->endMonth = $c->endMonth - 12;
       }
@@ -112,11 +117,7 @@ class CropController extends Controller {
     $crop->delete();
     return response()->json([
       "status" => "success",
-      "message" => "Crop deleted successfully",
-      "crop" => $crop,
-      "crops" => Crop::where(function ($query) {
-        $query->whereHas('crop_entries');
-      })->orderBy('id', 'desc')->get()
+      "message" => "Crop deleted successfully"
     ]);
   }
 }

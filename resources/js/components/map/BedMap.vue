@@ -34,7 +34,8 @@ export default {
       parent: null,
       dragging: false,
       bedCopy: clone(this.bed),
-      hovering: false
+      hovering: false,
+      resizing: false
     }
   },
   mounted () {
@@ -82,23 +83,21 @@ export default {
   },
   methods: {
     beginResize () {
-      resizeShape(this.parent, this.$el, this.bed.x, this.bed.y, (move, width, height) => {
+      this.resizing
+      resizeShape(this.parent, this.$el, this.bed.x, this.bed.y, (shape, width, height) => {
+        // moving
         if (this.resizing) {
-          this.bedCopy.x = move.x
-          this.bedCopy.y = move.y
           this.bedCopy.width = width
           this.bedCopy.height = height
         }
-      },
-     () => {
+      },(shapeRect) => {
         // end
         this.resizing = false
-        this.$el.click()
-        updateBed(this, this.bed.id, { ...this.bed, width: this.bedCopy.width, height: this.bedCopy.height, x: this.bedCopy.x, y: this.bedCopy.y })
+        updateBed(this, this.bed.id, { ...this.bed, width: shapeRect.width, height: shapeRect.height })
      })
     },
     selectBed () {
-      if (!this.dragging) {
+      if (!this.dragging && !this.resizing) {
         this.$emit('editingBed')
         this.$store.commit('beds/setCurrentBed', this.bed)
       }

@@ -30,8 +30,14 @@ const mutations = {
   setCurrentCropEntryNotes(state, notes) {
     state.current.notes = notes
   },
-  setCurrentCropEntryImage(state, image) {
-    state.current.image = image
+  setCurrentCropEntryImages(state, image) {
+    state.current.images = image
+  },
+  addImageToCurrentCropEntry(state, image) {
+    state.current.images.push(image)
+  },
+  removeImageFromCurrentCropEntry(state, index) {
+    state.current.images.splice(index, 1)
   },
   setCurrentCropEntryDatetimestamp(state, date) {
     state.current.datetimestamp = date

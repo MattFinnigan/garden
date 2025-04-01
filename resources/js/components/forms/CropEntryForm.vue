@@ -7,7 +7,7 @@
         <Select v-model="stage" label="Stage" :options="stageOptions"/>
         <Input v-if="findRule('datetimestamp', 'enabled')" v-model="datetimestamp" type="datetime-local" label="Date"/>
         <Input v-model="notes" type="textarea" label="Notes"/>
-        <Input :modelValue="image" type="file" label="Image" @change="e => image = e.target.value"/>
+        <Images class="images" :modelValue="images" label="Images" multiple @addImage="addImage" @removeImage="removeImage"/>
         <p v-if="error" class="error">{{ error }}</p>
       </template>
       <template #buttons>
@@ -85,16 +85,22 @@ export default {
         this.$store.commit('crop_entries/setCurrentCropEntryNotes', val)
       }
     },
-    image: {
+    images: {
       get () {
-        return this.current?.image
+        return this.current.images
       },
-      set (val) {
-        this.$store.commit('crop_entries/setCurrentCropEntryImage', val)
+      set (value) {
+        this.$store.commit('crop_entries/setCurrentCropEntryImages', value)
       }
-    }
+    },
   },
   methods: {
+    addImage (image) {
+      this.$store.commit('crop_entries/addImageToCurrentCropEntry', { crop_entry_id: this.current.id || 0, name: image })
+    },
+    removeImage (index) {
+      this.$store.commit('crop_entries/removeImageFromCropEntry', index)
+    },
     findRule (key, prop) {
       const rule = this.rules.find(r => r.key === key)
       if (!rule) {

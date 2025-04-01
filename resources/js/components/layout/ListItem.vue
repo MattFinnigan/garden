@@ -1,5 +1,5 @@
 <template>
-  <div :class="['list-item', {highlight}]">
+  <div :class="['list-item', { highlight: highlight }]" @click.prevent="$emit('selected')">
     <div class="list-item-wrapper">
       <div class="img-contain">
         <slot name="image"></slot>
@@ -19,6 +19,7 @@
 
 <script>
 export default {
+  emits: ['selected'],
   name: 'ListItem',
   props: {
     highlight: {

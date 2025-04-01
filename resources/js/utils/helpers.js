@@ -188,9 +188,8 @@ export const createShape = (parent, shapeClass, mouseMoveCallback, mouseUpCallba
     const shapeRect = shape.getBoundingClientRect()
     const parentRect = parent.getBoundingClientRect()
     const zoomFactor = getZoomFactor()
-
+    shape.remove()
     mouseUpCallback(shapeRect, parentRect, zoomFactor)
-    shape = null
   }
 
   const onMouseDown = (e) => {
@@ -244,6 +243,7 @@ export const createShape = (parent, shapeClass, mouseMoveCallback, mouseUpCallba
   }
 
   parent.addEventListener('mousedown', onMouseDown)
+  return onMouseDown
 }
 
 export const dimensionsToQty = (width, height, spacing) => {
@@ -297,14 +297,10 @@ export const resizeShape = (parent, el, x, y, mouseMoveCallback, mouseUpCallback
     const width = Math.abs(currentX - startX)
     const height = Math.abs(currentY - startY)
     // Update shape dimensions and position
-    debounce(() => {
-      if (shape) {
-        shape.style.width = `${width}px`
-        shape.style.height = `${height}px`
-        shape.style.left = `${Math.min(startX, currentX)}px`
-        shape.style.top = `${Math.min(startY, currentY)}px`
-      }
-    }, 200)()
+    if (shape) {
+      shape.style.width = `${width}px`
+      shape.style.height = `${height}px`
+    }
     // inject images into the shape
     if (imgFill) {
       const num = fillWithImages(width, height, shape, imgFill)
@@ -337,18 +333,19 @@ export const resizeShape = (parent, el, x, y, mouseMoveCallback, mouseUpCallback
   const onMouseUp = () => {
     document.removeEventListener('mousemove', onMouseMove)
     document.removeEventListener('mouseup', onMouseUp)
-
     const shapeRect = shape.getBoundingClientRect()
     const parentRect = parent.getBoundingClientRect()
-
-    shape.querySelector('.shapeWidth').remove()
-    shape.querySelector('.shapeHeight').remove()
+    if (shape.querySelector('.shapeWidth')) {
+      shape.querySelector('.shapeWidth').remove()
+    }
+    if (shape.querySelector('.shapeHeight')) {
+      shape.querySelector('.shapeHeight').remove()
+    }
     if (shape.querySelector('.shapeQty')) {
       shape.querySelector('.shapeQty').remove()
     }
-
-    mouseUpCallback(shapeRect, parentRect)
     shape = null
+    mouseUpCallback(shapeRect, parentRect)
   }
   document.addEventListener('mousemove', onMouseMove)
   document.addEventListener('mouseup', onMouseUp)

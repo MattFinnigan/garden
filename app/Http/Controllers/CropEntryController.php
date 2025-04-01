@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Crop;
 use App\Models\CropEntry;
+use App\Models\CropEntryImage;
 
 class CropEntryController extends Controller {
 
@@ -16,6 +17,12 @@ class CropEntryController extends Controller {
     $entry->notes = $request->notes;
     $entry->datetimestamp = $request->datetimestamp;
     $entry->save();
+    foreach ($request->images as $image) {
+      $img = new CropEntryImage();
+      $img->crop_entry_id = $entry->id;
+      $img->name = $image['name'];
+      $img->save();
+    }
     return response()->json([
       "status" => "success",
       "message" => "Crop event added successfully",
@@ -30,6 +37,13 @@ class CropEntryController extends Controller {
     $entry->notes = $request->notes;
     $entry->datetimestamp = $request->datetimestamp;
     $entry->update();
+    $entry->images()->delete();
+    foreach ($request->images as $image) {
+      $img = new CropEntryImage();
+      $img->crop_entry_id = $entry->id;
+      $img->name = $image['name'];
+      $img->save();
+    }
     return response()->json([
       "status" => "success",
       "message" => "Crop event updated successfully",

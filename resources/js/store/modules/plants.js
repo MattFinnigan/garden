@@ -1,7 +1,8 @@
 
 const state = () => ({
   list: [],
-  current: null
+  current: null,
+  mode: 'view'
 })
 
 const getters = {}
@@ -9,35 +10,38 @@ const getters = {}
 const actions = {}
 
 const mutations = {
-  setCurrentPlant (state, plant) {
+  setCurrentPlant(state, plant) {
     state.current = plant
   },
-  setPlants (state, plants) {
+  setPlants(state, plants) {
     state.list = plants
   },
-  setCurrentPlantName (state, name) {
+  setCurrentPlantName(state, name) {
     state.current.name = name
   },
-  setCurrentPlantDescription (state, description) {
+  setCurrentPlantDescription(state, description) {
     state.current.description = description
   },
-  setCurrentPlantVariety (state, variety) {
+  setCurrentPlantVariety(state, variety) {
     state.current.variety = variety
   },
-  setCurrentPlantImage (state, image) {
+  setCurrentPlantImage(state, image) {
     state.current.image = image
   },
-  setCurrentPlantDaysToHarvest (state, daysToHarvest) {
+  setCurrentPlantDaysToHarvest(state, daysToHarvest) {
     state.current.days_to_harvest = daysToHarvest
   },
-  setCurrentPlantSowFrom (state, sowFrom) {
+  setCurrentPlantSowFrom(state, sowFrom) {
     state.current.sow_from = sowFrom
   },
-  setCurrentPlantSowTo (state, sowTo) {
+  setCurrentPlantSowTo(state, sowTo) {
     state.current.sow_to = sowTo
   },
-  setCurrentPlantSpacing (state, spacing) {
+  setCurrentPlantSpacing(state, spacing) {
     state.current.spacing = spacing
+  },
+  setMode(state, mode) {
+    state.mode = mode
   }
 }
 

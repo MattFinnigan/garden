@@ -97,23 +97,21 @@ export default {
   },
   methods: {
     beginResize () {
-      resizeShape(this.parent, this.$el, this.crop.x, this.crop.y, (move, width, height) => {
+      this.resizing = true
+      resizeShape(this.parent, this.$el, this.crop.x, this.crop.y, (shape, width, height) => {
+        // moving
         if (this.resizing) {
-          this.cropCopy.x = move.x
-          this.cropCopy.y = move.y
           this.cropCopy.width = width
           this.cropCopy.height = height
         }
-      },
-     (shapeRect, parentRect) => {
+      }, (shapeRect) => {
         // end
         this.resizing = false
-        this.$el.click()
         updateCrop(this, this.crop.id, { ...this.crop, width: shapeRect.width, height: shapeRect.height, month: this.month })
      }, { image: '/images/upload/' + this.crop.plant.image, spacing: this.crop.spacing })
     },
     selectCrop () {
-      if (!this.dragging) {
+      if (!this.dragging && !this.resizing) {
         if (this.crop.id === this.current.id) {
           this.$store.commit('crops/setMode', 'edit')
         } else {

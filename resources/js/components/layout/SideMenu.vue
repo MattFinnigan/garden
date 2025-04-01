@@ -16,7 +16,7 @@
           v-for="plant in plants"
           :key="plant.id"
           :highlight="plant.id === currentPlant?.id"
-          @click="selectPlant(plant)">
+          @selected="selectPlant(plant)">
           <template #image>
             <img :src="'./images/upload/' + plant.image" alt="Plant icon">
           </template>
@@ -29,8 +29,8 @@
             <p>Harvest: {{ plant.days_to_harvest }} Days</p>
           </template>
           <template #actions>
-            <Button classes="sm icon transparent" @click="editPlant(plant)"><Icon name="edit" colour="black"/></Button>
-            <Button classes="sm icon transparent" @click="deletePlant(plant)"><Icon name="delete" colour="black"/></Button>
+            <Button classes="sm icon transparent" @click.stop="editPlant(plant)"><Icon name="edit" colour="black"/></Button>
+            <Button classes="sm icon transparent" @click.stop="deletePlant(plant)"><Icon name="delete" colour="black"/></Button>
           </template>
         </ListItem>
         <ListItem
@@ -38,7 +38,7 @@
           v-for="crop in crops"
           :key="crop.id"
           :highlight="crop.id === currentCrop?.id"
-          @click="selectCrop(crop)">
+          @selected="selectCrop(crop)">
           <template #image>
             <img :src="'./images/upload/' + crop.plant.image" alt="Plant icon">
           </template>
@@ -123,13 +123,12 @@
           @delete="(cropEntry) => { deleteCropEntry(cropEntry) }">
         </Table>
         <div v-show="cropEntriesMapped.length === 0" class="empty-state">
-          <Icon name="empty" size="4em" colour="grey-300"/>
-          <p class="text-center"><em>Looks like you haven't added any Crop Entries for this month.</em></p>
+          <p class="text-center"><em>Looks like you haven't added any Crop Entries yet.</em></p>
         </div>
       </template>
     </Modal>
     <!-- Delete confirmation Modal -->
-    <Modal v-if="deleteConfirm" @close="deleteConfirm = null">
+    <Modal v-if="deleteConfirm" @close="cancelDelete">
       <template #header>
         <h5>Delete {{ deleteConfirm.name }}</h5>
         <p>Are you sure you want to delete this {{ deleteConfirm.name }}?</p>
@@ -147,7 +146,7 @@
             deleteCropEntry(deleteConfirm.obj, true)
           }
         }">Yes</Button>
-        <Button class="danger" @click="deleteConfirm = null">No</Button>
+        <Button class="danger" @click="cancelDelete">No</Button>
       </template>
     </Modal>
   </aside>
@@ -173,7 +172,6 @@ export default {
       monthOptionsLong: monthOptionsLong(),
       monthsShort: monthsShort(),
       viewing: 'plants',
-      mode: 'view',
       deleteConfirm: null,
       cropEntryHeaders: [{ label: 'Date', key: 'datetimestamp' }, { label: 'Stage', key: 'stage' }, { label: 'Action', key: 'action' }, { label: 'Notes', key: 'notes' }]
     }
@@ -181,7 +179,6 @@ export default {
   mounted () {
     this.month = new Date().getMonth() + 1
     fetchPlants(this)
-    fetchCrops(this, this.month)
   },
   computed: {
     currentPlant () {
@@ -191,7 +188,10 @@ export default {
       return this.$store.state.plants.list
     },
     editingPlant () {
-      return this.viewing === 'plants' && this.mode === 'edit'
+      return this.viewing === 'plants' && this.plantEditingMode
+    },
+    plantEditingMode () {
+      return this.$store.state.plants.mode === 'edit'
     },
     crops () {
       return this.$store.state.crops.list
@@ -200,7 +200,7 @@ export default {
       return this.$store.state.crops.current
     },
     editingCrop () {
-      return this.viewing === 'crops' && this.mode === 'edit'
+      return this.viewing === 'crops' && this.cropEditingMode
     },
     cropEditingMode () {
       return this.$store.state.crops.mode === 'edit'
@@ -250,7 +250,6 @@ export default {
     cropEditingMode (val) {
       if (val) {
         this.viewing = 'crops'
-        this.mode = 'edit'
       }
     },
   },
@@ -259,12 +258,10 @@ export default {
       this.$store.commit('crops/setCurrentCrop', crop)
     },
     cancelCrop () {
-      this.mode = 'view'
       this.$store.commit('crops/setMode', 'view')
     },
     editCrop (crop) {
       this.$store.commit('crops/setCurrentCrop', crop)
-      this.mode = 'edit'
       this.$store.commit('crops/setMode', 'edit')
     },
     deleteCrop (crop, confirmed = false) {
@@ -278,6 +275,7 @@ export default {
           name: 'Crop',
           obj: crop
         }
+        this.$store.commit('crops/setMode', 'delete')
       }
     },
     cropSubmitted (crop) {
@@ -288,9 +286,49 @@ export default {
       this.$store.commit('crops/setCrops', [])
       fetchCrops(this, this.month).then(() => {
         this.$store.commit('crops/setCurrentCrop', crop)
-        this.mode = 'view'
         this.$store.commit('crops/setMode', 'view')
       })
+    },
+    selectPlant (plant) {
+      if (plant.id === this.currentPlant?.id) {
+        this.$store.commit('plants/setCurrentPlant', null)
+      } else {
+        this.$store.commit('plants/setCurrentPlant', plant)
+      }
+    },
+    cancelPlant () {
+      this.$store.commit('plants/setCurrentPlant', null)
+      this.$store.commit('plants/setMode', 'view')
+    },
+    createPlant () {
+      this.$store.commit('plants/setCurrentPlant', null)
+      this.$store.commit('plants/setMode', 'edit')
+    },
+    plantSubmitted (plant) {
+      fetchPlants(this).then(() => {
+        this.$store.commit('plants/setCurrentPlant', plant)
+        this.$store.commit('plants/setMode', 'view')
+      })
+    },
+    editPlant (plant) {
+      this.$store.commit('plants/setCurrentPlant', plant)
+      this.$store.commit('plants/setMode', 'edit')
+    },
+    deletePlant (plant, confirmed = false) {
+      this.$store.commit('plants/setCurrentPlant', plant)
+      if (confirmed) {
+        deletePlant(this, plant.id).then(() => {
+          fetchPlants(this)
+          this.deleteConfirm = null
+          this.$store.commit('plants/setMode', 'view')
+        })
+      } else {
+        this.deleteConfirm = {
+          name: 'Plant',
+          obj: plant
+        }
+        this.$store.commit('plants/setMode', 'delete')
+      }
     },
     showCropEntries () {
       this.cancelCrop()
@@ -317,39 +355,11 @@ export default {
     newEntry () {
       this.$store.commit('crop_entries/setCurrentCropEntry', defaultCropEntry(this.currentCrop))
     },
-    selectPlant (plant) {
-      this.$store.commit('plants/setCurrentPlant', plant)
-    },
-    cancelPlant () {
-      this.mode = 'view'
-      this.$store.commit('plants/setCurrentPlant', null)
-    },
-    createPlant () {
-      this.$store.commit('plants/setCurrentPlant', null)
-      this.mode = 'edit'
-    },
-    plantSubmitted (plant) {
-      fetchPlants(this).then(() => {
-        this.$store.commit('plants/setCurrentPlant', plant)
-        this.mode = 'view'
-      })
-    },
-    editPlant (plant) {
-      this.$store.commit('plants/setCurrentPlant', plant)
-      this.mode = 'edit'
-    },
-    deletePlant (plant, confirmed = false) {
-      if (confirmed) {
-        deletePlant(this, plant.id).then(() => {
-          fetchPlants(this)
-          this.deleteConfirm = null
-        })
-      } else {
-        this.deleteConfirm = {
-          name: 'Plant',
-          obj: plant
-        }
-      }
+    cancelDelete () {
+      this.deleteConfirm = null
+      this.cancelCrop()
+      this.cancelPlant()
+      this.cancelCropEntries()
     }
   }
 }

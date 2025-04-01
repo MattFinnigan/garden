@@ -116,9 +116,9 @@ export const fetchCrop = (context, id, storeState = true) => {
     })
   })
 }
-export const createCrop = (context, data, storeState = true) => {
+export const createCrop = (context, data, month, storeState = true) => {
   return new Promise((resolve) => {
-    post('crops', data).then((response) => {
+    post('crops', { ...data, month }).then((response) => {
       console.log('createCrop', data, 'response', response)
       if (storeState) {
         context.$store.commit('crops/setCrops', response.data.crops)
@@ -132,7 +132,13 @@ export const updateCrop = (context, id, data, storeState = true) => {
     post(`crops/${id}`, data).then((response) => {
       console.log('updateCrop', id, data, 'response', response)
       if (storeState) {
-        context.$store.commit('crops/setCrops', response.data.crops)
+        const updatedList = context.$store.state.crops.list.map((crop) => {
+          if (crop.id === id) {
+            return { ...crop, ...response.data.crop }
+          }
+          return crop
+        })
+        context.$store.commit('crops/setCrops', updatedList)
       }
       resolve(response)
     })
@@ -143,7 +149,9 @@ export const deleteCrop = (context, id, storeState = true) => {
     destroy(`crops/${id}`).then((response) => {
       console.log('deleteCrop', id, 'response', response)
       if (storeState) {
-        context.$store.commit('crops/setCrops', response.data.crops)
+        const updatedList = context.$store.state.crops.list.filter((crop) => crop.id !== id)
+        context.$store.commit('crops/setCrops', updatedList)
+        context.$store.commit('crops/setCurrentCrop', null)
       }
       resolve(response)
     })
@@ -238,7 +246,13 @@ export const updateBed = (context, id, data, storeState = true) => {
     post(`beds/${id}`, data).then((response) => {
       console.log('updateBed', id, data, 'response', response)
       if (storeState) {
-        context.$store.commit('beds/setCurrentBed', response.data.bed)
+        const updatedList = context.$store.state.beds.list.map((bed) => {
+          if (bed.id === id) {
+            return { ...bed, ...response.data.bed }
+          }
+          return bed
+        })
+        context.$store.commit('beds/setBeds', updatedList)
       }
       resolve(response)
     })

@@ -16,8 +16,7 @@
       id="grid" 
       class="grid"
       ref="grid"
-      :style="styles"
-      @click.prevent.self="createNewCrop">
+      :style="styles">
       <!-- Beds -->
       <div v-if="newBedExplain" class="new-thing-explain" @mousedown="beginNewBed">
         <h4>Click and drag to create a new Bed</h4>
@@ -108,23 +107,12 @@ export default {
       zoom: 1,
       bedSubmitted: null,
       cropEntrySubmitted: null,
-      render: true,
-      zoom: 1,
-      editingBed: false
+      editingBed: false,
+      mouseDownEv: null
     }
   },
   mounted () {
-    this.getCrops()
     fetchBeds(this)
-    // watchScreenSize(() => {
-    //   this.render = false
-    //   this.$nextTick(() => {
-    //     this.render = true
-    //     this.$nextTick(() => {
-    //       this.zoomToFull()
-    //     })
-    //   })
-    // })
   },
   computed: {
     month: {
@@ -168,17 +156,21 @@ export default {
     currentCrop () {
       return this.$store.state.crops.current
     },
-    mode () {
-      return this.$store.state.crops.mode
-    },
     currentCropEntry () {
       return this.$store.state.crop_entries.current
+    },
+    plantViewingMode () {
+      return this.$store.state.plants.mode === 'view' && this.currentPlant
     }
   },
   watch: {
-    month () {
-      this.getCrops()
-    },
+    plantViewingMode (val) {
+      if (val) {
+        this.createNewCrop()
+      } else if (!this.currentCrop) {
+        this.cancelCrop()
+      }
+    }
   },
   methods: {
     zoomToFull () {
@@ -234,7 +226,10 @@ export default {
       this.editingBed = false
       if (this.$refs.grid.querySelector('.newBed')) {
         this.$refs.grid.removeChild(this.$refs.grid.querySelector('.newBed'))
-        this.newBedExplain = false
+      }
+      this.newBedExplain = false
+      if (this.mouseDownEv) {
+        this.$refs.grid.removeEventListener('mousedown', this.mouseDownEv)
       }
       this.$store.commit('beds/setCurrentBed', null)
     },
@@ -246,7 +241,7 @@ export default {
       this.newCropExplain = true
       const newCrop = defaultCrop(this.currentPlant)
       const parent = this.$refs.grid
-      createShape(parent, 'newCrop', () => {
+      this.mouseDownEv = createShape(parent, 'newCrop', () => {
         // move
       }, (shapeRect, parentRect, zoomFactor) => {
         // mouse up
@@ -257,7 +252,7 @@ export default {
         newCrop.qty = dimensionsToQty(newCrop.width, newCrop.height, newCrop.spacing)
         if (newCrop.width > 10 && newCrop.height > 10 && newCrop.qty > 0) {
           newCrop.startMonth = this.month
-          createCrop(this, newCrop).then(response => {
+          createCrop(this, newCrop, this.month).then(response => {
             this.$store.commit('crops/setCurrentCrop', response.data.crop)
           })
         } else {
@@ -282,8 +277,11 @@ export default {
     cancelCrop () {
       if (this.$refs.grid.querySelector('.newCrop')) {
         this.$refs.grid.removeChild(this.$refs.grid.querySelector('.newCrop'))
-        this.newCropExplain = false
       }
+      if (this.mouseDownEv) {
+        this.$refs.grid.removeEventListener('mousedown', this.mouseDownEv)
+      }
+      this.newCropExplain = false
       this.$store.commit('crops/setCurrentCrop', null)
     },
     cancelCropEntry (close = false) {
