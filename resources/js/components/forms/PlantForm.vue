@@ -26,7 +26,7 @@ import { createPlant, updatePlant, uploadImage } from '../../utils/api'
 
 export default {
   name: 'PlantForm',
-  emits: ['done', 'cancel'],
+  emits: ['done'],
   data () {
     return {
       monthOptionsLong: monthOptionsLong(),
@@ -58,9 +58,6 @@ export default {
           this.$emit('done', response.data.plant)
         })
       }
-    },
-    cancel () {
-      this.$emit('cancel')
     }
   },
   computed: {

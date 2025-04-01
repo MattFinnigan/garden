@@ -17,7 +17,7 @@ class CropController extends Controller {
 
   public function byMonth($month) {
     return Crop::where(function ($query) use ($month) {
-      $query->where('startMonth', '<=', $month)->where('endMonth', '>=', $month);
+      $query->where('startMonth', '<=', $month)->where('endMonth', '>', $month);
     })->orderBy('id', 'desc')->with('plant')->get();
   }
 
@@ -91,7 +91,7 @@ class CropController extends Controller {
     }
     return response()->json([
       "status" => "success",
-      "message" => "Crop created successfully",
+      "message" => "Crop updated successfully",
       "crop" => Crop::where('id', $c->id)->first(),
       "crops" => $crops
     ]);

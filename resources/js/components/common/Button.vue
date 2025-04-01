@@ -120,7 +120,7 @@ button {
       color: $danger;
       &:hover {
         background-color: $danger;
-        color: $danger;
+        color: white;
         :deep(i) {
           background-color: $backgroundColour;
         }

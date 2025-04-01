@@ -4,10 +4,11 @@
     :class="['bed-map', { active: current.id === bed.id }, { selectable: dragging || selectionMode }, { dragging }]"
     parent-id="grid"
     :style="styles"
+    :title="`${bed.name}`"
     @mouseup.prevent.self="selectBed"
     @mouseenter="hovering = true"
     @mouseleave="hovering = false">
-    <div v-show="hovering || current.id === bed.id" class="resize-btn bottom-right" @mousedown="beginResize"></div>
+    <div v-show="hovering" class="resize-btn bottom-right" @mousedown="beginResize"></div>
   </div>
 </template>
 <script>

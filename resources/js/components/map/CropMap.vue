@@ -8,7 +8,7 @@
     @mouseup="selectCrop"
     @mouseenter="hovering = true"
     @mouseleave="hovering = false">
-    <div v-show="hovering || active" class="resize-btn bottom-right" @mousedown="beginResize"></div>
+    <div v-show="hovering" class="resize-btn bottom-right" @mousedown="beginResize"></div>
   </div>
 </template>
 <script>
@@ -23,7 +23,7 @@ export default {
       required: true
     }
   },
-  emits: ['selectCrop', 'editingCrop'],
+  emits: ['editingCrop'],
   data () {
     return {
       loading: false,
@@ -114,8 +114,11 @@ export default {
     },
     selectCrop () {
       if (!this.dragging) {
-        this.$emit('editingCrop')
-        this.$store.commit('crops/setCurrentCrop', this.crop)
+        if (this.crop.id === this.current.id) {
+          this.$store.commit('crops/setMode', 'edit')
+        } else {
+          this.$store.commit('crops/setCurrentCrop', this.crop)
+        }
       }
     }
   }
@@ -137,6 +140,9 @@ export default {
     z-index: 1000;
     background-color: $primary2;
     border: 2px dashed $textColour;
+  }
+  &.active {
+    background-color: $primary3;
   }
   &.dragging {
     cursor: grabbing;

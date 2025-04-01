@@ -2,7 +2,7 @@
 const state = () => ({
   list: [],
   current: null,
-  mode: 'edit',
+  mode: 'view',
   selectCropMode: false,
 })
 
@@ -11,25 +11,28 @@ const getters = {}
 const actions = {}
 
 const mutations = {
-  setCurrentCrop (state, crop) {
+  setCurrentCrop(state, crop) {
     state.current = crop
   },
-  setCrops (state, crops) {
+  setCrops(state, crops) {
     state.list = crops
   },
-  setCurrentCropPlant (state, id) {
+  setCurrentCropPlant(state, id) {
     state.current.plant_id = id
   },
-  setCurrentCropEntries (state, entries) {
+  setCurrentCropEntries(state, entries) {
     state.current.crop_entries = entries
   },
-  setMode (state, mode) {
+  setMode(state, mode) {
     state.mode = mode
   },
-  setCurrentCropDaysToHarvest (state, days) {
+  setCurrentCropDaysToHarvest(state, days) {
     state.current.days_to_harvest = days
   },
-  setSelectCropMode (state, mode) {
+  setCurrentCropSpacing(state, spacing) {
+    state.current.spacing = spacing
+  },
+  setSelectCropMode(state, mode) {
     state.selectCropMode = mode
   }
 }

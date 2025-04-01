@@ -10,6 +10,9 @@
       <div class="content-contain">
         <slot name="content"></slot>
       </div>
+      <div class="buttons-contain">
+        <slot name="buttons"></slot>
+      </div>
     </div>
   </div>
 </template>
@@ -65,6 +68,18 @@ export default {
         right: 0;
         top: 0;
       }
+    }
+  }
+  .buttons-contain {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 1em;
+    > * {
+      margin-left: 1em;
+    }
+    .left-btn {
+      margin-left: 0;
+      margin-right: auto;
     }
   }
 }
