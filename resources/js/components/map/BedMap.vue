@@ -1,18 +1,21 @@
 <template>
-  <div :id="'bedmap' + bed?.id || 'new'" :class="['bed-map', { active: current.id === bed.id }, { selectable: dragging || selectionMode }, { dragging }]" parent-id="grid" :style="styles" @mouseup.prevent.self="selectBed">
-    <Plant v-for="plant in plants" ref="plants" :plant="plant" :loading="loading" @updatePositions="updatePositions"/>
+  <div
+    :id="'bedmap' + bed?.id || 'new'"
+    :class="['bed-map', { active: current.id === bed.id }, { selectable: dragging || selectionMode }, { dragging }]"
+    parent-id="grid"
+    :style="styles"
+    @mouseup.prevent.self="selectBed"
+    @mouseenter="hovering = true"
+    @mouseleave="hovering = false">
+    <div v-show="hovering || current.id === bed.id" class="resize-btn bottom-right" @mousedown="beginResize"></div>
   </div>
 </template>
 <script>
-import Plant from './Plant.vue'
-import { updateCropEntry, updateBed } from '../../utils/api'
-import { clone, draggable } from '../../utils/helpers';
+import { updateBed } from '../../utils/api'
+import { clone, draggable, resizeShape } from '../../utils/helpers'
 
 export default {
   name: 'BedMap',
-  components: {
-    Plant
-  },
   props: {
     bed: {
       type: Object,
@@ -29,7 +32,8 @@ export default {
       loading: false,
       parent: null,
       dragging: false,
-      bedCopy: clone(this.bed)
+      bedCopy: clone(this.bed),
+      hovering: false
     }
   },
   mounted () {
@@ -60,17 +64,6 @@ export default {
     }
   },
   computed: {
-    plants () {
-      const res = []
-      // this.bed.crop_entries.forEach(ce => {
-      //   if (JSON.parse(ce.plant_pos)) {
-      //     JSON.parse(ce.plant_pos).forEach(plant => {
-      //       res.push({ ...plant, entry: ce })
-      //     })
-      //   }
-      // })
-      return res
-    },
     styles () {
       if (!this.parent) {
         return {}
@@ -87,6 +80,22 @@ export default {
     }
   },
   methods: {
+    beginResize () {
+      resizeShape(this.parent, this.$el, this.bed.x, this.bed.y, (move, width, height) => {
+        if (this.resizing) {
+          this.bedCopy.x = move.x
+          this.bedCopy.y = move.y
+          this.bedCopy.width = width
+          this.bedCopy.height = height
+        }
+      },
+     () => {
+        // end
+        this.resizing = false
+        this.$el.click()
+        updateBed(this, this.bed.id, { ...this.bed, width: this.bedCopy.width, height: this.bedCopy.height, x: this.bedCopy.x, y: this.bedCopy.y })
+     })
+    },
     selectBed () {
       if (!this.dragging) {
         this.$emit('editingBed')
@@ -96,22 +105,6 @@ export default {
         this.$emit('editingBed')
         this.$emit('selectBed', this.bed)
       }
-    },
-    updatePositions (entry) {
-      this.loading = true
-      const data = []
-      this.$refs.plants.forEach(plant => {
-        if (plant.plantCopy.entry.id === entry.id) {
-          data.push({
-            x: plant.plantCopy.x,
-            y: plant.plantCopy.y,
-          })
-        }
-      })
-      this.loading = false
-      updateCropEntry(this, entry.id, { ...entry, plant_pos: JSON.stringify(data) }, false).then(response => {
-        this.loading = false
-      })
     }
   },
 }
@@ -121,6 +114,10 @@ export default {
 .bed-map {
   position: absolute;
   background: $secondary;
+  > :not(.resize-btn) {
+    pointer-events: none;
+    user-select: none;
+  }
   &:hover {
     cursor: pointer;
   }
@@ -131,6 +128,51 @@ export default {
   }
   &.dragging {
     cursor: grabbing;
+  }
+  :deep(.shapeWidth),
+  :deep(.shapeHeight) {
+    position: absolute;
+    color: $textColour;
+    padding: 0.25em 0.5em;
+    font-size: $fsSmall;
+  }
+  :deep(.shapeWidth) {
+    top: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  :deep(.shapeHeight) {
+    left: -45px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  .resize-btn {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background-color: white;
+    border: 1px solid $textColour;
+    z-index: 1001;
+    &.top-left {
+      top: -5px;
+      left: -5px;
+      cursor: nwse-resize;
+    }
+    &.top-right {
+      top: -5px;
+      right: -5px;
+      cursor: nesw-resize;
+    }
+    &.bottom-left {
+      bottom: -5px;
+      left: -5px;
+      cursor: nesw-resize;
+    }
+    &.bottom-right {
+      bottom: -5px;
+      right: -5px;
+      cursor: nwse-resize;
+    }
   }
 }
 </style>

@@ -1,10 +1,19 @@
 <template>
-  <div :class="['crop-map', { active: current.id === crop.id }, { selectable: dragging }, { dragging }]" parent-id="grid" :style="styles" @mouseup="selectCrop">
+  <div
+    :class="['crop-map',
+    { active }, { selectable: dragging }, { dragging }]"
+    parent-id="grid"
+    :style="styles"
+    :title="`${crop.plant.name}&#013;${cropWidth}m x ${cropHeight}m (${crop.qty})`"
+    @mouseup="selectCrop"
+    @mouseenter="hovering = true"
+    @mouseleave="hovering = false">
+    <div v-show="hovering || active" class="resize-btn bottom-right" @mousedown="beginResize"></div>
   </div>
 </template>
 <script>
 import { updateCrop } from '../../utils/api'
-import { clone, draggable, fillWithImages } from '../../utils/helpers'
+import { clone, debounce, draggable, fillWithImages, resizeShape } from '../../utils/helpers'
 
 export default {
   name: 'CropMap',
@@ -20,7 +29,10 @@ export default {
       loading: false,
       parent: null,
       dragging: false,
-      cropCopy: clone(this.crop)
+      cropCopy: clone(this.crop),
+      hovering: false,
+      showDetails: false,
+      resizing: false
     }
   },
   mounted () {
@@ -46,7 +58,14 @@ export default {
         this.cropCopy = clone(val)
       },
       deep: true
-    }
+    },
+    hovering (val) {
+      if (val) {
+        debounce(() => { this.showDetails = true }, 1000)()
+      } else {
+        this.showDetails = false
+      }
+    },
   },
   computed: {
     styles () {
@@ -65,9 +84,34 @@ export default {
     },
     month () {
       return this.$store.state.maps.month || null
+    },
+    active () {
+      return this.crop.id === this.current.id
+    },
+    cropWidth () {
+      return (this.crop.width / 100).toFixed(1)
+    },
+    cropHeight () {
+      return (this.crop.height / 100).toFixed(1)
     }
   },
   methods: {
+    beginResize () {
+      resizeShape(this.parent, this.$el, this.crop.x, this.crop.y, (move, width, height) => {
+        if (this.resizing) {
+          this.cropCopy.x = move.x
+          this.cropCopy.y = move.y
+          this.cropCopy.width = width
+          this.cropCopy.height = height
+        }
+      },
+     (shapeRect, parentRect) => {
+        // end
+        this.resizing = false
+        this.$el.click()
+        updateCrop(this, this.crop.id, { ...this.crop, width: shapeRect.width, height: shapeRect.height, month: this.month })
+     }, { image: '/images/upload/' + this.crop.plant.image, spacing: this.crop.spacing })
+    },
     selectCrop () {
       if (!this.dragging) {
         this.$emit('editingCrop')
@@ -82,6 +126,10 @@ export default {
 .crop-map {
   position: absolute;
   border: 1px solid $textColour;
+  > :not(.resize-btn) {
+    pointer-events: none;
+    user-select: none;
+  }
   &:hover {
     cursor: pointer;
   }
@@ -92,6 +140,66 @@ export default {
   }
   &.dragging {
     cursor: grabbing;
+  }
+  :deep(.shapeWidth),
+  :deep(.shapeHeight),
+  :deep(.shapeQty) {
+    position: absolute;
+    color: $textColour;
+    padding: 0.25em 0.5em;
+    font-size: $fsSmall;
+  }
+  :deep(.shapeWidth) {
+    top: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  :deep(.shapeHeight) {
+    left: -45px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  :deep(.shapeQty) {
+    right: -50px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  .resize-btn {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background-color: white;
+    border: 1px solid $textColour;
+    z-index: 1001;
+    &.top-left {
+      top: -5px;
+      left: -5px;
+      cursor: nwse-resize;
+    }
+    &.top-right {
+      top: -5px;
+      right: -5px;
+      cursor: nesw-resize;
+    }
+    &.bottom-left {
+      bottom: -5px;
+      left: -5px;
+      cursor: nesw-resize;
+    }
+    &.bottom-right {
+      bottom: -5px;
+      right: -5px;
+      cursor: nwse-resize;
+    }
+  }
+  &:hover::after {
+    display: block;
+    position: absolute;
+    content: attr(data-tooltip);
+    background-color: white;
+    border: 1px solid $textColour;
+    padding: 5px;
+    font-size: $fsSmall;
   }
 }
 </style>

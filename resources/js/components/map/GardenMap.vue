@@ -176,7 +176,7 @@ export default {
     }
   },
   watch: {
-    month (val) {
+    month () {
       this.getCrops()
     },
   },

@@ -3,6 +3,19 @@ export const clone = (obj) => {
   return JSON.parse(JSON.stringify(obj))
 }
 
+export const debounce = (func, delay) => {
+  let timeoutId = null
+  return function (...args) {
+    if (timeoutId) {
+      clearTimeout(timeoutId)
+    }
+    timeoutId = setTimeout(() => {
+      func.apply(this, args)
+      timeoutId = null
+    }, delay)
+  }
+}
+
 export const isEmpty = (obj) => {
   return Object.keys(obj).length === 0
 }
@@ -261,4 +274,82 @@ export const fillWithImages = (width, height, el, imgFill) => {
     el.appendChild(img)
   }
   return num
+}
+
+export const resizeShape = (parent, el, x, y, mouseMoveCallback, mouseUpCallback, imgFill = null) => {
+  let shape = el
+  let startX = x
+  let startY = y
+
+  const onMouseMove = (e) => {
+    const parentRect = parent.getBoundingClientRect()
+    // Calculate the current mouse position relative to the parent
+    const currentX = Math.min(
+      parentRect.width,
+      Math.max(0, (e.clientX - parentRect.left))
+    )
+    const currentY = Math.min(
+      parentRect.height,
+      Math.max(0, (e.clientY - parentRect.top))
+    )
+
+    // Calculate width and height of the shape
+    const width = Math.abs(currentX - startX)
+    const height = Math.abs(currentY - startY)
+    // Update shape dimensions and position
+    debounce(() => {
+      if (shape) {
+        shape.style.width = `${width}px`
+        shape.style.height = `${height}px`
+        shape.style.left = `${Math.min(startX, currentX)}px`
+        shape.style.top = `${Math.min(startY, currentY)}px`
+      }
+    }, 200)()
+    // inject images into the shape
+    if (imgFill) {
+      const num = fillWithImages(width, height, shape, imgFill)
+      // insert text at the mouse position
+      if (!shape.querySelector('div.shapeQty')) {
+        const text = document.createElement('div')
+        text.className = 'shapeQty'
+        text.innerText = `x${num}`
+        shape.appendChild(text)
+      } else {
+        shape.querySelector('div.shapeQty').innerText = `x${num}`
+      }
+    }
+    // update the width and height text
+    if (!shape.querySelector('.shapeWidth')) {
+      const shapeWidth = document.createElement('div')
+      shapeWidth.className = 'shapeWidth'
+      shape.appendChild(shapeWidth)
+    }
+    if (!shape.querySelector('.shapeHeight')) {
+      const shapeHeight = document.createElement('div')
+      shapeHeight.className = 'shapeHeight'
+      shape.appendChild(shapeHeight)
+    }
+    shape.querySelector('.shapeWidth').innerText = `${(width / 100).toFixed(1)}m`
+    shape.querySelector('.shapeHeight').innerText = `${(height / 100).toFixed(1)}m`
+    mouseMoveCallback(shape, width, height)
+  }
+
+  const onMouseUp = () => {
+    document.removeEventListener('mousemove', onMouseMove)
+    document.removeEventListener('mouseup', onMouseUp)
+
+    const shapeRect = shape.getBoundingClientRect()
+    const parentRect = parent.getBoundingClientRect()
+
+    shape.querySelector('.shapeWidth').remove()
+    shape.querySelector('.shapeHeight').remove()
+    if (shape.querySelector('.shapeQty')) {
+      shape.querySelector('.shapeQty').remove()
+    }
+
+    mouseUpCallback(shapeRect, parentRect)
+    shape = null
+  }
+  document.addEventListener('mousemove', onMouseMove)
+  document.addEventListener('mouseup', onMouseUp)
 }
