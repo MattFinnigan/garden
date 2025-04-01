@@ -137,7 +137,7 @@ export default {
     cursor: pointer;
   }
   &.selectable {
-    z-index: 1000;
+    z-index: 10;
     background-color: $primary2;
     border: 2px dashed $textColour;
   }

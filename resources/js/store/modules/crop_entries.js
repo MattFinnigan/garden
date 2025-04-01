@@ -1,6 +1,6 @@
 
 const state = () => ({
-  list: [],
+  entriesList: null,
   current: null
 })
 
@@ -9,31 +9,34 @@ const getters = {}
 const actions = {}
 
 const mutations = {
-  setCurrentCropEntry (state, entry) {
+  setCropEntries(state, entries) {
+    state.entriesList = entries
+  },
+  setCurrentCropEntry(state, entry) {
     state.current = entry
   },
-  setCurrentCropEntryBed (state, id) {
+  setCurrentCropEntryBed(state, id) {
     state.current.bed_id = id
   },
-  setCurrentCropEntryAction (state, action) {
+  setCurrentCropEntryAction(state, action) {
     state.current.action = action
   },
-  setCurrentCropEntryStage (state, stage) {
+  setCurrentCropEntryStage(state, stage) {
     state.current.stage = stage
   },
-  setCurrentCropEntryQty (state, qty) {
+  setCurrentCropEntryQty(state, qty) {
     state.current.qty = qty
   },
-  setCurrentCropEntryNotes (state, notes) {
+  setCurrentCropEntryNotes(state, notes) {
     state.current.notes = notes
   },
-  setCurrentCropEntryImage (state, image) {
+  setCurrentCropEntryImage(state, image) {
     state.current.image = image
   },
-  setCurrentCropEntryDatetimestamp (state, date) {
+  setCurrentCropEntryDatetimestamp(state, date) {
     state.current.datetimestamp = date
   },
-  setCurrentCropEntryPlantPos (state, position) {
+  setCurrentCropEntryPlantPos(state, position) {
     state.current.plant_pos = position
   }
 }

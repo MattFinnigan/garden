@@ -7,7 +7,7 @@
 @use './partials/_devices.scss' as *;
 
 * {
-  -webkit-font-smoothing: antialiased; 
+  -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-family: $ffRoboto;
   font-size: $fsBody;
@@ -20,39 +20,58 @@ small {
   font-size: $fsSmall;
 }
 
-h1, h2, h3, h4, h5 {
+h1,
+h2,
+h3,
+h4,
+h5 {
   margin: 0;
   padding: 0;
   font-family: $ffInter;
 }
-h1, h2, h3 {
+
+h1,
+h2,
+h3 {
   font-weight: 700;
 }
+
 h1 {
   font-size: $fsH1;
 }
+
 h2 {
   font-size: $fsH2;
 }
+
 h3 {
   font-size: $fsH3;
 }
+
 h4 {
   font-size: $fsH4;
 }
+
 h5 {
   font-size: $fsH5;
 }
+
 small {
   font-size: $fsSmall;
 }
+
 label {
   font-size: $fsBody;
   font-weight: 600;
   margin-right: 20px;
 }
+
 strong {
   font-weight: 700;
+}
+
+.text-center {
+  text-align: center;
 }
 
 // p {

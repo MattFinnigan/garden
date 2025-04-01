@@ -9,6 +9,7 @@
         <Button icon :class="['icon', { accent: viewing === 'plants' }]" @click="viewing = 'plants'"><Icon colour="black" name="seedling" maskSize="22px" size="1.4em"></Icon>Plants</Button>
         <Button icon :class="['icon', { accent: viewing === 'crops' }]" @click="viewing = 'crops'"><Icon colour="black" name="view" maskSize="22px" size="1.4em"></Icon>Crops</Button>
       </div>
+      <!-- List items -->
       <div class="list-items">
         <ListItem
           v-show="viewing === 'plants'"
@@ -59,6 +60,8 @@
         </div>
       </div>
     </nav>
+    <!-- Modals -->
+    <!-- Plant form Modal -->
     <Modal v-if="editingPlant" @close="cancelPlant">
       <template #header>
         <h5>Create a new Plant </h5>
@@ -72,6 +75,7 @@
         </PlantForm>
       </template>
     </Modal>
+    <!-- Crop form Modal -->
     <Modal v-if="editingCrop" @close="cancelCrop">
       <template #header>
         <h5>Edit Crop</h5>
@@ -80,25 +84,67 @@
       <template #content>
         <CropForm @done="cropSubmitted">
           <template #buttons>
+            <Button class="secondary outline" @click="showCropEntries">See Entries</Button>
             <Button class="primary" type="submit">Done</Button>
           </template>
         </CropForm>
       </template>
     </Modal>
+    <!-- Crop entry form Modal -->
+    <Modal v-if="editingCropEntry" @close="cancelCropEntries">
+      <template #header>
+        <h5>Crop Entry</h5>
+        <p>Let's add a Crop Entry</p>
+      </template>
+      <template #content>
+        <CropEntryForm @done="cropSubmitted">
+          <template #buttons>
+            <Button class="secondary outline" @click="showCropEntries">Back to Entries</Button>
+            <Button class="primary" type="submit">Done</Button>
+          </template>
+        </CropEntryForm>
+      </template>
+    </Modal>
+    <!-- Crop entries list Modal -->
+    <Modal v-else-if="cropEntries !== null" @close="cancelCropEntries">
+      <template #header>
+        <h5>Crop "{{ currentCrop.plant.name }} #{{ currentCrop.id }}" Entries</h5>
+        <p>Find entries & add new ones</p>
+      </template>
+      <template #content>
+        <div class="top-row">
+          <Button classes="primary icon sm" @click="newEntry"><Icon name="plus"></Icon></Button>
+        </div>
+        <Table
+          v-show="cropEntriesMapped.length > 0"
+          :headers="cropEntryHeaders"
+          :rows="cropEntriesMapped"
+          :actions="{ delete: true }"
+          @delete="(cropEntry) => { deleteCropEntry(cropEntry) }">
+        </Table>
+        <div v-show="cropEntriesMapped.length === 0" class="empty-state">
+          <Icon name="empty" size="4em" colour="grey-300"/>
+          <p class="text-center"><em>Looks like you haven't added any Crop Entries for this month.</em></p>
+        </div>
+      </template>
+    </Modal>
+    <!-- Delete confirmation Modal -->
     <Modal v-if="deleteConfirm" @close="deleteConfirm = null">
       <template #header>
-        <h5>Delete {{ deleteConfirm }}</h5>
-        <p>Are you sure you want to delete this {{ deleteConfirm }}?</p>
+        <h5>Delete {{ deleteConfirm.name }}</h5>
+        <p>Are you sure you want to delete this {{ deleteConfirm.name }}?</p>
       </template>
       <template #content>
         <p>This action cannot be undone.</p>
       </template>
       <template #buttons>
         <Button class="danger outline" @click="() => {
-          if (deleteConfirm === 'plant') {
+          if (deleteConfirm.name === 'Plant') {
             deletePlant(currentPlant, true)
-          } else {
+          } else if (deleteConfirm.name === 'Crop') {
             deleteCrop(currentCrop, true)
+          } else {
+            deleteCropEntry(deleteConfirm.obj, true)
           }
         }">Yes</Button>
         <Button class="danger" @click="deleteConfirm = null">No</Button>
@@ -108,16 +154,19 @@
 </template>
 
 <script>
-import { monthsShort, monthOptionsLong } from '../../utils/consts'
-import { fetchPlants, fetchCrops, deleteCrop, deletePlant, createPlant } from '../../utils/api'
+import { monthsShort, monthOptionsLong, defaultCropEntry } from '../../utils/consts'
+import { fetchPlants, fetchCrops, deleteCrop, deletePlant, createPlant, deleteCropEntry} from '../../utils/api'
 import ListItem from '../layout/ListItem.vue'
 import PlantForm from '../forms/PlantForm.vue'
 import CropForm from '../forms/CropForm.vue'
+import CropEntryForm from '../forms/CropEntryForm.vue'
+
 export default {
   components: {
     PlantForm,
     ListItem,
-    CropForm
+    CropForm,
+    CropEntryForm
   },
   data () {
     return {
@@ -125,7 +174,8 @@ export default {
       monthsShort: monthsShort(),
       viewing: 'plants',
       mode: 'view',
-      deleteConfirm: null
+      deleteConfirm: null,
+      cropEntryHeaders: [{ label: 'Date', key: 'datetimestamp' }, { label: 'Stage', key: 'stage' }, { label: 'Action', key: 'action' }, { label: 'Notes', key: 'notes' }]
     }
   },
   mounted () {
@@ -154,6 +204,23 @@ export default {
     },
     cropEditingMode () {
       return this.$store.state.crops.mode === 'edit'
+    },
+    cropEntries () {
+      return this.$store.state.crop_entries.entriesList
+    },
+    cropEntriesMapped () {
+      return this.cropEntries.map(cropEntry => {
+        return {
+          id: cropEntry.id,
+          stage: `${cropEntry.stage}`,
+          action: cropEntry.action,
+          datetimestamp: new Date(cropEntry.datetimestamp).toLocaleDateString(),
+          notes: cropEntry.notes
+        }
+      })
+    },
+    editingCropEntry () {
+      return this.cropEntries !== null && this.$store.state.crop_entries.current
     },
     month: {
       get () {
@@ -207,11 +274,16 @@ export default {
           this.deleteConfirm = null
         })
       } else {
-        this.deleteConfirm = 'crop'
+        this.deleteConfirm = {
+          name: 'Crop',
+          obj: crop
+        }
       }
     },
     cropSubmitted (crop) {
       // refresh crop list
+      this.$store.commit('crop_entries/setCropEntries', null)
+      this.$store.commit('crop_entries/setCurrentCropEntry', null)
       this.$store.commit('crops/setCurrentCrop', null)
       this.$store.commit('crops/setCrops', [])
       fetchCrops(this, this.month).then(() => {
@@ -219,6 +291,31 @@ export default {
         this.mode = 'view'
         this.$store.commit('crops/setMode', 'view')
       })
+    },
+    showCropEntries () {
+      this.cancelCrop()
+      this.$store.commit('crop_entries/setCurrentCropEntry', null)
+      this.$store.commit('crop_entries/setCropEntries', this.currentCrop.crop_entries)
+    },
+    cancelCropEntries () {
+      this.$store.commit('crop_entries/setCropEntries', null)
+      this.$store.commit('crop_entries/setCurrentCropEntry', null)
+    },
+    deleteCropEntry (entry, confirmed = false) {
+      if (confirmed) {
+        deleteCropEntry(this, entry.id).then((response) => {
+          this.deleteConfirm = null
+          this.$store.commit('crop_entries/setCropEntries', response.data.crop.crop_entries)
+        })
+      } else {
+        this.deleteConfirm = {
+          name: 'Crop Entry',
+          obj: entry
+        }
+      }
+    },
+    newEntry () {
+      this.$store.commit('crop_entries/setCurrentCropEntry', defaultCropEntry(this.currentCrop))
     },
     selectPlant (plant) {
       this.$store.commit('plants/setCurrentPlant', plant)
@@ -248,7 +345,10 @@ export default {
           this.deleteConfirm = null
         })
       } else {
-        this.deleteConfirm = 'plant'
+        this.deleteConfirm = {
+          name: 'Plant',
+          obj: plant
+        }
       }
     }
   }
@@ -303,6 +403,12 @@ aside {
         }
       }
     }
+  }
+  .top-row {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 10px;
   }
   @include device (desktop, 'all') {
     nav {

@@ -15,7 +15,7 @@ const defaultCrop = (plant = null) => {
   }
 }
 
-const defaultCropEntry = (bed = null, crop = null) => {
+const defaultCropEntry = (crop = null) => {
   return {
     action: 'Planned',
     stage: 'Planned',
