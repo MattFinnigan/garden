@@ -23,7 +23,7 @@ export default {
 .landing {
   display: flex;
   > aside {
-    flex: 0 0 200px;
+    flex: 0 0 255px;
   }
   > div {
     flex: 1;

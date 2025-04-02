@@ -14,7 +14,7 @@
         <ListItem
           v-show="viewing === 'plants'"
           v-for="plant in plants"
-          :key="plant.id"
+          :key="'plant' + plant.id"
           :highlight="plant.id === currentPlant?.id"
           @selected="selectPlant(plant)">
           <template #image>
@@ -36,7 +36,7 @@
         <ListItem
           v-show="viewing === 'crops'"
           v-for="crop in crops"
-          :key="crop.id"
+          :key="'crop' + crop.id"
           :highlight="crop.id === currentCrop?.id"
           @selected="selectCrop(crop)">
           <template #image>
@@ -397,8 +397,9 @@ export default {
 <style lang="scss" scoped>
 aside {
   transition: all 0.3s;
-  height: calc(100vh - 55px);
+  max-height: calc(100vh - 55px);
   position: relative;
+  overflow-y:scroll;
   nav {
     border: 1px solid $grey-200;
     width: 100%;
@@ -429,8 +430,6 @@ aside {
     }
     .list-items {
       margin-bottom: 10px;
-      max-height: 375px;
-      overflow-y: scroll;
       .add-button {
         display: flex;
         justify-content: flex-end;
