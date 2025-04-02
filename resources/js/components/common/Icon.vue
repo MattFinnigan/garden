@@ -80,5 +80,8 @@ export default {
     &.seedling {
       mask-image: url('/images/seedling.svg');
     }
+    &.info {
+      mask-image: url('/images/info.svg');
+    }
   }
 </style>

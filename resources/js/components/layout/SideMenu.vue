@@ -91,22 +91,21 @@
       </template>
     </Modal>
     <!-- Crop entry form Modal -->
-    <Modal v-if="editingCropEntry" @close="cancelCropEntries">
+    <Modal v-if="editingCropEntry" cancelText="Back" @close="showCropEntries">
       <template #header>
         <h5>Crop Entry</h5>
         <p>Let's add a Crop Entry</p>
       </template>
       <template #content>
-        <CropEntryForm @done="cropSubmitted">
+        <CropEntryForm @done="(crop) => { cropSubmitted(crop, true) }">
           <template #buttons>
-            <Button class="secondary outline" @click="showCropEntries">Back to Entries</Button>
             <Button class="primary" type="submit">Done</Button>
           </template>
         </CropEntryForm>
       </template>
     </Modal>
     <!-- Crop entries list Modal -->
-    <Modal v-else-if="cropEntries !== null" @close="cancelCropEntries">
+    <Modal v-else-if="cropEntries !== null && !currEntryImages" @close="cancelCropEntries">
       <template #header>
         <h5>Crop "{{ currentCrop.plant.name }} #{{ currentCrop.id }}" Entries</h5>
         <p>Find entries & add new ones</p>
@@ -120,6 +119,7 @@
           :headers="cropEntryHeaders"
           :rows="cropEntriesMapped"
           :actions="{ delete: true }"
+          @openImageModal="(cropEntry) => { openImageModal(cropEntry) }"
           @delete="(cropEntry) => { deleteCropEntry(cropEntry) }">
         </Table>
         <div v-show="cropEntriesMapped.length === 0" class="empty-state">
@@ -149,6 +149,19 @@
         <Button class="danger" @click="cancelDelete">No</Button>
       </template>
     </Modal>
+    <Modal v-if="currEntryImages !== null" cancelText="Back" @close="currEntryImages = null">
+      <template #header>
+        <h5>Crop Entry Images</h5>
+      </template>
+      <template #content>
+        <div class="image-grid">
+          <img v-for="(image, index) in currEntryImages" :key="index" :src="'./images/upload/' + image.name" :alt="image.name">
+        </div>
+        <div v-if="!currEntryImages.length" class="empty-content">
+          <p class="text-center"><em>Looks like you didn't add any images.</em></p>
+        </div>
+      </template>
+    </Modal>
   </aside>
 </template>
 
@@ -173,7 +186,14 @@ export default {
       monthsShort: monthsShort(),
       viewing: 'plants',
       deleteConfirm: null,
-      cropEntryHeaders: [{ label: 'Date', key: 'datetimestamp' }, { label: 'Stage', key: 'stage' }, { label: 'Action', key: 'action' }, { label: 'Notes', key: 'notes' }]
+      cropEntryHeaders: [
+        { label: 'Date', key: 'datetimestamp' },
+        { label: 'Stage', key: 'stage' },
+        { label: 'Action', key: 'action' },
+        { label: 'Notes', key: 'notes' },
+        { label: 'Images', key: 'images', action: 'openImageModal', icon: 'view' }
+      ],
+      currEntryImages: null
     }
   },
   mounted () {
@@ -215,7 +235,8 @@ export default {
           stage: `${cropEntry.stage}`,
           action: cropEntry.action,
           datetimestamp: new Date(cropEntry.datetimestamp).toLocaleDateString(),
-          notes: cropEntry.notes
+          notes: cropEntry.notes,
+          images: cropEntry.images
         }
       })
     },
@@ -278,15 +299,21 @@ export default {
         this.$store.commit('crops/setMode', 'delete')
       }
     },
-    cropSubmitted (crop) {
+    cropSubmitted (crop, backToList = false) {
       // refresh crop list
-      this.$store.commit('crop_entries/setCropEntries', null)
       this.$store.commit('crop_entries/setCurrentCropEntry', null)
-      this.$store.commit('crops/setCurrentCrop', null)
-      this.$store.commit('crops/setCrops', [])
+      if (!backToList) {
+        this.$store.commit('crop_entries/setCropEntries', null)
+        this.$store.commit('crops/setCurrentCrop', null)
+        this.$store.commit('crops/setCrops', [])
+      }
       fetchCrops(this, this.month).then(() => {
-        this.$store.commit('crops/setCurrentCrop', crop)
-        this.$store.commit('crops/setMode', 'view')
+        if (!backToList) {
+          this.$store.commit('crops/setCurrentCrop', crop)
+          this.$store.commit('crops/setMode', 'view')
+        } else {
+          this.$store.commit('crop_entries/setCropEntries', crop.crop_entries)
+        }
       })
     },
     selectPlant (plant) {
@@ -351,6 +378,9 @@ export default {
           obj: entry
         }
       }
+    },
+    openImageModal (cropEntry) {
+      this.currEntryImages = cropEntry.images
     },
     newEntry () {
       this.$store.commit('crop_entries/setCurrentCropEntry', defaultCropEntry(this.currentCrop))
@@ -419,6 +449,17 @@ aside {
     justify-content: flex-end;
     align-items: center;
     padding: 10px;
+  }
+  .image-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 10px;
+    img {
+      width: 100%;
+      height: auto;
+      border-radius: 10px;
+      cursor: pointer;
+    }
   }
   @include device (desktop, 'all') {
     nav {

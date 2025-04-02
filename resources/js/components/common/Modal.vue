@@ -4,7 +4,7 @@
       <div class="header-contain">
         <slot name="header"></slot>
         <div class="cancel">
-          <Button classes="link outline primary" @click="$emit('close')">Cancel</Button>
+          <Button classes="link outline primary" @click="$emit('close')">{{ cancelText }}</Button>
         </div>
       </div>
       <div class="content-contain">
@@ -21,6 +21,12 @@
 export default {
   name: 'Modal',
   emits: ['close'],
+  props: {
+    cancelText: {
+      type: String,
+      default: 'Cancel'
+    }
+  },
   mounted () {
     document.addEventListener('keydown', this.closeOnEscape)
   },

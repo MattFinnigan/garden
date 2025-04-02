@@ -1,16 +1,5 @@
 <template>
   <div class="garden-map">
-    <!-- <div class="controls-row">
-      <div class="date-select">
-        <Button class="icon secondary" @click="removeDays(7)"><Icon name="rewind" size="16px" maskSize="15px"></Icon></Button>
-        <Button class="icon secondary" @click="removeDays(1)"><Icon name="play reverse"></Icon></Button>
-        <Button class="icon secondary" @click="addDays(1)"><Icon name="play"></Icon></Button>
-        <Button class="icon secondary" @click="addDays(7)"><Icon name="rewind reverse" size="16px" maskSize="15px"></Icon></Button>
-      </div>
-        <Button class="primary outline icon" @click="zoomToFull"><Icon name="zoomin" colour="primary" maskSize="15px" size="14px"></Icon></Button> 
-        <Button class="primary outline icon" @click="zoom += 0.1"><Icon name="zoomin" colour="primary" maskSize="15px" size="14px"></Icon></Button>
-        <Button class="primary outline icon" @click="zoom -= 0.1"><Icon name="zoomout" colour="primary" maskSize="15px" size="14px"></Icon></Button>
-    </div> -->
     <!-- Bed & crop placements -->
     <div
       id="grid" 
@@ -31,7 +20,6 @@
       </div>
       <CropMap v-for="crop in crops" :key="'crop' + crop.id" :crop="crop"/>
     </div>
-    <!-- <Crops v-else-if="!loading" :embedded="true"></Crops> -->
      <!-- Bed Form -->
     <Modal v-if="currentBed && editingBed" @close="cancelBed()">
       <template #header>
@@ -46,36 +34,12 @@
         </BedsForm>
       </template>
     </Modal>
-    <!-- <Modal v-if="currentCropEntry && currentBed && mode === 'edit'" v-show="!currentPlant" @close="cancelCropEntry">
-      <template #header>
-        <h5>Create a new Crop {{ currentCropEntry.crop_id ? 'Entry' : '' }}</h5>
-        <p v-if="!currentCropEntry.crop_id">You've selected a bed. Now let's add a Crop with it's first Entry</p>
-        <p v-else>Add a new Entry to this Crop</p>
-      </template>
-      <template #content>
-        <CropEntryForm @done="cropEntrySubmitted()" @remove="removeCropEntry" @createPlant="">
-          <template #buttons>
-            <Button v-if="editingBed" type="submit" classes="secondary2" @click="cropEntrySubmitted = createNewCrop">Submit & create another</Button>
-            <Button class="primary" type="submit" @click="cropEntrySubmitted = cancelCropEntry">Done</Button>
-          </template>
-        </CropEntryForm>
-      </template>
-    </Modal>
-    <Modal v-if="currentCrop && mode !== 'edit'" @close="cancelCropEntry(true)">
-      <template #header>
-        <h5>Crop #{{ currentCrop.id }} - {{ currentCrop.plant.name }}</h5>
-        <p>Select & view a crop entry for more details.</p>
-      </template>
-      <template #content>
-        <Crop :embedded="true" @new="createNewCrop(false)" @close="cancelCropEntry(true)"></Crop>
-      </template>
-    </Modal> -->
   </div>
 </template>
 
 <script>
 import { fetchCrops, fetchBeds, createCrop, deleteCropEntry } from '../../utils/api'
-import { watchScreenSize, createShape, dimensionsToQty } from '../../utils/helpers'
+import { createShape, dimensionsToQty } from '../../utils/helpers'
 import { defaultCrop, defaultBed } from '../../utils/consts'
 
 import BedMap from './BedMap.vue'

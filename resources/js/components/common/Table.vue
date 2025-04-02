@@ -16,7 +16,10 @@
       <tbody>
         <tr v-for="(row, i) in rows" :key="row.id || i">
           <td v-for="header in headers" :key="header.key">
-            <span v-html="header.key === 'num' ? i + 1 : row[header.key]"></span>
+            <Button v-if="header.action" class="sm icon secondary" @click="$emit(header.action, row)">
+              <Icon :name="header.icon"></Icon>
+            </Button>
+            <span v-else v-html="header.key === 'num' ? i + 1 : row[header.key]"></span>
           </td>
           <td v-if="actions" class="action-buttons">
             <Button v-if="actions.view" classes="sm secondary3 icon" @click="$emit('view', row, i)"><Icon name="view"></Icon></Button>
@@ -46,6 +49,7 @@
 
 <script>
 export default {
+  emits: ['view', 'edit', 'delete', 'openImageModal'],
   name: 'TableComponent',
   props: {
     headers: Array,

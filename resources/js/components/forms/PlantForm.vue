@@ -10,7 +10,7 @@
         <Input v-model.number="spacing" type="number" label="Spacing" min="0" max="9999" suffix="&nbsp;cm" required/>
         <Input type="textarea" v-model="description" label="Notes" maxlength="255"/>
         <Input v-if="image" type="file" label="Image" @change="uploadImage"/>
-        <Input v-else type="file" label="Image" @change="uploadImage" required/>
+        <Input v-else type="file" label="Icon" @change="uploadImage" required/>
         <img v-if="image" :src="'./images/upload/' + image"/>
       </template>
       <template #buttons>

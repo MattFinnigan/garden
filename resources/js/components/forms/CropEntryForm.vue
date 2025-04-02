@@ -113,7 +113,7 @@ export default {
       this.loading = true
       this.error = null
       createCropEntry(this, this.currentCrop.id, this.current).then(res => {
-        this.$emit('done')
+        this.$emit('done', res.data.crop)
       })
       .catch(err => {
         this.error = err.response?.data?.message || 'An error occurred'
